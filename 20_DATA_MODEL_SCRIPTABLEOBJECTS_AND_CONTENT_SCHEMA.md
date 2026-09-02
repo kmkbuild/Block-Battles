@@ -164,16 +164,26 @@ POCO class serialized to JSON. Does not use Unity `ScriptableObjects`.
 ```csharp
 [System.Serializable]
 public class RunSaveData {
+    // Run State
     public string runSeed;
+    public int rngStateCalls; // Number of RNG calls consumed (deterministic continuation)
     public int currentFloor;
     public int currentStardust;
-    public List<string> unlockedRelicIDs;
-    public List<string> activeRelicIDs;
+    public List<string> activeRelicIDs; // unlockedRelicIDs belong in MetaSaveData
     
-    // Mid-battle state (if saving mid-run is supported)
-    public int[] currentBoardState; // 64 integers (one per cell, row-major). Each integer encodes both Occupancy and Cell Modifier compactly. Encoding authority: `03_BOARD_ENGINE_AND_RULES.md` Section 3. Mutable runtime state only — NOT a ScriptableObject field.
+    // Battle State (for exact mid-run restoration)
+    public string currentEnemyID;
     public int currentEnemyHP;
-    public int remainingMoves;
+    public int enemyActionCounter;
+    public string telegraphedEnemyActionID;
+    
+    public int[] currentBoardState; // 64 integers (Occupancy + Modifier). Auth: `03` Sec 3.
+    public List<string> currentTrayShapeIDs; // Length 0-3, shapes currently available
+    
+    public int turnCounter;
+    public int remainingMoves; // If applicable to current objective
+    public int currentCombo;
+    public int objectiveProgress; // Cumulative lines, etc.
 }
 ```
 

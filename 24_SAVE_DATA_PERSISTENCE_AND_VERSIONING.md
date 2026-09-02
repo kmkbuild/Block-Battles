@@ -27,9 +27,9 @@ However, we MUST aggressively protect the save file against **accidental corrupt
 - **IAP Status:** `hasPurchasedPremiumUnlock` boolean.
 
 ### B. Current Run State (Resumability)
-- **Run Metadata:** Seed, current floor/battle index, current active Relics.
-- **Battle State:** Remaining moves, Enemy HP.
-- **Board State:** 64-element integer array representing the 8x8 grid contents.
+- **Run Metadata:** Seed, current floor/battle index, current active Relics, and **RNG State calls consumed**. (The original seed alone does NOT guarantee exact mid-run restoration; the exact number of times the RNG was polled must be saved to advance the RNG back to its exact mid-run state).
+- **Battle State:** Current enemy ID, Enemy HP, remaining moves, turn counter, enemy action counter, telegraphed enemy action ID, current combo, objective progress.
+- **Board State:** 64-element integer array representing the 8x8 grid contents (both Occupancy and Modifier).
 - **Tray State:** The IDs of the currently available shapes in the 3 tray slots.
 
 ### C. Settings & Preferences
@@ -39,7 +39,7 @@ However, we MUST aggressively protect the save file against **accidental corrupt
 
 ## 3. What Must NOT Be Saved
 
-- **Mid-Animation States:** The game never saves during the `RESOLVING_COMBAT` or `WAITING_FOR_ANIM` states. If the game crashes while a piece is exploding, it reloads to the beginning of the turn.
+- **Mid-Animation States:** Because the Domain resolves the entire turn's math in Frame 1 and immediately saves the result (`Section 8`), the game never "saves during an animation". If the game crashes while a piece is visually exploding, it reloads to the state *after* the turn resolved (the animation is simply skipped). This prevents save-scumming.
 - **Ghost Preview Data:** Position of a dragged piece is discarded.
 - **Particle System Data:** Do not serialize VFX transforms.
 
@@ -101,16 +101,36 @@ To prevent a crash mid-write from wiping the player's history, ALL disk writes m
 
 ## 8. Save Frequency
 
-Frequent saving is required for mobile.
-1. **On Run Start:** After seed generation.
-2. **On Battle Start:** After the board is cleared and enemy spawned.
-3. **On Turn End:** Triggered at `BATTLE_IDLE` state transition, capturing the board matrix. (Prevents save-scumming by closing the app after a bad drop).
-4. **On Settings Changed:** Immediately upon slider release.
-5. **On Meta-Transaction:** Immediately after buying a Relic or Premium unlock.
+The save system must explicitly checkpoint at the following times to prevent save-scumming and guarantee exact mid-run restoration:
+1. **At Run Start:** Immediately after generating the Run Seed and initializing the RunManager.
+2. **At Battle Start:** Immediately after the enemy is spawned and the first tray is generated.
+3. **After Every Successful Placement (Turn End):** The Domain resolves the ENTIRE turn instantly in Frame 1 (piece placed, lines cleared, damage calculated, enemy action executed) and transitions back to `ACTIVE` (or `BATTLE_IDLE`). The game MUST save immediately at this exact moment, *before* Presentation animations finish. This prevents save-scumming line clears. If the app is closed during Presentation animations, reopening it produces the exact logical state that existed *after* that placement resolved.
+4. **After Every Battle (Pre-Reward):** When an enemy is defeated, before the Relic reward screen is shown.
+5. **After Relic Selection:** Immediately after the player chooses a Relic and it is added to the active set.
+6. **At Run End:** Immediately upon `RUN_DEFEAT` or `RUN_VICTORY` to serialize stardust payouts and wipe the active run save.
+7. **On Settings/Meta-Transaction:** Immediately on slider release or IAP.
 
 ---
 
-## 9. Background / Crash Handling
+## 9. Restore Order (Exact Restoration)
+
+When restoring a mid-run save, the system must execute the following sequence to guarantee exact restoration without triggering new piece generation or unwanted events:
+
+1. **Load save:** Read and deserialize `profile.json`.
+2. **Validate schema:** Ensure save version matches or run migrations (Section 12).
+3. **Restore Run State:** Set seed, floor, active relics.
+4. **Restore RNG State:** Re-seed `GameRNG` and advance it by `rngStateCalls` to reach the exact mid-run state (`04` Section 13).
+5. **Load Encounter:** Instantiate the correct Enemy and Objective based on floor.
+6. **Restore Board:** Apply the saved `int[64]` to the `BoardEngine`.
+7. **Restore Enemy:** Set current HP, action counter, and telegraphed action.
+8. **Restore Objective:** Set current progress.
+9. **Restore Tray:** Explicitly load the saved `currentTrayShapeIDs` without asking `GameRNG` to spawn new ones.
+10. **Restore Combo/Turn State:** Apply remaining moves, combo count, turn counter.
+11. **Enter Gameplay:** Transition `BattleOrchestrator` directly into `BATTLE_IDLE` (or `ACTIVE` per `01` Section 4). *Do not emit "Game Started" or "Piece Spawned" events that might inadvertently progress counters.*
+
+---
+
+## 10. Background / Crash Handling
 
 Mobile OS environments aggressively kill background apps to free RAM.
 The `SaveService` must hook into Unity's lifecycle events:
@@ -130,7 +150,7 @@ private void OnApplicationQuit() {
 
 ---
 
-## 10. Versioning
+## 11. Versioning
 
 Every save file must contain a `saveVersion` integer at the root.
 - **MVP Launch:** `saveVersion = 1`.
@@ -138,7 +158,7 @@ Every save file must contain a `saveVersion` integer at the root.
 
 ---
 
-## 11. Migration System
+## 12. Migration System
 
 If the client detects an older `saveVersion` upon loading, it routes the data through an `IMigrationStrategy`.
 
@@ -154,15 +174,15 @@ public class MigrationV1toV2 : IMigrationStrategy {
 
 ---
 
-## 12. Reset Data
+## 13. Reset Data
 
 As mandated by `16` (Settings), the game must offer a "Delete Save Data" button.
-- **Action:** This deletes `profile.json` and `profile.bak` from disk.
+- **Disk:** This deletes `profile.json` and `profile.bak`.
 - **Memory:** It must also nullify the active `PlayerProfileSave` in memory and force a soft-reboot of the application state (routing the user back to the `00_Boot` sequence).
 
 ---
 
-## 13. Backup / Restore
+## 14. Backup / Restore
 
 - **Auto-Restore:** If `BootstrapService` tries to load `profile.json` and `Newtonsoft` throws a parsing exception (indicating file corruption), the system automatically attempts to load `profile.bak`.
 - If `profile.bak` is also corrupted, a fresh default profile is generated.

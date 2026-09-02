@@ -138,8 +138,11 @@ All numeric values (BaseDamage, multiplier tables, Stardust rates) are authored 
 ### Data-Driven Design
 Enemies, Relics, Shapes, and Objectives are Unity ScriptableObjects. Adding content requires authoring data assets, not modifying C# logic. See `20`.
 
-### Deterministic Gameplay
-A seeded `GameRNG` class controls all piece spawns, enemy selections, and relic drops. The same seed + input sequence always produces the same game state. See `04`, `21`.
+### RNG & Determinism
+
+A seeded `GameRNG` class controls all piece spawns, enemy selections, and relic drops.
+- **New Runs:** Deterministic from seed + inputs (the same seed + input sequence always produces the same game state).
+- **Resumable Active Runs:** Restore exact serialized runtime state including deterministic RNG continuation (the exact number of RNG calls consumed), not just the seed. See `04`, `21`, and `24`.
 
 ### Event-Driven Communication
 Domain systems (Board, Combat, Enemy) communicate via a type-safe `EventBus<T>`. Presentation systems (UI, Audio, VFX) listen to events and react. The Domain NEVER calls into Presentation. See `22`.

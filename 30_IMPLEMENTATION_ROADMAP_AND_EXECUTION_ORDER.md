@@ -412,13 +412,18 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Tasks:**
 - Implement `SaveService.cs` using `Newtonsoft.Json` + Atomic Save pattern (`24` Sec 7).
-- Implement `PlayerProfileSave.cs` + all child data classes.
+- Implement `PlayerProfileSave.cs` + all child data classes, including deterministic `RunSaveData` (RNG calls, tray, enemy action).
 - Implement `BootstrapService.cs` to load save on boot and corrupt-file recovery.
 - Hook `OnApplicationPause` emergency save.
-- Implement save on Turn End + Battle Start per `24` Sec 8.
+- Implement save on Turn End + Battle Start per `24` Sec 8, following the Exact Restoration sequence (`24` Sec 9).
 
-**Tests:** Serialization roundtrip test. Corruption recovery test. Migration V1->V2 test.
-**Acceptance Criteria:** Closing the app mid-run and reopening resumes from the correct floor with correct HP and board state. Stardust survives a force-quit.
+**Tests:**
+- Serialization roundtrip test. Corruption recovery test.
+- Save/Load determinism: Start run → Play known sequence → Save → Record expected next piece/action → Reload → Confirm exact same next result.
+- RNG restoration: Confirm `rngStateCalls` successfully resumes RNG stream.
+- Enemy state restoration: Confirm telegraph/action sequence matches post-load.
+- Objective & Combo restoration: Confirm objective progress and combo counter remain exact.
+**Acceptance Criteria:** Closing the app mid-run and reopening restores the exact logical state (Seed + RNG state + board + tray + enemy telegraph + objective progress). Stardust survives a force-quit.
 
 ---
 

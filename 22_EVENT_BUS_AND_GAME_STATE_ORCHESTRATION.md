@@ -138,7 +138,20 @@ The UI/VFX layer receives these events instantly in Frame 1, and queues the corr
 
 ---
 
-## 8. Event Bus Implementation (Solo-Dev Scope)
+## 8. Save Restoration Event Policy
+
+**Rule:** Restoring a saved mid-run state MUST be silent on the Event Bus. 
+
+When the `BootstrapService` / `RunManager` initializes the `BoardEngine`, `CombatEngine`, and `EnemyEngine` with saved state data (`int[64]`, HP, etc.), no events from Section 4 are permitted to fire. 
+- Restoring the board must NOT fire `PiecePlaced` or `LinesCleared`.
+- Restoring the enemy must NOT fire `DamageDealt`.
+- Restoring the tray must NOT trigger new piece generation routines or "Piece Spawned" equivalents.
+
+*Why:* The Presentation layer listens to events to play VFX, subtract HP visually, and grant rewards. If loading fires events, the UI will play a chaotic sequence of explosions and damage numbers on boot, and objective trackers might double-count progress. The UI layer must poll the Domain once on scene load (e.g., `UpdateAllVisualsToMatchState()`), after which standard event-driven updates resume.
+
+---
+
+## 9. Event Bus Implementation (Solo-Dev Scope)
 
 We use a static, type-safe event bus. It requires zero setup and is instantly understood by AI agents and IDEs.
 

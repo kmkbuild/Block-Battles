@@ -139,7 +139,8 @@ Content must be authored without touching C# scripts.
 
 1. **RNG Ownership:** All gameplay randomness is controlled by a single `GameRNG` class.
 2. **Seeded Runs:** At the start of a Run, a master seed is generated and saved. All piece spawns, enemy selections, and relic drops draw from this seed.
-3. **Reproducibility:** If a run crashes, reloading the save file with the same seed and sequence of moves must recreate the exact same board state. (Do not use `UnityEngine.Random` in core logic).
+3. **Exact Save Restoration:** Mid-run saves restore the exact logical state immediately, relying on serialized runtime state and deterministic RNG continuation (`rngStateCalls`), NOT by replaying the input sequence from the seed (`24` Section 9).
+4. **Deterministic Reproduction:** For debugging or replays, a new run started with the same seed + identical player input sequence must reproduce the exact same board state and combat outcome. (Do not use `UnityEngine.Random` in core logic).
 
 ---
 

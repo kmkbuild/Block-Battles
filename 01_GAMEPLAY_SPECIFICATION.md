@@ -282,7 +282,7 @@ This loop repeats until `RUN_DEFEAT` (Section 15) or a future defined Run-comple
 
 ## 20. Backgrounding / App Lifecycle
 
-- On transition to background, the current Run state is **autosaved** in full: Board state (including Blocked/Frozen cells), Tray contents, Enemy HP and pending Telegraph, active Relic set, turn counter, cumulative Objective-tracking data, and persistent meta-currency balance.
+- On transition to background, the current Run state is **autosaved** in full: RNG continuation state (`rngStateCalls`), Board state (including Blocked/Frozen cells), Tray contents, Enemy HP and pending Telegraph, active Relic set, turn counter, cumulative Objective-tracking data, and persistent meta-currency balance.
 - On return to foreground, state is restored exactly; if the app was backgrounded mid-resolution (between `PLACEMENT_RESOLUTION` and `ENEMY_ACTION`), the resolution chain completes automatically on resume before input is re-enabled, so the player never observes a partially-resolved Turn.
 - If the process was terminated while backgrounded, the last autosave is loaded on next launch; if no autosave exists, the app opens to `MAIN MENU`.
 

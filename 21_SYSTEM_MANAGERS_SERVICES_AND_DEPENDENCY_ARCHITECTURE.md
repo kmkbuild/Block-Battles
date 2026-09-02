@@ -38,9 +38,9 @@ The architecture is divided into two distinct categories: **Persistent Services*
 
 | System | Owns | Does Not Own | Inputs | Outputs |
 |---|---|---|---|---|
-| **SaveService** | JSON disk I/O, state persistence. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
-| **RunManager** | Stardust, active Relics list, current floor index. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over event |
-| **BattleOrchestrator**| Turn phases, blocking input during animations. | Board array, HP math. | `OnDrop`, `OnAnimFinish` | `TurnStateChange` |
+| **SaveService** | JSON disk I/O, serialization of runtime state. Does NOT own gameplay logic. Static content is reloaded from canonical assets. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
+| **RunManager** | Owns run state (Stardust, active Relics list, current floor index). Initializes from loaded save data. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over event |
+| **BattleOrchestrator**| Owns battle state and turn phases. Restores exact mid-battle state on load. | Board array, HP math. | `OnDrop`, `OnAnimFinish` | `TurnStateChange` |
 | **BoardEngine** | 8x8 cell-state array (each cell encodes Occupancy + Modifier compactly per `03` Sec 3), collision math, line clearing math. Enemy systems request board mutations via `BoardEngine` API — they MUST NOT write directly to the internal array. | Piece drag graphics, scoring. | Piece coordinates, enemy-requested cell mutations | `LinesCleared`, `CellsCleared`, `BoardChanged` events |
 | **TrayEngine** | The 3 available pieces, Ghost preview logic. | Input touch events, Board collision. | `ShapeData[]`, Board queries | `PieceCommitted` event |
 | **CombatEngine** | Damage calculation, Combo (L-value) multipliers. | Relic definitions, Enemy HP. | `LinesCleared` event | `DamageDealt` event |
@@ -113,7 +113,7 @@ public class CombatEngine {
 
 1. **Boot:** `BootstrapService` initializes Unity subsystems.
 2. **Persistent Services:** `SaveService` -> `SettingsService` -> `AudioService` -> `MonetizationService`.
-3. **Run:** `RunManager` initializes from Save Data, spins up `GameRNG` with the saved seed.
+3. **Run:** `RunManager` initializes from Save Data, spins up `GameRNG` with the saved seed AND advances it by the saved `rngStateCalls` to resume exact deterministic sequence.
 4. **Battle:** `BattleOrchestrator` -> `BoardEngine` -> `EnemyEngine` -> `RelicEngine` -> `CombatEngine` -> `TrayEngine`.
 
 *Rule:* If System A depends on System B, System B must be completely initialized before System A's constructor is called.
