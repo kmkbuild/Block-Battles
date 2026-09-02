@@ -243,9 +243,10 @@ Enemy Defeat → Battle Victory → Objective Completion → Bonus Completion (i
 
 ---
 
-## 13. Defeat/Game Over UX
+## 13. Game Over / Defeat UX
 
-- **Board failure presentation:** When Board Lock (`03` Section 15/`01` Section 15) is detected, the Board itself gives a clear, calm signal (e.g., a brief highlight indicating no legal placement exists) before transitioning to the Run Results screen — this is a direct UX response to the Board Engine's `NoMovesAvailable` event (`03` Section 12).
+- **Terminology:** The internal state flow is **Board Lock** → **Battle Failure** → **Run Defeat** (`01` Section 15). The player-facing presentation of this sequence is the **Game Over** or **Run Defeat** screen.
+- **Board failure presentation:** When Board Lock is detected, the Board itself gives a clear, calm signal (e.g., a brief highlight indicating no legal placement exists) before the game routes to Battle Failure and transitions to the Run Results screen — this is a direct UX response to the Board Engine's `BoardLockDetected` event (`03` Section 12).
 - **Defeat presentation tone:** **Neutral, never punitive.** No shaming copy, no negative sound stinger disproportionate to the moment — directly per the Master Prompt's explicit instruction and Master Vision Section 16's "relief," not distress, framing.
 - **Score/run information:** Battles won this Run, Boss(es) defeated, final Score (`05` Section 8), and currency earned (`05` Table 23.5) are all shown together on one Run Results screen.
 - **What caused defeat:** Explicitly named — "Board Lock: no space for your remaining pieces" or "Move Limit reached" (`07` Section 5's `failure_condition` categories) — never a vague "You Lost" with no explanation, directly satisfying `01` Section 5.6's Fair Difficulty acceptance criterion.

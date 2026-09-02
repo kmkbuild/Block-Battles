@@ -167,7 +167,7 @@ Bonus objectives use an identical structure to Primary objectives, but are prefa
 
 ---
 
-## 12. Game Over Copy
+## 12. Run Defeat / Game Over Copy
 
 There are two primary failure states. The copy must distinguish them.
 

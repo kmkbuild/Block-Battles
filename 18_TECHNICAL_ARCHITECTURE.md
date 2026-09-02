@@ -106,10 +106,12 @@ The strict state machine flow:
 
 ## 8. Core Gameplay Ownership
 
-- **BoardEngine:** Owns the 2D integer array. Handles collision detection, valid placement checks, and line-clear mathematics.
+- **BoardEngine:** Owns the 2D integer array. Handles collision detection, valid placement checks, line-clear mathematics, and detects **Board Lock** (when no legal moves remain).
+- **TurnOrchestrator (Battle Orchestrator):** A state machine managing whose turn it is and blocking input while animations resolve. It converts a Board Lock or Objective Failure into a **Battle Failure**.
+- **RunManager:** Tracks floor progression and meta-currency. It converts a Battle Failure into a **Run Defeat** (since the game uses a one-life roguelike structure).
+- **Presentation Layer (UI):** Presents the Battle Failure / Run Defeat to the player as a **Game Over** or **Run Defeat** screen. (This separation of responsibility is mandatory).
 - **TrayEngine:** Owns the 3-piece Tray state. Serves pieces in their fixed, authored orientation. Runtime rotation is prohibited; orientation diversity is managed via the shape catalog, not runtime transforms.
 - **CombatEngine:** Pure math calculator. Takes `BaseDamage` + `L-Value` + `RelicModifiers` -> Outputs `FinalDamage` and `DamageEvents` for the UI.
-- **TurnOrchestrator:** A state machine managing whose turn it is and blocking input while animations resolve.
 
 ---
 

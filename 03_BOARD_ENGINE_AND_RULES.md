@@ -202,7 +202,7 @@ The Board Engine is the sole emitter of these logical events, consumed by Combat
 | `LinesCleared` | If `filledRows ∪ filledCols ≠ ∅` after Section 6. | `rowsCleared: [r...]`, `colsCleared: [c...]`, `lineCount: |rows|+|cols|` |
 | `CellsCleared` | Same trigger as `LinesCleared`, one event carrying the deduplicated cell set from Section 8. | `cells: [(r,c)...]` (the exact `cellsToClear` set) |
 | `BoardChanged` | Once per Turn, after all mutation for that Turn is complete (fires regardless of whether any line cleared). | `snapshot` (post-Turn board state) |
-| `NoMovesAvailable` | When `hasAnyLegalPlacement` (Section 10) returns `false` at the Section 10 query point. | none (trigger only) |
+| `BoardLockDetected` | When `hasAnyLegalPlacement` (Section 10) returns `false` at the Section 10 query point. | none (trigger only) |
 
 **DESIGN DECISION:** `LinesCleared` and `CellsCleared` are only emitted when at least one line cleared — a zero-line Turn emits `PlacementCommitted` and `BoardChanged` only, matching Gameplay Spec Section 8 ("Damage Events... at most one... aggregating all lines cleared") which requires Combat to distinguish a real clear from a no-op cleanly.
 
@@ -357,7 +357,7 @@ Input: shape, origin, board (current state)
 
 7. (later, at next ACTIVE entry, Gameplay Spec Section 4)
    hasAnyLegalPlacement(tray, board)                [Section 10]
-   → if false: emit NoMovesAvailable; caller routes to RUN_DEFEAT
+     if false: emit BoardLockDetected; caller converts to Battle Failure -> Run Defeat
    → if true: caller proceeds normally
 ```
 

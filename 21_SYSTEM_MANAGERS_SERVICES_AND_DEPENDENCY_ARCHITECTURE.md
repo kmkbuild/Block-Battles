@@ -199,7 +199,7 @@ The `BattleOrchestrator` operates this internal state machine:
 - `STATE_COMBAT_EVAL:` Calculate damage, apply to enemy. Transition ->
 - `STATE_ANIMATION_WAIT:` Input locked. Wait for Presentation layer to signal VFX complete. Transition ->
 - `STATE_ENEMY_TURN:` `EnemyEngine` executes Board modifications. Transition ->
-- `STATE_BOARD_EVAL:` Check for Move Limit or Board Lock. If game over -> `STATE_BATTLE_END`. If safe -> `STATE_PLAYER_TURN`.
+- `STATE_BOARD_EVAL:` Check for Move Limit or Board Lock. If Battle Failure -> `STATE_BATTLE_END`. If safe -> `STATE_PLAYER_TURN`.
 
 ---
 

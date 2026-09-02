@@ -188,7 +188,10 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp â†
 | **Floor** | An Encounter within a Run. Each floor is harder. |
 | **Run** | A full playthrough from Floor 1 to Run Over. |
 | **Stardust** | The soft meta-currency earned from runs. Persists. |
-| **Board Lock** | The Game Over condition â€” no piece can be legally placed. |
+| **Board Lock** | No legal placement exists (a mathematical board condition). |
+| **Battle Failure** | Current battle has failed (due to Board Lock or Objective failure). |
+| **Run Defeat** | Entire run has ended (resulting from Battle Failure). |
+| **Game Over** | Player-facing/general failure presentation in the UI. |
 | **Ghost Preview** | The transparent indicator showing where a dragged piece will land. |
 | **Combo** | Consecutive multi-line clears within a turn sequence (see `05`). |
 | **Telegraph** | An enemy's declared next action shown N turns in advance. |

@@ -227,13 +227,49 @@ A Battle transitions to `BATTLE_VICTORY` when, during `OBJECTIVE_EVALUATION`, th
 
 ---
 
-## 15. Failure Rules
+## 15. Failure Rules (Terminology Hierarchy)
 
-A Battle — and therefore the Run (Section 3, one-life design) — ends in `RUN_DEFEAT` when any of the following occurs, checked at the points indicated:
+The project uses a strict failure terminology hierarchy:
+1. **Board Lock:** A mathematical board condition. Defined as: *No remaining piece in the current tray has a legal placement anywhere on the board.* (Checked at the start of `ACTIVE`).
+2. **Battle Failure:** The state a battle reaches when it becomes unwinnable. This occurs when either a Board Lock is detected, or an Objective-Specific Failure Condition is triggered (e.g., exceeding a turn cap for a "Move Limit" objective, checked at `OBJECTIVE_EVALUATION`).
+3. **Run Defeat:** The run-level state resulting from a Battle Failure. Because Block Battles is a one-life roguelike, a Battle Failure instantly triggers a Run Defeat.
+4. **Game Over:** This is a *player-facing* UI concept only. It should be used in UI copy or player-facing documentation, but internal technical states must use Board Lock, Battle Failure, or Run Defeat.
 
-1. **Board Lock:** At the start of `ACTIVE` (after any Tray state change), no remaining Piece in the current Tray has any legal Placement anywhere on the Board. This is the default failure condition for all standard Battles (Master Vision Section 10).
-2. **Objective-Specific Failure Condition:** For Objectives with an explicit failure clause (e.g., "Defeat Enemy Under Move Limit" exceeding its turn cap; "Survive X Turns" being interrupted by an explicit loss trigger defined for that Objective), checked at `OBJECTIVE_EVALUATION`.
-3. **Explicit Enemy-Caused Failure (if any):** Only permitted if expressed through the Board (e.g., a hazard mechanic whose defined effect is an immediate loss) — never through a Player HP resource, per Master Vision Section 10.
+*Note on Victory:* The equivalent victory hierarchy is `Primary Objective Complete` → `Battle Victory`. (Do not merge these paths).
+
+**Failure State Flow Diagram:**
+```text
+PLAYER TURN
+    ↓
+BOARD CHANGES
+    ↓
+HasAnyValidMove?
+    │
+    ├── YES → Continue Battle
+    │
+    └── NO
+          ↓
+     BOARD LOCK
+          ↓
+    BATTLE FAILURE
+          ↓
+      RUN DEFEAT
+          ↓
+    GAME OVER SCREEN
+```
+
+**Victory State Flow Diagram:**
+```text
+PLAYER ACTION
+     ↓
+OBJECTIVE EVALUATION
+     ↓
+PRIMARY OBJECTIVE COMPLETE
+     ↓
+BATTLE VICTORY
+     ↓
+RELIC REWARD
+```
 
 **MASTER DESIGN RULE (inherited):** Every failure condition must have been knowable to the player in advance (visible Board state, a stated Objective rule, or a Telegraph) — no failure condition may trigger from information the player could not have seen, per Master Vision Section 18.
 
@@ -292,7 +328,7 @@ This loop repeats until `RUN_DEFEAT` (Section 15) or a future defined Run-comple
 
 | Edge Case | Resolution |
 |---|---|
-| No legal Placement exists for any of the 3 current Tray pieces | Board Lock → `RUN_DEFEAT` (Section 15) |
+| No legal Placement exists for any of the 3 current Tray pieces | Board Lock → Battle Failure → `RUN_DEFEAT` (Section 15) |
 | A single Placement completes multiple rows and columns simultaneously | All identified lines clear together in one `LINE_CLEAR_RESOLUTION` step; all count toward Combo (Section 8) and cumulative line-based Objectives (Section 12) |
 | A Piece cannot fit anywhere on the current Board ("dead" Piece) but other Tray Pieces still have legal placements | Not a Board Lock (Section 15 requires *no* Tray piece to have a legal placement); play continues normally |
 | A Placement exactly fills the entire remaining Board | All resulting full rows/columns clear per Section 5; Board returns to fully Empty if all rows/columns were completed |

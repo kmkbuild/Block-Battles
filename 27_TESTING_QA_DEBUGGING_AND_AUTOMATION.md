@@ -29,8 +29,12 @@ For Block Battles, the effort distribution is:
 
 ## 3. Gameplay Tests
 
-- **State Machine Progression:** Assert that completing an action transitions the `BattleOrchestrator` through `BATTLE_IDLE -> RESOLVING_BOARD -> RESOLVING_COMBAT -> WAITING_FOR_ANIM -> BATTLE_IDLE`.
-- **Turn Locking:** Assert that injecting a drag-and-drop command during `RESOLVING_COMBAT` is instantly rejected.
+- **Turn State Progression:** Assert that completing an action transitions the `BattleOrchestrator` appropriately based on `01` Section 4 states.
+- **Turn Locking:** Assert that injecting a drag-and-drop command during resolution is instantly rejected.
+- **Test A (Board Lock):** Assert that when the board has no valid moves for the tray, `BoardEngine` emits `BoardLockDetected`.
+- **Test B (Battle Failure):** Assert that a `BoardLockDetected` event (or failing an Objective) causes the Orchestrator to emit `BattleFailed`.
+- **Test C (Run Defeat):** Assert that `BattleFailed` causes the `RunManager` to emit `RunDefeated` (one-life run ends).
+- **Test D (Victory):** Assert that when the enemy dies (or Primary Objective completes), the Orchestrator emits `BattleVictory`.
 
 ---
 

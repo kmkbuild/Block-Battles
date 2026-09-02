@@ -158,7 +158,7 @@ These documents govern **how the project is navigated and executed**. They exist
 **"How do I modify a button's appearance?"**
 → Visual spec: `09`. Color: `10`. Copy: `15`. Unity implementation: `23`.
 
-**"What should happen on game over?"**
+**"What should happen on a Board Lock or Run Defeat?"**
 → Game rule: `01`, `03`. State transition: `22`. UI screen: `08`. Implementation: `23`.
 
 **"What controls save data?"**
@@ -307,7 +307,7 @@ Reading every document before writing a single line of code is wasteful. Route y
 
 | Document | Primary C# Class(es) |
 |---|---|
-| `03` | `BoardModel.cs`, `LineScanner.cs`, `GameOverChecker.cs` |
+| `03` | `BoardModel.cs`, `LineScanner.cs`, `BoardLockDetector.cs` |
 | `04` | `GameRNG.cs`, `PieceSpawner.cs` |
 | `05` | `CombatEngine.cs`, `ComboTracker.cs` |
 | `06` | `InputController.cs`, `DragDropController.cs` |

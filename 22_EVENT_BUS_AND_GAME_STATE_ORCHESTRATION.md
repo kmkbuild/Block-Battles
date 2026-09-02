@@ -45,11 +45,12 @@ The `BattleOrchestrator` governs the flow of a single run/battle. It ensures inp
 | `BATTLE_IDLE` | Awaiting player drag/drop input. | `RESOLVING_BOARD` |
 | `RESOLVING_BOARD`| Line clearing, math calculation. | `RESOLVING_COMBAT` |
 | `RESOLVING_COMBAT`| Applying Relics, Enemy damage. | `WAITING_FOR_ANIM` |
-| `WAITING_FOR_ANIM`| Input locked until VFX/Audio signal complete. | `ENEMY_TURN`, `VICTORY`, `DEFEAT` |
-| `ENEMY_TURN` | Enemy board modification. | `BATTLE_IDLE` |
-| `VICTORY` | Encounter won. | `REWARD` |
+| `WAITING_FOR_ANIM`| Input locked until VFX/Audio signal complete. | `ENEMY_TURN`, `BATTLE_VICTORY`, `BATTLE_FAILED` |
+| `ENEMY_TURN` | Enemy board modification. | `BATTLE_IDLE`, `BATTLE_FAILED` |
+| `BATTLE_VICTORY` | Encounter won. | `REWARD` |
 | `REWARD` | Selecting a Relic. | `BATTLE_IDLE` (Next floor) |
-| `DEFEAT` | Board Lock / Move Limit hit. | `MENU` |
+| `BATTLE_FAILED` | Board Lock / Objective Failure hit. | `RUN_DEFEATED` |
+| `RUN_DEFEATED` | Run ends. | `MENU` |
 
 ---
 
@@ -62,7 +63,7 @@ This is the exhaustive list of Domain events required for the MVP. Do not create
 - `PieceDroppedInvalid` (Triggers rejection shake, audio)
 - `PiecePlaced` (Triggers board update, thud audio)
 - `LinesCleared` (Triggers flash, fragment VFX)
-- `BoardLocked` (Triggers game over sequence)
+- `BoardLockDetected` (Triggers battle failure sequence)
 - `BoardCellModified` (MVP — fires when an enemy action applies or removes a cell modifier: `Blocked`, `Frozen`, etc. Triggers cell-state visual update on `BoardView`. Payload: `cell: (row, col)`, `modifier: CellModifier`, `duration: int turns`. Emitted by `BoardEngine` after `SetCellModifier` call from `EnemyEngine`.)
 - `BoardCellModifierExpired` (MVP — fires when a timed cell modifier (e.g., Block duration elapses) is automatically cleared. Triggers cell restore visual. Payload: `cell: (row, col)`, `previousModifier: CellModifier`.)
 
@@ -76,7 +77,9 @@ This is the exhaustive list of Domain events required for the MVP. Do not create
 
 ### Run Events
 - `BattleStarted` (Triggers BGM change, board slide-in)
-- `BattleCompleted` (Triggers Victory sting)
+- `BattleVictory` (Triggers Victory sting)
+- `BattleFailed` (Converts to RunDefeated)
+- `RunDefeated` (Triggers Game Over screen)
 - `RelicSelected` (Triggers reward acquisition)
 
 ---

@@ -170,23 +170,22 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 ---
 
-## Phase 6 — Game Over Detection
+## Phase 6 - Board Lock Detection
 
-**Goal:** The game ends when no piece from the tray can legally fit anywhere on the board.
+**Goal:** The puzzle can end when no valid moves remain.
 
-**Prerequisites:** Phase 5.
+**Prerequisites:** Phase 4 (Tray).
 
 **Tasks:**
-- Implement `GameOverChecker.cs` (checks all 3 tray pieces against all valid board positions).
-- Called after each `TrayEngine.Refill` (when new pieces spawn).
-- Fire `BoardLockedEvent` if no placement is valid.
-- Wire `BattleOrchestrator` state machine to handle `BoardLockedEvent` -> `DEFEAT` state.
+- Implement `BoardLockDetector.cs` (checks all 3 tray pieces against all valid board positions).
+- Hook `BoardLockDetector` to run at the start of `ACTIVE` state.
+- Wire `BattleOrchestrator` state machine to handle `BoardLockDetected` event -> convert to `BattleFailed`.
+- Wire `RunManager` to handle `BattleFailed` -> `RunDefeated`.
 
-**Files to Create:**
-- `Assets/_Project/Scripts/Core/Board/GameOverChecker.cs`
-- `Assets/_Project/Scripts/Application/BattleOrchestrator.cs` (State Machine skeleton)
+**New Files:**
+- `Assets/_Project/Scripts/Core/Board/BoardLockDetector.cs`
 
-**Tests:** Assert a completely full board (64 cells occupied) triggers `BoardLockedEvent`. Assert a board with one open 1x1 cell and a tray containing only 1x1 pieces does NOT trigger game over.
+**Tests:** Assert a completely full board (64 cells occupied) triggers `BoardLockDetected`. Assert a board with one open 1x1 cell and a tray containing only 1x1 pieces does NOT trigger lock.
 **Acceptance Criteria:** Filling the board ends the session. (M2 Milestone Achieved — pure puzzle loop is complete)
 
 ---
@@ -302,7 +301,7 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 ## Phase 12 — Core UI Screens
 
-**Goal:** The game has a real Main Menu, HUD, Pause, and Game Over screen.
+**Goal:** The game has a real Main Menu, HUD, Pause, and Run Defeat (Game Over) screen.
 
 **Prerequisites:** Phase 11 (we need the run lifecycle to wire menus correctly).
 
@@ -310,7 +309,7 @@ This roadmap is NOT organized by document number. It is organized by **technical
 - Build `MainMenuView.cs` and `pf_MainMenu.prefab`.
 - Finalize `BattleHUDView.cs` (Score, Move Count, Run Floor).
 - Build `PauseModal.cs` and `pf_PauseModal.prefab`.
-- Build `DefeatView.cs` and `pf_DefeatModal.prefab`.
+- Build `DefeatView.cs` and `pf_DefeatModal.prefab` (displays Game Over / Run Defeat).
 - Build `VictoryView.cs` and `pf_VictoryModal.prefab`.
 - Implement `UIOrchestrator.cs` (Modal stack, Back button).
 - Build `00_Boot` to `01_MainMenu` to `02_Battle` scene transition flow.
