@@ -82,17 +82,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Tasks:**
 - Create `ShapeData.cs` ScriptableObject (5x5 `bool[25]` matrix, `OnValidate` auto-sizing) per `20` Sec 4.
 - Create `ShapeMatrix.cs` POCO (computed width, height, normalized occupied cells from the authored `bool[25]` array).
-- Author the first 5 simple `ShapeData` assets (1x1, 1x2, 1x3, 2x2, L-shape).
+- Author **all 24 canonical MVP shape assets** (SHP_001–SHP_024) as defined in `02_SHAPE_LIBRARY.md` Section 12. Begin with the first 5 simple shapes to verify the pipeline, then author the remaining 19 to complete the MVP catalog.
 - **Important:** Do NOT implement a `ShapeRotator.cs`. Piece orientation is static and fixed at authoring time. Runtime rotation is explicitly prohibited (`01`, `AI_START_HERE`).
 
 **Files to Create:**
 - `Assets/_Project/Scripts/Core/Shapes/ShapeMatrix.cs`
 - `Assets/_Project/Data/Shapes/ShapeData.cs`
-- `Assets/_Project/Data/Shapes/shape_square_1x1.asset`
-- `Assets/_Project/Data/Shapes/shape_line_1x2.asset`
+- `Assets/_Project/Data/Shapes/shape_square_1x1.asset` *(SHP_001)*
+- `Assets/_Project/Data/Shapes/shape_line_1x2.asset` *(SHP_002)* ... through `shape_tetromino_t_d.asset` *(SHP_024)*
 
 **Tests:** Assert that `ShapeMatrix` built from a `ShapeData` asset produces the correct width, height, and occupied cell list. Assert that the `ShapeData.blockMatrix` array cannot be modified at runtime (the field is read-only by convention; no setter is exposed).
-**Acceptance Criteria:** All 5 authored shapes can be placed into a `BoardModel` without errors. No rotation function exists anywhere in the `BlockBattles.Core` assembly.
+**Acceptance Criteria:** All 24 canonical MVP shapes (SHP_001–SHP_024) are authored, validated by `OnValidate`, and can be placed into a `BoardModel` without errors. No rotation function exists anywhere in the `BlockBattles.Core` assembly.
 
 ---
 
@@ -529,7 +529,7 @@ Before proceeding past Phase 10, build a Vertical Slice:
 **Must Have (MVP cannot ship without this):**
 - 8x8 board with drag-and-drop placement.
 - Line clearing (rows and columns).
-- 15+ unique shapes.
+- 24 canonical playable shape definitions (SHP_001–SHP_024, per `02_SHAPE_LIBRARY.md`).
 - Combat: L-Value damage multipliers.
 - 5 unique enemies with different HP values and at least 1 action.
 - 10 unique relics with varied trigger types.
@@ -540,7 +540,7 @@ Before proceeding past Phase 10, build a Vertical Slice:
 - Rewarded Ad (Revive) and Premium Unlock (Remove Ads).
 
 **Should Have (Ship with MVP if time permits):**
-- 20+ shapes.
+- Post-MVP shape expansion: integrate SHP_025–SHP_034 (10 authored-but-deferred entries from `02_SHAPE_LIBRARY.md`) after balance testing.
 - 8+ enemies.
 - 20+ relics.
 - Boss enemy (Super-structured attacks).

@@ -86,7 +86,7 @@ The player should feel clever, not lucky. The board is a puzzle. The enemy is a 
 
 ### Included
 - 8x8 board, 3-piece tray, no rotation mechanic.
-- 15+ unique shapes.
+- 24 canonical playable shape definitions (SHP_001–SHP_024, per `02_SHAPE_LIBRARY.md`).
 - Line clearing: rows + columns.
 - L-Value damage multiplier (L1 to L4+ capped).
 - 5 unique enemies with differing HP and attack patterns.
@@ -248,7 +248,7 @@ An AI working on this project MUST NEVER:
 
 | Category | MVP Target |
 |---|---|
-| Shapes | 15+ unique shapes |
+| Shapes | 24 canonical playable shapes (SHP_001–SHP_024) |
 | Enemies | 5 unique enemies |
 | Relics | 10 unique relics |
 | Objective Types | 3 (Defeat, ClearLines, SurviveMoves) |

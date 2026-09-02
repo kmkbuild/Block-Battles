@@ -55,7 +55,8 @@ Every registered Shape entry contains exactly these fields:
 Because Pieces cannot be rotated at runtime (`01_GAMEPLAY_SPECIFICATION.md` Section 5), each geometric **family** below is registered as multiple **orientation entries** — one per rotation actually needed for solvable play. The registry therefore has two useful counts:
 
 - **15 Shape Families** (distinct geometric identities) — sits within the "low double-digit" polyomino guidance of `00_MASTER_GAME_VISION.md` Section 14.
-- **34 registered Shape entries** (families × required orientations) — the actual implementable pool, per Section 13's Change Management note reconciling this with the Master Vision.
+- **34 registered Shape entries** (families × required orientations) — the full long-term catalog.
+- **24 canonical MVP entries** — SHP_001 through SHP_024 are the locked MVP spawn pool. Entries SHP_025 through SHP_034 are authored and validated but are **deferred to post-MVP** until balance testing confirms they improve play. The canonical MVP spawn pool size is exactly **24**.
 
 ### Family Overview
 
@@ -254,6 +255,8 @@ Canonical master table. `local_coordinates` are listed as `(row,col)` pairs in t
 | SHP_022 | Tetromino T — B | Tetromino T | T_FAMILY | (0,1)(1,0)(1,1)(2,1) | 4 | 2 | 3 | MIRROR | 90° | TALL, IRREGULAR, SYMMETRIC | Precision Piece |
 | SHP_023 | Tetromino T — C | Tetromino T | T_FAMILY | (0,1)(1,0)(1,1)(1,2) | 4 | 3 | 2 | MIRROR | 180° | WIDE, IRREGULAR, SYMMETRIC | Precision Piece |
 | SHP_024 | Tetromino T — D | Tetromino T | T_FAMILY | (0,0)(1,0)(1,1)(2,0) | 4 | 2 | 3 | MIRROR | 270° | TALL, IRREGULAR, SYMMETRIC | Precision Piece |
+| — | **▲ MVP SPAWN POOL BOUNDARY — SHP_001 to SHP_024 = 24 canonical MVP shapes ▲** | — | — | — | — | — | — | — | — | — | — |
+| — | **▼ POST-MVP ENTRIES — authored but deferred ▼** | — | — | — | — | — | — | — | — | — | — |
 | SHP_025 | Tetromino S (H) | Tetromino S | S_Z_FAMILY | (0,1)(0,2)(1,0)(1,1) | 4 | 3 | 2 | POINT | Horizontal | WIDE, IRREGULAR, SYMMETRIC | Precision Piece |
 | SHP_026 | Tetromino S (V) | Tetromino S | S_Z_FAMILY | (0,0)(1,0)(1,1)(2,1) | 4 | 2 | 3 | POINT | Vertical | TALL, IRREGULAR, SYMMETRIC | Precision Piece |
 | SHP_027 | Tetromino Z (H) | Tetromino Z | S_Z_FAMILY | (0,0)(0,1)(1,1)(1,2) | 4 | 3 | 2 | POINT | Horizontal | WIDE, IRREGULAR, SYMMETRIC | Precision Piece |

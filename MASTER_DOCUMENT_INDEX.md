@@ -100,7 +100,7 @@ These documents govern **how the project is navigated and executed**. They exist
 | `MASTER_DOCUMENT_INDEX.md` | D | Navigation map for the full doc set. | All | All | All agents |
 | `00_MASTER_GAME_VISION.md` | A | High-level vision, tone, platform goals. | Game Director | None | All docs |
 | `01_GAMEPLAY_SPECIFICATION.md` | A | Core rules: board, tray, placement, win/lose. | Game Designer | 00 | 03, 05, 06, 18 |
-| `02_SHAPE_LIBRARY.md` | A | 24 canonical piece shape matrices. | Game Designer | 01 | 04, 20 |
+| `02_SHAPE_LIBRARY.md` | A | 24 canonical MVP shape entries (SHP_001–024) from a 34-entry full catalog. Entries SHP_025–034 are deferred to post-MVP. | Game Designer | 01 | 04, 20 |
 | `03_BOARD_ENGINE_AND_RULES.md` | A | 8x8 board collision, line clearing rules. | Game Designer | 01, 02 | 05, 18, 21 |
 | `04_SPAWN_RNG_AND_DIFFICULTY.md` | A | Seeded RNG, piece spawn pools, difficulty. | Game Designer | 02, 03 | 18, 20, 21 |
 | `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` | A | L-Value formula, damage table, combo logic. | Game Designer | 03 | 07, 18, 20, 21 |
