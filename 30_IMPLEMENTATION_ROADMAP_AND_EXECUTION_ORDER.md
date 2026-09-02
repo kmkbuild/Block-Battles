@@ -57,10 +57,19 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 0.
 
 **Tasks:**
-- Implement `BoardModel.cs` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`).
+- Implement `BoardModel.cs` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`). Ensure it supports MVP states: `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`.
 - Implement `IsValidPlacement(ShapeMatrix, int x, int y)` method.
 - Implement `CommitPlacement(ShapeMatrix, int x, int y)` method.
-- Write NUnit tests covering: bounds checking, overlap detection, full board state reset.
+- Implement `SetCellModifier` and Line-Clear evaluation.
+- Write NUnit tests covering bounds checking and the cell state rules.
+
+**Tests (Must Verify):**
+- Normal placement into `EMPTY` works.
+- Placement into `FILLED` fails.
+- Placement into `BLOCKED` fails, and `BLOCKED` remains unavailable for placement.
+- Placement into `FROZEN` fails (follows occupied rules), and `FROZEN` remains represented correctly.
+- Line-clear behavior correctly excludes `FROZEN` cells.
+- Normal `EMPTY`/`FILLED` line-clear behavior still works.
 
 **Files to Create:**
 - `Assets/_Project/Scripts/Core/Board/BoardModel.cs`

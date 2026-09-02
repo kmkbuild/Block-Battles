@@ -239,8 +239,8 @@ At Absolute MVP, no special-purpose block color is defined beyond the standard s
 
 | Reserved purpose | Future color register | When it becomes active |
 |---|---|---|
-| Frozen cell state | A distinct desaturated blue-white register | When `03_BOARD_ENGINE_AND_RULES.md` Section 3.2's `FROZEN` state is activated (MVP+). |
-| Blocked cell state | A distinct dark, low-saturation register | When `BLOCKED` state is activated (MVP+). |
+| Frozen cell state | A distinct desaturated blue-white register | Active at MVP (enemy Freeze mechanic). |
+| Blocked cell state | A distinct dark, low-saturation register | Active at MVP (enemy Block mechanic). |
 | Indestructible cell state | A very dark, near-black register with a slight metallic sheen suggestion | When `INDESTRUCTIBLE` state is activated (MVP+). |
 | Hazard cell state | A distinct warm-red register (distinct from piece Ember by being desaturated and dim, not vibrant) | When Hazard mechanic is activated (MVP+). |
 
@@ -313,7 +313,7 @@ The piece is being dragged but is not positioned over or near the board (pointer
 
 ## 7. Board Cell Colors
 
-Every board cell state is defined with its complete color treatment. At Absolute MVP, only EMPTY and FILLED are active. All others are registered here for completeness and future activation.
+Every board cell state is defined with its complete color treatment. At Absolute MVP, `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN` are active. All deferred states (e.g., HAZARD) are registered here for completeness and future activation.
 
 | State | Status | Base fill | Border treatment | Overlay | Token(s) |
 |---|---|---|---|---|---|
@@ -321,12 +321,12 @@ Every board cell state is defined with its complete color treatment. At Absolute
 | **FILLED (normal occupied)** | MVP — active | Piece's assigned `CLR-PC-[identity]-BASE` | Derived from SHADOW tone — not a separate drawn border, but the bottom-right face of the 3D model | Three-face depth model (BASE/LIGHT/SHADOW) | `CLR-PC-[identity]-BASE/LIGHT/SHADOW` |
 | **CLEARING (mid-clear animation)** | MVP — active (transient) | `CLR-CMB-CLEAR-FLASH` at escalating opacity (animation-owned) | None during flash | White wash overlay at 80% opacity | `CLR-CMB-CLEAR-FLASH` |
 | **HIGHLIGHTED (valid drop zone)** | MVP — active (transient, during drag) | `CLR-BRD-HIGHLIGHT` | None | None | `CLR-BRD-HIGHLIGHT` |
-| **FROZEN** | MVP+ — reserved | Desaturated blue-white (specific HEX to be defined when activated, registered as `CLR-CELL-FROZEN` at activation) | A distinct icy crystalline pattern overlay | Ice-crystal SVG overlay pattern | Reserved: `CLR-CELL-FROZEN` |
-| **BLOCKED** | MVP+ — reserved | Dark desaturated warm-grey (specific HEX to be defined at activation, registered as `CLR-CELL-BLOCKED`) | A hatched or solid darker border | No placement allowed marker (non-color: an X glyph or diagonal fill) | Reserved: `CLR-CELL-BLOCKED` |
+| **FROZEN** | MVP — active | Desaturated blue-white (specific HEX to be defined when implemented, registered as `CLR-CELL-FROZEN`) | A distinct icy crystalline pattern overlay | Ice-crystal SVG overlay pattern | `CLR-CELL-FROZEN` |
+| **BLOCKED** | MVP — active | Dark desaturated warm-grey (specific HEX to be defined when implemented, registered as `CLR-CELL-BLOCKED`) | A hatched or solid darker border | No placement allowed marker (non-color: an X glyph or diagonal fill) | `CLR-CELL-BLOCKED` |
 | **HAZARD** | MVP+ — reserved | Warm deep red-brown, desaturated (distinct from piece Ember by being visibly dimmer and brownish, not vibrant orange-red) | Subtle pulsing border at activation (animation-owned) | Warning glyph (non-color cue) | Reserved: `CLR-CELL-HAZARD` |
 | **INDESTRUCTIBLE** | MVP+ — reserved | Near-black with very slight warm metallic tint | A distinct etched/engraved border pattern | No-clear marker (non-color cue: a lock or stone-grain texture) | Reserved: `CLR-CELL-INDESTRUCTIBLE` |
 
-**BINDING RULE:** The four MVP+ cell state colors (FROZEN, BLOCKED, HAZARD, INDESTRUCTIBLE) must be registered in a revision of this document before any implementation begins. The reserved token IDs above are placeholders — no HEX value is assigned until the corresponding state is activated in `01_GAMEPLAY_SPECIFICATION.md` and `03_BOARD_ENGINE_AND_RULES.md`.
+**BINDING RULE:** The two MVP+ cell state colors (HAZARD, INDESTRUCTIBLE) must be registered in a revision of this document before any implementation begins. The reserved token IDs above are placeholders — no HEX value is assigned until the corresponding state is activated in `01_GAMEPLAY_SPECIFICATION.md` and `03_BOARD_ENGINE_AND_RULES.md`.
 
 ---
 
@@ -607,7 +607,7 @@ All color state transitions apply to the same element across different interacti
 | **Valid placement** | The piece commits with zero color change — it arrives at the exact color it appeared as in the Ghost Preview Valid state's outline, confirming the prediction. |
 | **Invalid placement** | The Ghost Preview briefly holds its invalid color treatment (CMB-DAMAGE-equivalent red/warning tones) for a single beat, then the piece returns to tray. The "invalid hold" is a one-frame brightness flash followed by the return animation. |
 | **Damaged** (enemy HP bar) | Three-phase fill color transition (Success, Warning, Danger) — animated depletion per Section 8.2. |
-| **Frozen** (MVP+ cell state) | Reserved. Color transition is a slow, cold desaturation sweep from the cell's current fill to `CLR-CELL-FROZEN`. |
+| **Frozen** (MVP cell state) | Color transition is a slow, cold desaturation sweep from the cell's current fill to `CLR-CELL-FROZEN`. |
 | **Cleared** | See "Clearing" in Section 15.1. |
 
 ---
@@ -668,7 +668,7 @@ Run this checklist at every build review. Binary pass/fail per item.
 - [ ] Every color value used in any asset in the build traces to a token defined in Section 18 of this document.
 - [ ] No color token appears in production code as a raw HEX value — only by its token ID.
 - [ ] No new HEX value was introduced without a corresponding new token in Section 18.
-- [ ] All MVP+ reserved token IDs (`CLR-CELL-FROZEN`, `CLR-CELL-BLOCKED`, `CLR-CELL-HAZARD`, `CLR-CELL-INDESTRUCTIBLE`, rarity tokens) contain no HEX value (they are still reserved, not defined).
+- [ ] All MVP+ reserved token IDs (`CLR-CELL-HAZARD`, `CLR-CELL-INDESTRUCTIBLE`, rarity tokens) contain no HEX value (they are still reserved, not defined).
 
 ### 17.2 Block Color
 
@@ -815,12 +815,17 @@ Run this checklist at every build review. Binary pass/fail per item.
 | `CLR-CMB-TELEGRAPH` | `#C88A28` | 38, 66%, 47% | Telegraph indicator — normal |
 | `CLR-CMB-TELEGRAPH-THREAT` | `#C83A2A` | 4, 65%, 47% | Telegraph indicator — severe |
 
+### Group 8 — MVP Cell States
+
+| Token ID | HEX | Status |
+|---|---|---|
+| `CLR-CELL-FROZEN` | TBD | MVP Active — HEX to be defined when implemented |
+| `CLR-CELL-BLOCKED` | TBD | MVP Active — HEX to be defined when implemented |
+
 ### Reserved — MVP+ Cell States
 
 | Token ID | HEX | Status |
 |---|---|---|
-| `CLR-CELL-FROZEN` | TBD | Reserved — no value until FROZEN state activated |
-| `CLR-CELL-BLOCKED` | TBD | Reserved — no value until BLOCKED state activated |
 | `CLR-CELL-HAZARD` | TBD | Reserved — no value until HAZARD state activated |
 | `CLR-CELL-INDESTRUCTIBLE` | TBD | Reserved — no value until INDESTRUCTIBLE state activated |
 

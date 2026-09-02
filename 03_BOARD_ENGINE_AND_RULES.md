@@ -32,30 +32,37 @@ Inherited verbatim from `02_SHAPE_LIBRARY.md` Section 2, restated here for Board
 
 ## 3. Cell State Model
 
-Each Board cell has exactly one state at any time. States are split into an MVP set (must exist for Absolute MVP) and an Extensible set (data contract reserved now, logic deferred).
+Each Board cell has a state that combines two distinct logical properties: **Occupancy** and **Cell Modifier**. The Board Engine is the single source of truth for both properties.
 
-### 3.1 MVP States
+### 3.1 MVP States (Occupancy + Modifier)
 
-| State | Meaning | Counts as Filled for Line Detection? | Placeable Into? |
-|---|---|---|---|
-| `EMPTY` | No Piece occupies this cell. | No | Yes |
-| `FILLED` | A Piece cell occupies this space, tagged with the owning Placement's identity (Section 4). | Yes | No |
+**Occupancy:**
+- `EMPTY`: No block occupies this cell.
+- `FILLED`: A player block occupies this cell, tagged with the owning Placement's identity.
 
-This is the complete MVP state set. `01_GAMEPLAY_SPECIFICATION.md` Section 5 defines exactly these two states ("Empty or Filled"); this document does not expand MVP scope beyond that rule.
+**Cell Modifier / State:**
+- `NORMAL`: The cell behaves according to standard rules.
+- `BLOCKED`: The cell is unavailable for placement, remains empty, and cannot receive a block. It is still part of the grid.
+- `FROZEN`: The cell contains a block but is temporarily protected from normal clearing / line-clear destruction. It remains occupied, and placement into it is impossible.
 
-### 3.2 Extensible Future States (data contract only, not MVP logic)
+**Valid MVP Combinations:**
+- **EMPTY + NORMAL:** Available for normal placement.
+- **FILLED + NORMAL:** Contains a placed block. Participates in line clearing.
+- **EMPTY + BLOCKED:** Unavailable for placement.
+- **FILLED + FROZEN:** Contains a placed block but is protected from line-clear destruction.
 
-Reserved so `Enemy Mechanics` (Gameplay Spec Section 11) can be added without a Cell Engine rewrite. Each future state below reserves a value in the same `CellState` enum; the Board Engine's line-detection and placement-validation algorithms (Sections 4, 6) already branch on a per-state predicate table (Section 9), not a hardcoded two-value check, so adding a row to that table is the only change required.
+*Note: Enemy mechanics may request board-state changes (applying BLOCKED or FROZEN) through the Board Engine, but enemy logic must not directly mutate raw board storage.*
 
-| State (reserved) | Intended future meaning | Owning future doc |
-|---|---|---|
-| `FROZEN` | Filled, but excluded from Line Detection until unfrozen (Gameplay Spec Section 11, Freeze Cells). | Enemy Content doc |
-| `BLOCKED` | Empty, but not placeable and not clearable, until a duration/condition expires (Gameplay Spec Section 11, Block Cells). | Enemy Content doc |
-| `HAZARDOUS` | Filled or Empty variant carrying a side-effect trigger on Placement or Clear (Gameplay Spec Section 11, Create Hazards). | Enemy Content doc |
-| `INDESTRUCTIBLE` | Occupied, never clearable, never overwritten by Placement. | Objectives doc (Block Quest pre-filled boards) |
-| `SPECIAL` | Reserved catch-all for a single future one-off cell behavior not yet categorized. | TBD |
+### 3.2 Extensible Deferred States / Mechanics
 
-**MASTER DESIGN RULE (inherited from Gameplay Spec Section 11):** Every future state above must remain expressible as data (which cells, which effect, which duration). None may be added to MVP scope without a revision to `01_GAMEPLAY_SPECIFICATION.md` first — this document does not unilaterally activate them.
+The following mechanics are explicitly **deferred** (post-MVP) and must not be treated as active MVP requirements:
+
+- `HAZARDOUS`: Generalized hazard systems or hazard creation.
+- `INDESTRUCTIBLE`: Occupied, never clearable, never overwritten by Placement.
+- `SPECIAL`: Any generalized rule-altering cell system.
+- General hazard/special-cell framework.
+
+**MASTER DESIGN RULE (inherited from Gameplay Spec Section 11):** Do not implement a generalized hazard/special-cell framework during MVP. Deferred states must not become MVP requirements. No enemy may invent generalized rule-altering mechanics beyond applying `BLOCKED` or `FROZEN` to cells.
 
 ---
 
@@ -95,7 +102,7 @@ This guarantees the Gameplay Spec Section 24 acceptance criterion: "any other dr
 
 **Definition:** A row `r` is a **candidate cleared row** if `board[r][c].state == FILLED` for all `c ∈ [0,7]`. A column `c` is a **candidate cleared column** if `board[r][c].state == FILLED` for all `r ∈ [0,7]`.
 
-**DESIGN DECISION:** Only the `FILLED` state counts toward line completeness at MVP (Section 3.1). This is the single predicate point the future `FROZEN` state (Section 3.2) will override — a `FROZEN` cell will read as "not counted" without touching this function's control flow, only its per-state predicate (Section 9).
+**DESIGN DECISION:** Only `FILLED + NORMAL` counts toward line completeness for MVP. A `FILLED + FROZEN` cell will read as "not counted" without touching this function's control flow, only its per-state predicate (Section 9).
 
 **Algorithm — `detectLines(board)`:**
 
@@ -143,12 +150,12 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 
 ---
 
-## 9. Special Cell Interaction
+## 9. Extension Seams
 
-The Board Engine does not implement Frozen, Blocked, or Hazard behavior at MVP (Gameplay Spec Section 11 assigns their exact behaviors to a future Enemy Content doc). It exposes exactly three extension points so those mechanics can be added without touching Sections 4–8's core algorithms:
+The Board Engine implements `FROZEN` and `BLOCKED` for MVP (Gameplay Spec Section 11 assigns their triggering behaviors to Enemy Mechanics). It exposes exactly three extension points so deferred mechanics (like Hazards) can be added without touching Sections 4-8's core algorithms:
 
-1. **Occupancy predicate (used by Section 4, step 1c):** `isPlaceable(cell)` — MVP implementation is `cell.state == EMPTY`. A future `BLOCKED` state overrides this predicate to also return `false`, with no change to the surrounding validation loop.
-2. **Line-completeness predicate (used by Section 6):** `countsAsFilled(cell)` — MVP implementation is `cell.state == FILLED`. A future `FROZEN` state overrides this predicate to return `false` while `cell.state` still reports occupied for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
+1. **Placement predicate (used by Section 4):** `isPlaceable(cell)` — MVP implementation is `cell.occupancy == EMPTY && cell.modifier != BLOCKED`.
+2. **Line-completeness predicate (used by Section 6):** `countsAsFilled(cell)` — MVP implementation is `cell.occupancy == FILLED && cell.modifier != FROZEN`. A `FROZEN` state overrides this predicate to return `false` while `cell.occupancy` still reports `FILLED` for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
 3. **Post-clear hook (used by Section 8, step 2):** an event fired per cleared cell (`CellsCleared`, Section 12) that a future Hazard system can subscribe to for side effects, without the Board Engine itself knowing what those side effects are.
 
 **DESIGN DECISION — do not overbuild:** No duration counters, no unfreeze/unblock scheduling, and no hazard trigger table are implemented in this document. Only the three predicate/hook seams above exist at MVP; this satisfies the instruction "do not overbuild them" while keeping Master Vision Section 15's expansion path open at zero rework cost to Sections 4–8.
@@ -261,7 +268,7 @@ Placing a 1-cell Shape at `(0,7)` must trigger `filledRows = {0}`, `filledCols =
 | A Shape has zero legal origins but the Board is not locked (other Tray Shapes have legal placements) | Not a Board Lock (Section 10; matches Gameplay Spec Section 21). |
 | Two different rows/columns share a clearing cell | Cleared exactly once via set union (Section 8). |
 | `detectLines` called on a Board with zero Placements yet made (Battle `PREPARING`) | Returns `(∅, ∅)` — an empty Board can never contain a filled line by construction. |
-| A future `FROZEN` cell exists mid-line at clear time | Out of MVP scope for logic (Section 3.2) — the `countsAsFilled` predicate (Section 9) is the only integration point; MVP ships with no cell ever entering `FROZEN`. |
+| A `FROZEN` cell exists mid-line at clear time | The `countsAsFilled` predicate evaluates to false. The line does not clear. |
 | `validatePlacement` called with an origin fully outside `[0,7]×[0,7]` even for the shape's single origin cell | First local cell fails the bounds check immediately; returns `INVALID: OUT_OF_BOUNDS` without evaluating remaining cells. |
 | Rapid repeated `hasAnyLegalPlacement` queries mid-`ACTIVE` (e.g., re-triggered by UI) | Idempotent and side-effect-free — it is a pure read query (Section 11); may be called any number of times with identical results given an unchanged Board/Tray. |
 

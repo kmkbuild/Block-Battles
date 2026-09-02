@@ -236,6 +236,7 @@ An AI working on this project MUST NEVER:
 8. Invent a mechanic, balance value, or system not specified in the docs.
 9. Wrap a bug in `try { } catch { }` without logging and fixing the root cause.
 10. Push to `main` without passing the NUnit test suite.
+11. Implement a generalized hazard/special-cell framework during MVP unless a later approved document explicitly activates it. MVP board states are strictly limited to `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`. `HAZARDOUS`, `INDESTRUCTIBLE`, and `SPECIAL` are explicitly deferred.
 
 ---
 

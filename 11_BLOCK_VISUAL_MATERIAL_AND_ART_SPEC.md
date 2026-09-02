@@ -446,13 +446,13 @@ For L=4 (Full Combo), the flash brightness is additionally intensified — the c
 
 ## 12. Special Blocks
 
-### 12.1 MVP vs. Later
+### 12.1 MVP vs. Deferred States
 
-Per `03_BOARD_ENGINE_AND_RULES.md` Section 3.2's confirmation that `INDESTRUCTIBLE`, `FROZEN`, and `BLOCKED` cell states are locked to "Later/MVP+," **no special block variants are implemented at Absolute MVP.** All board cells at MVP are either EMPTY or standard FILLED (one of the seven color identities).
+Per `03_BOARD_ENGINE_AND_RULES.md` Section 3.1, `BLOCKED` and `FROZEN` are active MVP states. `INDESTRUCTIBLE`, `HAZARDOUS`, and `SPECIAL` are explicitly deferred (post-MVP).
 
-This section pre-defines the visual language for each special type so that when they are activated, they implement a consistent art direction without requiring a new material system.
+This section defines the visual language for the MVP special states, and pre-defines the direction for deferred types so that when they are activated, they implement a consistent art direction without requiring a new material system.
 
-### 12.2 Frozen Block (MVP+)
+### 12.2 Frozen Block (MVP)
 
 **Intent:** A standard filled block that has had its cell frozen by an enemy action. It cannot be cleared until it is unfrozen.
 
@@ -465,7 +465,7 @@ This section pre-defines the visual language for each special type so that when 
 | **Non-color cue** | The angular crystal pattern on the face distinguishes FROZEN from FILLED without color |
 | **Animation target** | A very slow, subtle pulse (brightness oscillates 3-5% at ~1Hz) to signal an active status effect |
 
-### 12.3 Blocked Cell (MVP+)
+### 12.3 Blocked Cell (MVP)
 
 **Intent:** A cell that has been blocked by an enemy action. No piece can be placed on it.
 

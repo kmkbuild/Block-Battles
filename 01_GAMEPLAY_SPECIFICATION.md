@@ -97,7 +97,7 @@ RUN DEFEAT (from any Battle) ──→ REWARDS ──→ RESTART ──→ MAIN 
   | Filled | Frozen | **Frozen.** Occupied, but does not count toward Line Clear detection until unfrozen. (MVP — used by enemy Freeze mechanic, Section 11.) |
   | Filled | Indestructible | **Indestructible.** Occupied, never clearable, never overwritten. (Deferred — reserved for future Objective Board preset or enemy mechanic. Not required at Absolute MVP.) |
 
-  **DESIGN DECISION:** `Blocked` and `Frozen` are confirmed MVP states, required by the documented enemy mechanic categories in Section 11. `Indestructible` and `Hazardous` are reserved as deferred future states — their data slots exist in the Cell model but no MVP logic activates them. The full technical predicate model is owned by `03_BOARD_ENGINE_AND_RULES.md` Section 9.
+  **DESIGN DECISION:** `Blocked` and `Frozen` are confirmed MVP states, required by the documented enemy mechanic categories in Section 11. `Indestructible`, `Hazardous`, and `Special` are reserved as explicitly deferred (post-MVP) states — their data slots may exist in the Cell model, but no MVP logic activates them. The full technical predicate model is owned by `03_BOARD_ENGINE_AND_RULES.md` Section 9.
 
 - **Placement:** A Piece may be placed at a target origin cell if and only if every cell the Piece's shape occupies (relative to that origin) exists on the Board AND has `CanReceiveBlock == true`. At MVP: `Normal Empty` cells satisfy this; `Blocked`, `Filled`, and all other states do not. An illegal placement is rejected and returns control to `PIECE_SELECTED`/`ACTIVE` (Section 4).
 - **No rotation:** A Piece is placed exactly in the orientation it is presented in the tray. The Piece pool (owned by the Shapes doc, Section 25) is responsible for including any rotated variants needed for board solvability; this document does not permit runtime rotation as a player action.
@@ -181,12 +181,15 @@ This guarantees every Enemy action was visible to the player for at least one fu
 
 Enemy actions modify the **Board and rules**, not a Player HP resource (none exists at Absolute MVP per Master Vision Section 10). Supported mechanic categories at Absolute MVP:
 
+**Active MVP Mechanic Categories:**
 - **Block Cells:** Mark one or more currently-Empty cells as **Blocked** (cannot be targeted by any Placement) for a defined duration (turns) or until a defined condition clears them.
 - **Freeze Cells:** Mark one or more currently-Filled cells as **Frozen**, meaning they do not count toward Line Clear detection (Section 5) until unfrozen, effectively stalling a would-be clear.
-- **Create Hazards:** Place a special cell type that carries a defined side effect on Placement or Clear (exact hazard behaviors owned by a future Enemy Content doc; this document only certifies the category exists).
-- **Alter Rules:** A narrow, explicitly whitelisted set of temporary rule changes (e.g., temporarily disabling Combo bonuses) — must be visibly communicated via UI and must not violate Master Vision Section 18 (Transparent Objectives/Predictable Rules).
 
-**MASTER DESIGN RULE (inherited):** Every Enemy mechanic must be expressible as data (which cells, which effect, which duration) within these categories. A mechanic requiring a new category is a Master Vision Section 15 expansion decision, not a default addition.
+**Deferred (Post-MVP) Mechanics:**
+- **Create Hazards:** Place a special cell type that carries a defined side effect on Placement or Clear (e.g., HAZARDOUS or SPECIAL cells).
+- **Alter Rules:** Generalized temporary rule changes (e.g., temporarily disabling Combo bonuses).
+
+**MASTER DESIGN RULE (inherited):** Every Enemy mechanic must be expressible as data. Deferred mechanics (Hazards, Rule Alteration) must remain explicitly deferred and must NOT become MVP requirements. No enemy may invent generalized rule-altering mechanics beyond applying `BLOCKED` or `FROZEN` to cells.
 
 ---
 
