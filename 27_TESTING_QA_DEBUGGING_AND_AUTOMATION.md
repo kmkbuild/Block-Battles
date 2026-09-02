@@ -20,7 +20,7 @@ Because the core game logic (`Domain Layer`) is completely decoupled from Unity'
 
 For Block Battles, the effort distribution is:
 
-1. **Unit Tests (70%):** Pure C# (NUnit). Tests Board math, Piece rotation, Combat calculations, and Relic triggers. Executes in milliseconds.
+1. **Unit Tests (70%):** Pure C# (NUnit). Tests Board math, Piece placement (fixed orientation), Combat calculations, and Relic triggers. Executes in milliseconds.
 2. **Integration Tests (15%):** Tests Save/Load IO, EventBus broadcasting, and turn state-machine progression.
 3. **System / UI Tests (10%):** Unity PlayMode tests. Simulates a mock drag-and-drop to ensure the `TrayEngine` and `BoardEngine` communicate correctly.
 4. **Manual / Playtesting (5%):** Real-device testing for haptics, framerate, and subjective fun.
@@ -45,7 +45,7 @@ For Block Battles, the effort distribution is:
 
 ## 5. Shape Tests
 
-- **Rotation Math:** Assert that applying a rotation to a 3x3 `J-Piece` matrix results in the mathematically exact 90-degree clockwise matrix.
+- **Orientation Immutability:** Assert that a `ShapeData` asset's `blockMatrix` returns the same cell configuration on every read, confirming the orientation is authored and static. No runtime transformation must alter it.
 - **Anchor Offset:** Assert that the piece's logical anchor (e.g., bottom-left) correctly translates 5x5 local coordinates to 8x8 global coordinates.
 
 ---

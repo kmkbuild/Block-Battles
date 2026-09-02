@@ -63,7 +63,7 @@ The codebase is strictly divided into three primary layers:
 
 ### 5.1 Domain Layer (The Core)
 - **What it is:** Pure C# classes (`.cs`). Absolutely zero references to `UnityEngine` (except `UnityEngine.Debug` for logging if abstracted). 
-- **Responsibility:** Contains the 8x8 grid matrix, piece rotation math, line-clear detection, scoring formulas, and HP tracking.
+- **Responsibility:** Contains the 8x8 grid matrix, piece placement math, line-clear detection, scoring formulas, and HP tracking. **Note: There is no runtime piece rotation. Piece orientation is static and authored per `ShapeData` asset.**
 - **Why:** Allows lightning-fast unit testing without launching the Unity Editor.
 
 ### 5.2 Application Layer (The Orchestrator)
@@ -107,7 +107,7 @@ The strict state machine flow:
 ## 8. Core Gameplay Ownership
 
 - **BoardEngine:** Owns the 2D integer array. Handles collision detection, valid placement checks, and line-clear mathematics.
-- **PieceEngine:** Owns piece rotation logic and the 3-piece Tray state.
+- **TrayEngine:** Owns the 3-piece Tray state. Serves pieces in their fixed, authored orientation. Runtime rotation is prohibited; orientation diversity is managed via the shape catalog, not runtime transforms.
 - **CombatEngine:** Pure math calculator. Takes `BaseDamage` + `L-Value` + `RelicModifiers` -> Outputs `FinalDamage` and `DamageEvents` for the UI.
 - **TurnOrchestrator:** A state machine managing whose turn it is and blocking input while animations resolve.
 

@@ -81,19 +81,18 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Tasks:**
 - Create `ShapeData.cs` ScriptableObject (5x5 `bool[25]` matrix, `OnValidate` auto-sizing) per `20` Sec 4.
-- Create `ShapeMatrix.cs` POCO (computed width, height, normalized occupied cells).
-- Implement `ShapeRotator.cs` (90° clockwise rotation logic).
+- Create `ShapeMatrix.cs` POCO (computed width, height, normalized occupied cells from the authored `bool[25]` array).
 - Author the first 5 simple `ShapeData` assets (1x1, 1x2, 1x3, 2x2, L-shape).
+- **Important:** Do NOT implement a `ShapeRotator.cs`. Piece orientation is static and fixed at authoring time. Runtime rotation is explicitly prohibited (`01`, `AI_START_HERE`).
 
 **Files to Create:**
 - `Assets/_Project/Scripts/Core/Shapes/ShapeMatrix.cs`
-- `Assets/_Project/Scripts/Core/Shapes/ShapeRotator.cs`
 - `Assets/_Project/Data/Shapes/ShapeData.cs`
 - `Assets/_Project/Data/Shapes/shape_square_1x1.asset`
 - `Assets/_Project/Data/Shapes/shape_line_1x2.asset`
 
-**Tests:** Assert `ShapeRotator.Rotate90CW` on a 3x3 J-Piece matrix produces the correct rotated matrix.
-**Acceptance Criteria:** All 5 authored shapes can be placed into a `BoardModel` without errors.
+**Tests:** Assert that `ShapeMatrix` built from a `ShapeData` asset produces the correct width, height, and occupied cell list. Assert that the `ShapeData.blockMatrix` array cannot be modified at runtime (the field is read-only by convention; no setter is exposed).
+**Acceptance Criteria:** All 5 authored shapes can be placed into a `BoardModel` without errors. No rotation function exists anywhere in the `BlockBattles.Core` assembly.
 
 ---
 
