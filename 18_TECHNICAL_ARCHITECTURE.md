@@ -63,7 +63,7 @@ The codebase is strictly divided into three primary layers:
 
 ### 5.1 Domain Layer (The Core)
 - **What it is:** Pure C# classes (`.cs`). Absolutely zero references to `UnityEngine` (except `UnityEngine.Debug` for logging if abstracted). 
-- **Responsibility:** Contains the 8x8 grid matrix, piece placement math, line-clear detection, scoring formulas, and HP tracking. **Note: There is no runtime piece rotation. Piece orientation is static and authored per `ShapeData` asset.**
+- **Responsibility:** Contains the 8x8 grid matrix, piece placement math, line-clear detection, scoring formulas, and HP tracking. **Note: There is no runtime piece rotation. Piece orientation is static and authored per `ShapeData` asset.** The board cell model carries two logically distinct attributes — Occupancy and Cell Modifier — stored compactly but semantically independent (e.g., a `Frozen` cell is Occupied but does not count toward Line Clear). Full cell-state authority is owned by `03_BOARD_ENGINE_AND_RULES.md` Section 3.
 - **Why:** Allows lightning-fast unit testing without launching the Unity Editor.
 
 ### 5.2 Application Layer (The Orchestrator)

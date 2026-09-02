@@ -63,6 +63,8 @@ This is the exhaustive list of Domain events required for the MVP. Do not create
 - `PiecePlaced` (Triggers board update, thud audio)
 - `LinesCleared` (Triggers flash, fragment VFX)
 - `BoardLocked` (Triggers game over sequence)
+- `BoardCellModified` (MVP — fires when an enemy action applies or removes a cell modifier: `Blocked`, `Frozen`, etc. Triggers cell-state visual update on `BoardView`. Payload: `cell: (row, col)`, `modifier: CellModifier`, `duration: int turns`. Emitted by `BoardEngine` after `SetCellModifier` call from `EnemyEngine`.)
+- `BoardCellModifierExpired` (MVP — fires when a timed cell modifier (e.g., Block duration elapses) is automatically cleared. Triggers cell restore visual. Payload: `cell: (row, col)`, `previousModifier: CellModifier`.)
 
 ### Combat & Progression Events
 - `DamageDealt` (Triggers UI numbers, enemy hit animation)

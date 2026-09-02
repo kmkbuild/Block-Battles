@@ -41,11 +41,11 @@ The architecture is divided into two distinct categories: **Persistent Services*
 | **SaveService** | JSON disk I/O, state persistence. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
 | **RunManager** | Stardust, active Relics list, current floor index. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over event |
 | **BattleOrchestrator**| Turn phases, blocking input during animations. | Board array, HP math. | `OnDrop`, `OnAnimFinish` | `TurnStateChange` |
-| **BoardEngine** | 8x8 `int` array, collision math, line clearing math. | Piece drag graphics, scoring. | Piece coordinates | `LinesCleared` event |
+| **BoardEngine** | 8x8 cell-state array (each cell encodes Occupancy + Modifier compactly per `03` Sec 3), collision math, line clearing math. Enemy systems request board mutations via `BoardEngine` API — they MUST NOT write directly to the internal array. | Piece drag graphics, scoring. | Piece coordinates, enemy-requested cell mutations | `LinesCleared`, `CellsCleared`, `BoardChanged` events |
 | **TrayEngine** | The 3 available pieces, Ghost preview logic. | Input touch events, Board collision. | `ShapeData[]`, Board queries | `PieceCommitted` event |
 | **CombatEngine** | Damage calculation, Combo (L-value) multipliers. | Relic definitions, Enemy HP. | `LinesCleared` event | `DamageDealt` event |
 | **RelicEngine** | Passing modifier math to the CombatEngine based on triggers. | Combat resolution. | `LinesCleared`, `TurnStart` | `RelicProc` event |
-| **EnemyEngine** | Enemy HP, telegraph intent generation. | Damage dealing logic, Board math. | `DamageDealt` event | `EnemyDefeated`, `EnemyAction` |
+| **EnemyEngine** | Enemy HP, telegraph intent generation, board-modification requests. Enemy resolves which cells to target, then calls `BoardEngine.SetCellModifier(cell, modifier, duration)` — it never writes raw cell values directly. | Damage dealing logic, Board math internals. | `DamageDealt` event | `EnemyDefeated`, `EnemyAction`, `BoardCellModified` |
 
 ---
 

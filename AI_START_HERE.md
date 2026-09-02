@@ -159,7 +159,7 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp â†
 
 | System | Responsibility |
 |---|---|
-| `BoardModel` | Owns the 8x8 `int[64]` array. Validates and commits placements. |
+| `BoardModel` | Owns the 8x8 cell-state array (compact occupancy + modifier). Validates and commits placements. |
 | `TrayEngine` | Manages the 3 active pieces. Requests new pieces from `GameRNG`. |
 | `LineScanner` | Detects and clears full rows/columns after each placement. |
 | `CombatEngine` | Receives L-Value, queries `RelicEngine`, outputs `DamageDealtEvent`. |

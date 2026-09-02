@@ -171,7 +171,7 @@ public class RunSaveData {
     public List<string> activeRelicIDs;
     
     // Mid-battle state (if saving mid-run is supported)
-    public int[] currentBoardState; // 64 integers representing cell contents
+    public int[] currentBoardState; // 64 integers (one per cell, row-major). Each integer encodes both Occupancy and Cell Modifier compactly. Encoding authority: `03_BOARD_ENGINE_AND_RULES.md` Section 3. Mutable runtime state only — NOT a ScriptableObject field.
     public int currentEnemyHP;
     public int remainingMoves;
 }

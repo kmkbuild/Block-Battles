@@ -57,7 +57,7 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 0.
 
 **Tasks:**
-- Implement `BoardModel.cs` (1D `int[64]` array, indexing logic `row * 8 + col`).
+- Implement `BoardModel.cs` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`).
 - Implement `IsValidPlacement(ShapeMatrix, int x, int y)` method.
 - Implement `CommitPlacement(ShapeMatrix, int x, int y)` method.
 - Write NUnit tests covering: bounds checking, overlap detection, full board state reset.

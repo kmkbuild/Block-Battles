@@ -87,10 +87,21 @@ RUN DEFEAT (from any Battle) ──→ REWARDS ──→ RESTART ──→ MAIN 
 ## 5. Board Rules
 
 - The Board is an **8×8 grid** of cells, indexed `(row, col)` with `row, col ∈ [0, 7]`.
-- Each cell has exactly one state: **Empty** or **Filled**.
-- **Placement:** A Piece may be placed at a target origin cell if and only if every cell the Piece's shape occupies (relative to that origin) exists on the Board and is currently Empty. An illegal placement is rejected and returns control to `PIECE_SELECTED`/`ACTIVE` (Section 4).
+- **Cell State Model:** Each Board cell carries two logically distinct attributes: **Occupancy** and a **Cell Modifier**. These are stored compactly (see `03_BOARD_ENGINE_AND_RULES.md` Section 3) but are semantically independent.
+
+  | Occupancy | Modifier | Meaning |
+  |---|---|---|
+  | Empty | Normal | **Normal Empty.** Default state. Can receive a Piece. |
+  | Filled | Normal | **Normal Filled.** Contains a regular placed block. Counts toward Line Clear detection. |
+  | Empty | Blocked | **Blocked.** Cannot receive a Piece; does not count toward Line Clear. Duration or condition managed by enemy system. (MVP — used by enemy Block mechanic, Section 11.) |
+  | Filled | Frozen | **Frozen.** Occupied, but does not count toward Line Clear detection until unfrozen. (MVP — used by enemy Freeze mechanic, Section 11.) |
+  | Filled | Indestructible | **Indestructible.** Occupied, never clearable, never overwritten. (Deferred — reserved for future Objective Board preset or enemy mechanic. Not required at Absolute MVP.) |
+
+  **DESIGN DECISION:** `Blocked` and `Frozen` are confirmed MVP states, required by the documented enemy mechanic categories in Section 11. `Indestructible` and `Hazardous` are reserved as deferred future states — their data slots exist in the Cell model but no MVP logic activates them. The full technical predicate model is owned by `03_BOARD_ENGINE_AND_RULES.md` Section 9.
+
+- **Placement:** A Piece may be placed at a target origin cell if and only if every cell the Piece's shape occupies (relative to that origin) exists on the Board AND has `CanReceiveBlock == true`. At MVP: `Normal Empty` cells satisfy this; `Blocked`, `Filled`, and all other states do not. An illegal placement is rejected and returns control to `PIECE_SELECTED`/`ACTIVE` (Section 4).
 - **No rotation:** A Piece is placed exactly in the orientation it is presented in the tray. The Piece pool (owned by the Shapes doc, Section 25) is responsible for including any rotated variants needed for board solvability; this document does not permit runtime rotation as a player action.
-- **Clearing:** After a Placement resolves, every row that is entirely Filled and every column that is entirely Filled is identified **simultaneously** (based on the single resulting board state, not sequentially), then all identified rows/columns are cleared (set to Empty) together in one resolution step.
+- **Clearing:** After a Placement resolves, every row that satisfies `CountsTowardLineClear == true` for all 8 cells and every column that satisfies `CountsTowardLineClear == true` for all 8 cells is identified **simultaneously** (based on the single resulting board state, not sequentially), then all identified rows/columns are cleared (occupancy set to `Empty`, modifier reset to `Normal`) together in one resolution step. `Frozen` cells do NOT count toward Line Clear detection; `Blocked` cells are not Filled and therefore trivially do not contribute.
 - **DESIGN DECISION:** A cell that is part of both a clearing row and a clearing column is cleared once; no double-counting of the cell itself (only of line-count for Combo purposes, Section 8).
 
 ---
@@ -333,8 +344,8 @@ This loop repeats until `RUN_DEFEAT` (Section 15) or a future defined Run-comple
 
 ## 24. Acceptance Criteria
 
-- A Piece can be placed only onto a fully Empty, in-bounds set of cells matching its (unrotated) shape; any other drop target is rejected.
-- Every fully-Filled row and column is cleared in the same resolution step that produced them, never partially or across multiple frames of game logic.
+- A Piece can be placed only onto a set of in-bounds cells where every target cell satisfies `CanReceiveBlock == true` (i.e., `Normal Empty`); any `Blocked`, `Filled`, or otherwise non-placeable cell in the target area causes the drop to be rejected.
+- Every row and every column where all 8 cells satisfy `CountsTowardLineClear == true` is cleared in the same resolution step that produced them, never partially or across multiple frames of game logic. `Frozen` cells break line-clear eligibility for their row/column for the duration they are frozen.
 - Exactly one Damage Event is produced per Turn, following the fixed Section 9 pipeline order, never skipping or reordering stages.
 - The Enemy never executes an action that was not shown as a Telegraph at least one full Turn earlier.
 - A Battle transitions to `RUN_DEFEAT` if and only if a documented Section 15 failure condition is met; it never ends in failure for an undocumented reason.
