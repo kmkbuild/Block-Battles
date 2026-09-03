@@ -164,8 +164,10 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 
 The Board Engine implements `FROZEN` and `BLOCKED` for MVP (Gameplay Spec Section 11 assigns their triggering behaviors to Enemy Mechanics). It exposes exactly three extension points so deferred mechanics (like Hazards) can be added without touching Sections 4-8's core algorithms:
 
-1. **Placement predicate (used by Section 4):** `isPlaceable(cell)` — MVP implementation is `cell.occupancy == EMPTY && cell.modifier != BLOCKED`.
-2. **Line-completeness predicate (used by Section 6):** `countsAsFilled(cell)` — MVP implementation is `cell.occupancy == FILLED && cell.modifier != FROZEN`. A `FROZEN` state overrides this predicate to return `false` while `cell.occupancy` still reports `FILLED` for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
+1. **Placement predicate (used by Section 4):** `CanReceiveBlock(cell)` — MVP implementation is `cell.occupancy == EMPTY && cell.modifier == NORMAL`.
+2. **Line-completeness predicate (used by Section 6):** `CountsTowardLineClear(cell)` — MVP implementation is `cell.occupancy == FILLED && cell.modifier == NORMAL`. A `FROZEN` state overrides this predicate to return `false` while `cell.occupancy` still reports `FILLED` for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
+
+*Note: The Occupancy and Modifier attributes are stored separately for compactness and extensibility, but MVP gameplay only authorizes the documented combinations. `EMPTY + FROZEN` and `FILLED + BLOCKED`, for example, are not valid active MVP states.*
 3. **Post-clear hook (used by Section 8, step 2):** an event fired per cleared cell (`CellsCleared`, Section 12) that a future Hazard system can subscribe to for side effects, without the Board Engine itself knowing what those side effects are.
 
 **DESIGN DECISION — do not overbuild:** No duration counters, no unfreeze/unblock scheduling, and no hazard trigger table are implemented in this document. Only the three predicate/hook seams above exist at MVP; this satisfies the instruction "do not overbuild them" while keeping Master Vision Section 15's expansion path open at zero rework cost to Sections 4–8.
@@ -278,7 +280,7 @@ Placing a 1-cell Shape at `(0,7)` must trigger `filledRows = {0}`, `filledCols =
 | A Shape has zero legal origins but the Board is not locked (other Tray Shapes have legal placements) | Not a Board Lock (Section 10; matches Gameplay Spec Section 21). |
 | Two different rows/columns share a clearing cell | Cleared exactly once via set union (Section 8). |
 | `detectLines` called on a Board with zero Placements yet made (Battle `PREPARING`) | Returns `(∅, ∅)` — an empty Board can never contain a filled line by construction. |
-| A `FROZEN` cell exists mid-line at clear time | The `countsAsFilled` predicate evaluates to false. The line does not clear. |
+| A `FROZEN` cell exists mid-line at clear time | The `CountsTowardLineClear` predicate evaluates to false. The line does not clear. |
 | `validatePlacement` called with an origin fully outside `[0,7]×[0,7]` even for the shape's single origin cell | First local cell fails the bounds check immediately; returns `INVALID: OUT_OF_BOUNDS` without evaluating remaining cells. |
 | Rapid repeated `hasAnyLegalPlacement` queries mid-`ACTIVE` (e.g., re-triggered by UI) | Idempotent and side-effect-free — it is a pure read query (Section 11); may be called any number of times with identical results given an unchanged Board/Tray. |
 
@@ -337,7 +339,7 @@ Properties that must hold for **any** randomly generated valid Shape/origin/Boar
 - **Consumes from `02_SHAPE_LIBRARY.md`:** the coordinate/normalization contract (Section 2), the Canonical Shape Schema fields this engine reads — `local_coordinates`, `block_count`, `width`, `height` (Section 3, also named explicitly in Shape Library Section 14 as consumed by "Board Engine doc") — and the Section 11 test-case behaviors this document's Section 14/18 fixtures are built to match.
 - **Exposes to Combat/Scoring doc:** `LinesCleared`/`CellsCleared` events (Section 12) as the sole input to Damage Pipeline stage "Detect Clear" (Gameplay Spec Section 9); the Board Engine does not compute damage or Combo values itself.
 - **Exposes to Objectives doc:** Board Queries (Section 11) and the full event stream (Section 12) as the only legal data sources for line/cumulative-count Objective predicates (Gameplay Spec Section 12); Objectives may not read Board internals outside these seams.
-- **Exposes to Enemy Content doc (future):** the three Section 9 extension seams (`isPlaceable`, `countsAsFilled`, post-clear hook) as the only sanctioned integration points for Block/Freeze/Hazard mechanics (Gameplay Spec Section 11).
+- **Exposes to Enemy Content doc (future):** the three Section 9 extension seams (`CanReceiveBlock`, `CountsTowardLineClear`, post-clear hook) as the only sanctioned integration points for Block/Freeze/Hazard mechanics (Gameplay Spec Section 11).
 - **Exposes to autosave/backgrounding (Gameplay Spec Section 20):** `getBoardSnapshot()` (Section 11) as the serializable Board state; Section 13's determinism guarantee is what makes resuming a Turn mid-resolution safe to reconstruct.
 - This document does not embed content owned by the above; it references them structurally only, per the pattern established in `01_GAMEPLAY_SPECIFICATION.md` Section 25 and `02_SHAPE_LIBRARY.md` Section 14.
 
