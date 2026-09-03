@@ -75,8 +75,10 @@ The following mechanics are explicitly **deferred** (post-MVP) and must not be t
 1. For each `(r, c)` in `shape.local_coordinates`:
    a. Compute `target = (origin.row + r, origin.col + c)`.
    b. **Bounds check:** if `target.row ∉ [0,7]` or `target.col ∉ [0,7]`, return `INVALID: OUT_OF_BOUNDS` immediately — do not continue checking remaining cells.
-   c. **Occupancy check:** if `board[target.row][target.col].state ≠ EMPTY`, return `INVALID: CELL_OCCUPIED` immediately.
+   c. **Placement check:** if `!CanReceiveBlock(board[target.row][target.col])`, return `INVALID: CELL_NOT_PLACEABLE` immediately.
 2. If every local cell passed both checks, return `VALID`.
+
+*(Note: `CanReceiveBlock(cell)` evaluates to true if and only if `cell.occupancy == EMPTY` AND `cell.modifier == NORMAL`.)*
 
 **DESIGN DECISION:** Validation short-circuits on the first failing cell (matches Shape Library Section 11, Test T6: "the validator must reject on the first occupied target cell found rather than only checking the origin cell"). Order of cell iteration does not affect the VALID/INVALID result, only which specific failure is reported first when multiple cells fail — this is intentionally not specified as deterministic across cells, since only the boolean outcome is contractually meaningful (Section 20 clarifies what must remain reproducible).
 
@@ -91,7 +93,10 @@ The following mechanics are explicitly **deferred** (post-MVP) and must not be t
 **Algorithm:**
 
 1. Call `validatePlacement(shape, origin, board)`. If the result is not `VALID`, return the failure and perform zero mutations. The Gameplay Spec's `DRAGGING → PLACEMENT_RESOLUTION` transition (Section 4) only occurs after this call returns `VALID`; an `INVALID` result routes back to `PIECE_SELECTED`/`ACTIVE` and never reaches this function's mutation step.
-2. Only after step 1 succeeds: for each `(r, c)` in `shape.local_coordinates`, set `board[origin.row + r][origin.col + c].state = FILLED` and tag it with the current Placement's identity (a monotonically increasing `placementId`, Section 13).
+2. Only after step 1 succeeds: for each `(r, c)` in `shape.local_coordinates`:
+   - Set `board[origin.row + r][origin.col + c].occupancy = FILLED`
+   - Set `board[origin.row + r][origin.col + c].modifier = NORMAL`
+   - Tag it with the current Placement's identity (a monotonically increasing `placementId`, Section 13).
 3. No intermediate state produced during step 2 is ever observed outside this function — the mutation loop is not interruptible by any other Board Engine call (Section 13, Determinism).
 
 This guarantees the Gameplay Spec Section 24 acceptance criterion: "any other drop target is rejected" with the Board left byte-for-byte unchanged on rejection.
@@ -100,14 +105,16 @@ This guarantees the Gameplay Spec Section 24 acceptance criterion: "any other dr
 
 ## 6. Line Detection
 
-**Definition:** A row `r` is a **candidate cleared row** if `board[r][c].state == FILLED` for all `c ∈ [0,7]`. A column `c` is a **candidate cleared column** if `board[r][c].state == FILLED` for all `r ∈ [0,7]`.
+**Definition:** A row `r` is a **candidate cleared row** if `CountsTowardLineClear(board[r][c])` evaluates to true for all `c ∈ [0,7]`. A column `c` is a **candidate cleared column** if `CountsTowardLineClear(board[r][c])` evaluates to true for all `r ∈ [0,7]`.
 
-**DESIGN DECISION:** Only `FILLED + NORMAL` counts toward line completeness for MVP. A `FILLED + FROZEN` cell will read as "not counted" without touching this function's control flow, only its per-state predicate (Section 9).
+*(Note: `CountsTowardLineClear(cell)` evaluates to true if and only if `cell.occupancy == FILLED` AND `cell.modifier == NORMAL`.)*
+
+**DESIGN DECISION:** A cell being occupied does not automatically mean it contributes to a line clear. Only `FILLED + NORMAL` counts toward line completeness for MVP. A `FILLED + FROZEN` cell will read as "not counted" without touching this function's control flow, only its per-state predicate (Section 9).
 
 **Algorithm — `detectLines(board)`:**
 
-1. Compute `filledRows = { r | ∀c, board[r][c].state == FILLED }` by scanning all 8 rows.
-2. Compute `filledCols = { c | ∀r, board[r][c].state == FILLED }` by scanning all 8 columns.
+1. Compute `filledRows = { r | ∀c, CountsTowardLineClear(board[r][c]) }` by scanning all 8 rows.
+2. Compute `filledCols = { c | ∀r, CountsTowardLineClear(board[r][c]) }` by scanning all 8 columns.
 3. Both computations run against the **same, single resulting board state** produced by `commitPlacement` (Section 5) — never against an intermediate state, and never sequentially re-derived after a partial clear. This satisfies `01_GAMEPLAY_SPECIFICATION.md` Section 5's "identified simultaneously" rule.
 4. Return `(filledRows, filledCols)` as the immutable clear-set for this Turn.
 
@@ -136,16 +143,19 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 **DESIGN DECISION:** Mutation order for a single Turn is fixed and must not be reordered by any caller:
 
 ```text
-1. commitPlacement   — apply the Shape's cells (Section 5), FILLED
+1. commitPlacement   — apply the Shape's cells (Section 5), FILLED + NORMAL
 2. detectLines        — compute filledRows, filledCols against the post-Placement board (Section 6)
-3. clearLines         — for every cell in any filledRow or filledCol, set state = EMPTY, exactly once per cell
+3. clearLines         — for every cell in any filledRow or filledCol, set occupancy = EMPTY and modifier = NORMAL, exactly once per cell
 4. emit BoardChanged, PlacementCommitted, and (if applicable) LinesCleared / CellsCleared (Section 12)
 ```
 
 **`clearLines` algorithm:**
 
 1. Build `cellsToClear = { (r,c) | r ∈ filledRows } ∪ { (r,c) | c ∈ filledCols, ∀r ∈ [0,7] }` — a set union, so a cell at the intersection of a clearing row and clearing column appears once.
-2. For each `(r,c)` in `cellsToClear`, set `board[r][c].state = EMPTY`. Since this is a set, no cell is written twice (Gameplay Spec Section 5's "cleared once" rule is structurally guaranteed, not just asserted).
+2. For each `(r,c)` in `cellsToClear`:
+   - Set `board[r][c].occupancy = EMPTY`
+   - Set `board[r][c].modifier = NORMAL`
+   Since this is a set, no cell is written twice (Gameplay Spec Section 5's "cleared once" rule is structurally guaranteed, not just asserted).
 3. This is the only step in the Turn that transitions cells from `FILLED` back to `EMPTY`; `commitPlacement` (Section 5) only ever writes `EMPTY → FILLED`.
 
 ---
@@ -189,7 +199,7 @@ Read-only functions exposed to Combat, Objectives, Relics, and rendering layers.
 
 | Query | Signature (conceptual) | Returns |
 |---|---|---|
-| Cell state | `getCell(row, col)` | The `CellState` of one cell. |
+| Cell contents | `getCell(row, col)` | A Cell object containing its Occupancy and Modifier. |
 | Full board snapshot | `getBoardSnapshot()` | An immutable copy of the full 8×8 state, for autosave (Gameplay Spec Section 20) and rendering. |
 | Placement legality | `validatePlacement(shape, origin)` | `VALID` / `INVALID` + reason (Section 4). |
 | Any legal placement for a Tray | `hasAnyLegalPlacement(tray)` | Boolean (Section 10). |
@@ -228,7 +238,7 @@ The Board Engine is the sole emitter of these logical events, consumed by Combat
 
 ## 14. Test Fixtures
 
-Fixed boards for deterministic unit testing, using `.` = `EMPTY`, `#` = `FILLED`.
+Fixed boards for deterministic unit testing. For visual simplicity, `.` denotes `EMPTY + NORMAL`, and `#` denotes `FILLED + NORMAL`.
 
 **Fixture F1 — Empty Board:** all 64 cells `.`. Baseline for placement/legality tests (mirrors Shape Library Section 11, Tests T1–T3, T5, T7).
 
@@ -264,7 +274,7 @@ Placing a 1-cell Shape at `(0,7)` must trigger `filledRows = {0}`, `filledCols =
 | Edge Case | Resolution |
 |---|---|
 | Shape's bounding box is in-bounds but an individual local cell (irregular Shape) is out-of-bounds | Rejected — Section 2 requires per-local-cell bounds checking, not bounding-box-only (relevant to IRREGULAR-tagged Shapes, Shape Library Section 6). |
-| Placement would complete a line, but validation is checked before commit | Irrelevant to validation — `validatePlacement` only checks current Board occupancy, never look-ahead to post-Placement fill state; line completion is only ever evaluated after commit (Section 6). |
+| Placement would complete a line, but validation is checked before commit | Irrelevant to validation — `validatePlacement` only checks current board state (via `CanReceiveBlock`), never look-ahead to post-Placement state; line completion is only ever evaluated after commit (Section 6). |
 | A Shape has zero legal origins but the Board is not locked (other Tray Shapes have legal placements) | Not a Board Lock (Section 10; matches Gameplay Spec Section 21). |
 | Two different rows/columns share a clearing cell | Cleared exactly once via set union (Section 8). |
 | `detectLines` called on a Board with zero Placements yet made (Battle `PREPARING`) | Returns `(∅, ∅)` — an empty Board can never contain a filled line by construction. |
@@ -344,7 +354,7 @@ Input: shape, origin, board (current state)
    → if INVALID: return failure; board unchanged; caller routes to PIECE_SELECTED/ACTIVE (Gameplay Spec Section 4)
 
 2. commitPlacement(shape, origin, board)          [Section 5]
-   → board cells for shape.local_coordinates set FILLED, tagged with new placementId
+   → board cells for shape.local_coordinates set occupancy = FILLED, modifier = NORMAL, tagged with new placementId
    → emit PlacementCommitted
 
 3. detectLines(board)                              [Section 6]
@@ -352,7 +362,7 @@ Input: shape, origin, board (current state)
 
 4. clearLines(board, filledRows, filledCols)        [Section 8]
    → build cellsToClear (deduplicated set union)
-   → set every cell in cellsToClear to EMPTY
+   → set every cell in cellsToClear to occupancy = EMPTY, modifier = NORMAL
    → if cellsToClear ≠ ∅: emit LinesCleared, emit CellsCleared
 
 5. emit BoardChanged                                [Section 12]

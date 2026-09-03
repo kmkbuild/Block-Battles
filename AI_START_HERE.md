@@ -237,6 +237,7 @@ An AI working on this project MUST NEVER:
 9. Wrap a bug in `try { } catch { }` without logging and fixing the root cause.
 10. Push to `main` without passing the NUnit test suite.
 11. Implement a generalized hazard/special-cell framework during MVP unless a later approved document explicitly activates it. MVP board states are strictly limited to `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`. `HAZARDOUS`, `INDESTRUCTIBLE`, and `SPECIAL` are explicitly deferred.
+12. Implement board logic using raw single-state checks like `if (cell.state == EMPTY)`. The board uses a two-axis model (Occupancy + Modifier). All placement and clearing logic must use semantic predicates like `CanReceiveBlock(cell)` and `CountsTowardLineClear(cell)`.
 
 ---
 

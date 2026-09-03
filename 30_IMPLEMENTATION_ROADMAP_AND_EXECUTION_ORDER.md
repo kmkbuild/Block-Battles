@@ -58,18 +58,16 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Tasks:**
 - Implement `BoardModel.cs` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`). Ensure it supports MVP states: `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`.
-- Implement `IsValidPlacement(ShapeMatrix, int x, int y)` method.
+- Implement `CanReceiveBlock(cell)` and `CountsTowardLineClear(cell)` semantic predicates.
+- Implement `IsValidPlacement(ShapeMatrix, int x, int y)` method using `CanReceiveBlock`.
 - Implement `CommitPlacement(ShapeMatrix, int x, int y)` method.
-- Implement `SetCellModifier` and Line-Clear evaluation.
+- Implement `SetCellModifier` and Line-Clear evaluation using `CountsTowardLineClear`.
 - Write NUnit tests covering bounds checking and the cell state rules.
 
 **Tests (Must Verify):**
-- Normal placement into `EMPTY` works.
-- Placement into `FILLED` fails.
-- Placement into `BLOCKED` fails, and `BLOCKED` remains unavailable for placement.
-- Placement into `FROZEN` fails (follows occupied rules), and `FROZEN` remains represented correctly.
-- Line-clear behavior correctly excludes `FROZEN` cells.
-- Normal `EMPTY`/`FILLED` line-clear behavior still works.
+- **Placement:** `EMPTY + NORMAL` works. `EMPTY + BLOCKED` fails. `FILLED + NORMAL` fails. `FILLED + FROZEN` fails.
+- **Line clearing:** `FILLED + NORMAL` counts toward line completion. `FILLED + FROZEN` does not count. `EMPTY + NORMAL` does not count. `EMPTY + BLOCKED` does not count.
+- **Clear reset:** Any cell that is actually cleared becomes: `EMPTY + NORMAL`.
 
 **Files to Create:**
 - `Assets/_Project/Scripts/Core/Board/BoardModel.cs`
