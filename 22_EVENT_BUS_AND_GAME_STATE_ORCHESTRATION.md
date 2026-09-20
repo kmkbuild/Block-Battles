@@ -28,20 +28,23 @@ We use a **Strongly-Typed Event Dispatcher** backing Dart Streams. An event is a
 
 ---
 
-## 3. Game State Machine
+## 3. Battle State Machine
 
-The `BattleService` governs the flow of a single battle using a pure Dart enum-based state machine. Flutter/Flame react to state changes to lock input or show animations.
+The `BattleService` governs the flow of a single battle using a pure Dart enum-based state machine. **Domain state transitions are instant and synchronous — they never wait for animations, VFX, or audio completion.**
+
+Presentation layers (Flame components, Flutter widgets) react to state changes and run their own independent visual sequences. No cosmetic effect can block or deadlock gameplay progression.
 
 | State | Description | Transitions To |
 |---|---|---|
 | `idle` | Awaiting player drag/drop input. | `resolvingBoard` |
-| `resolvingBoard`| Line clearing, math calculation. | `resolvingCombat` |
-| `resolvingCombat`| Applying Relics, Enemy damage. | `waitingForAnim` |
-| `waitingForAnim`| Input locked until Flame signals VFX complete. | `enemyTurn`, `victory`, `defeat` |
-| `enemyTurn` | Enemy board modification. | `idle`, `defeat` |
-| `victory` | Encounter won. | `awaitingRelicSelection` |
-| `awaitingRelicSelection`| Selecting a Relic via Flutter UI. | `idle` (Next floor) |
-| `defeat` | Board Lock / Objective Failure hit. | (Ends Run) |
+| `resolvingBoard` | Line clearing and math resolution (synchronous). | `resolvingCombat` |
+| `resolvingCombat` | Applying Relics, Enemy damage. | `enemyTurn`, `victory`, `defeat` |
+| `enemyTurn` | Enemy board modification (synchronous). | `idle`, `defeat` |
+| `victory` | Encounter won. Presentation plays victory sequence concurrently. | `awaitingRelicSelection` |
+| `awaitingRelicSelection` | Player is selecting a Relic via Flutter overlay. | `idle` (Next floor starts) |
+| `defeat` | Board Lock or Objective Failure detected. | (Run ends) |
+
+**Architecture Rule:** Presentation layers observe the state machine via Riverpod or event streams. They play animations in response to state changes. The state machine never waits for a presentation layer to confirm completion before advancing.
 
 ---
 

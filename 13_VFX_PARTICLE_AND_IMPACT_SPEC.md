@@ -244,8 +244,7 @@ Canonical list of Flame particle components required for production:
 **End of `13_VFX_PARTICLE_AND_IMPACT_SPEC.md`.**
 
 
-## Implementation Note (Flutter/Flame/Dart)
-- Unity ParticleSystem and VFX Graph are replaced by Flame particle effects or custom Flame component rendering.
-- VFX prefabs are instantiated as Flame component classes (e.g., PlaceDustEffect, LineClearEffect).
-- Object Pooling (formerly VFXManager) is handled natively via Flame component reuse or manual pools in FlameGame.
-- Renderer: Sprite maps to Flame Sprite rendering.
+## Implementation Notes:
+- Flame particle effects and custom component rendering implement all specified VFX
+- VFX effects are managed as Flame components within the FlameGame, using manual component pooling via FlameGame
+- All particle textures are pure white source images; color is applied at runtime via tint/paint operations on the Flame component

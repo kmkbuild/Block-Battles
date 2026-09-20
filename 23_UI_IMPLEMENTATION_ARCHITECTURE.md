@@ -20,15 +20,25 @@
 
 ## 2. Screen & Route Registry
 
-Navigation is handled by `GoRouter`.
+Navigation uses `GoRouter` for application-level screens only.
 
 | Route | Widget | Description |
 |---|---|---|
 | `/` | `HomeScreen` | Main menu, meta-progression, Run Start |
-| `/battle` | `BattleScreen` | Hosts `GameWidget` + `BattleHudOverlay` |
-| `/settings` | `SettingsScreen` | Full screen or dialog for configuration |
-| `/relics` | `RelicSelectionOverlay` | Flutter modal overlay over the game |
-| `/victory`| `VictoryOverlay` | End of battle/run stats |
+| `/battle` | `BattleScreen` | Hosts `GameWidget` + battle overlays |
+| `/settings` | `SettingsScreen` | App-level settings screen |
+
+**Battle-local overlays** are shown via Flutter `Stack` within `BattleScreen` — they are NOT separate GoRouter routes:
+
+| Overlay | Widget | Trigger |
+|---|---|---|
+| Pause | `PauseOverlay` | Player taps pause button |
+| Relic Selection | `RelicSelectionOverlay` | After enemy defeated |
+| Victory | `VictoryOverlay` | `BattleVictory` event received |
+| Defeat | `DefeatOverlay` | `BattleFailure` event received |
+| Run Complete | `RunCompleteOverlay` | `RunCompleted` event received |
+
+Overlays are driven by `BattleService` state observed via Riverpod. They are shown/hidden by conditional rendering in the `BattleScreen` `Stack`, not by route pushes.
 
 ---
 
@@ -99,7 +109,7 @@ class EnemyHudWidget extends ConsumerWidget {
 
 - **UI Animation:** Flutter's `AnimatedWidget`, `AnimationController`, or implicit animations (`AnimatedContainer`).
 - **Game World Animation:** Flame's `Effect` classes.
-- **Synchronization:** When the UI needs to tell the domain it finished animating (e.g., enemy takes damage visual), the widget or component dispatches a `UIAnimationCompleteEvent` to the `BattleService` state machine, moving it out of `waitingForAnim`.
+- **Synchronization:** Presentation animations run independently and do not block domain state. After domain state transitions (e.g., `DamageDealt` event fired), the Flutter widget or Flame component plays its animation concurrently. No `UIAnimationCompleteEvent` or completion callback is required for gameplay to continue.
 
 ---
 

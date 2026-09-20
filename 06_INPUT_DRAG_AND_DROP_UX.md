@@ -368,9 +368,8 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 **End of `06_INPUT_DRAG_AND_DROP_UX.md`.**
 
 
-## Implementation Note (Flutter/Flame/Dart)
-- Unity Input System actions are replaced by Flame DragCallbacks (pointerDown, onDragUpdate, onDragEnd).
-- Camera.ScreenToWorldPoint mapping is replaced by Flame game coordinate mapping (gameRef.size, camera.viewport).
-- MonoBehaviour scripts (like DragDropController.cs) are replaced by pure Dart classes or Flame components (e.g., drag_handler.dart using DragCallbacks mixin).
-- The Ghost preview is rendered via overriding render() in the BoardComponent.
-- Input blocking is handled via Flutter AbsorbPointer / IgnorePointer instead of Unity UI EventSystem.
+## Implementation Notes:
+- Flame DragCallbacks (DragCallbacks mixin: onDragStart, onDragUpdate, onDragEnd) handle all board drag interactions
+- Flame coordinates: use component's toLocal() and parent's toLocal() for hit testing  
+- Flutter AbsorbPointer / IgnorePointer prevent HUD elements from consuming game-area touch events
+- Coordinate mapping: Flame's camera viewport converts screen touch coordinates to game-world coordinates

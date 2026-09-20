@@ -1,7 +1,7 @@
 # 24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md
 ## Block Battles — Save Data, Persistence, and Versioning
 
-**Governing documents:** `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md`, `17_MONETIZATION_REWARD_AND_AD_UX.md`, `20_DATA_MODEL_CATALOGS_AND_CONTENT_SCHEMA.md`
+**Governing documents:** `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md`, `17_MONETIZATION_REWARD_AND_AD_UX.md`, `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md`
 **Document status:** Layer C — Engineering Authority
 
 **Inheritance confirmation:** This document defines the precise mechanisms for writing and retrieving player data to disk. It adheres strictly to the offline-first, solo-developer constraints (Doc 00) and explicitly avoids backend server databases (BaaS/mBaaS).

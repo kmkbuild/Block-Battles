@@ -1,0 +1,121 @@
+﻿
+=== MonoBehaviour ===
+  06_INPUT_DRAG_AND_DROP_UX.md:374: - MonoBehaviour scripts (like DragDropController.cs) are replaced by pure Dart classes or Flame components (e.g., drag_handler.dart using DragCallbacks mixin).
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:382: - AudioManager MonoBehaviour is replaced by AudioService, a pure Dart class wrapping FlameAudio.
+=== ScriptableObject ===
+  18_TECHNICAL_ARCHITECTURE.md:141: - **Dart Const Classes:** Used for all static game data (replaces ScriptableObjects).
+  20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md:22: - **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` classes. Example: `EnemyDefinition` (contains `maxHp = 100`). Replaces Unity ScriptableObjects.
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:90: Instead of Unity ScriptableObjects, we author data content in pure Dart files (e.g., `shape_catalog.dart`, `enemy_catalog.dart`, `relic_catalog.dart`).
+  MASTER_DOCUMENT_INDEX.md:121: | `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` | C | Dart content definitions (replacing ScriptableObjects), runtime state schemas. | Data Architect | 18, 01–07 | 21, 24 |
+=== Prefab ===
+  13_VFX_PARTICLE_AND_IMPACT_SPEC.md:249: - VFX prefabs are instantiated as Flame component classes (e.g., PlaceDustEffect, LineClearEffect).
+=== URP ===
+  00_MASTER_GAME_VISION.md:9: ## 1. Document Purpose
+  00_MASTER_GAME_VISION.md:46: - **Tension under control:** "I'm in danger, but I can see why" — threat should always be legible on the board, never a surprise the player couldn't have anticipated.
+  00_MASTER_GAME_VISION.md:341: - **Surprise:** An unusual relic synergy or objective rule producing an unexpected outcome — always within the bounds of Section 5.6's fairness requirement.
+  01_GAMEPLAY_SPECIFICATION.md:9: ## 1. Purpose and Ownership
+  01_GAMEPLAY_SPECIFICATION.md:15: **Precedence:** Per `00_MASTER_GAME_VISION.md` Section 1, this document may not contradict the Master Vision, including the Section 10 decision that **player HP is not part of the Absolute MVP** and the Section 13 forbidden-scope list. Where the Master Vision left an item as an Open Decision, this document resolves it for implementation purposes and marks the resolution as a **DESIGN DECISION**.
+  01_GAMEPLAY_SPECIFICATION.md:105: - **DESIGN DECISION:** A cell that is part of both a clearing row and a clearing column is cleared once; no double-counting of the cell itself (only of line-count for Combo purposes, Section 8).
+  02_SHAPE_LIBRARY.md:9: ## 1. Purpose
+  02_SHAPE_LIBRARY.md:117: | `RECTANGLE` | Rectangle 2×3 | Large, dense, non-square filler; distinct from `SQUARE` for balance/RNG purposes. |
+  02_SHAPE_LIBRARY.md:129: | Tag | Rule | Purpose |
+  02_SHAPE_LIBRARY.md:289: 3. Remove its dedicated test case(s) or repurpose them.
+  03_BOARD_ENGINE_AND_RULES.md:168: 2. **Line-completeness predicate (used by Section 6):** `CountsTowardLineClear(cell)` — MVP implementation is `cell.occupancy == FILLED && cell.modifier == NORMAL`. A `FROZEN` state overrides this predicate to return `false` while `cell.occupancy` still reports `FILLED` for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
+  05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md:11: ## 1. Purpose
+  05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md:112: - **Combo continuation across Turns — DESIGN DECISION: not implemented at Absolute MVP.** A "Combo streak" spanning multiple consecutive Turns (e.g., "clear a line 3 Turns in a row") is explicitly out of scope here, matching Gameplay Spec Section 21's edge case ruling: "Combo achieved across two separate Turns... does not count toward 'Achieve X Combo,' which is strictly single-Placement, simultaneous-line-count based." This document's Combo system inherits that same strict single-Placement scope for Damage purposes, not just for the Objective predicate.
+  06_INPUT_DRAG_AND_DROP_UX.md:13: **DESIGN DECISION:** Input exists to make Master Vision Section 5.1 (Instant Clarity) physically true, not just visually true. A player must be able to form a correct mental model of "where will this piece land" within their first drag, with zero instructional text, and every subsequent drag must confirm that model rather than surprise them.
+  06_INPUT_DRAG_AND_DROP_UX.md:30: - **Multi-touch:** a second concurrent touch starting while a drag is active is **ignored** for board interaction purposes (it does not cancel the active drag, does not start a second drag, and does not register as a tap elsewhere) — this prevents accidental two-finger gestures (e.g., a resting palm edge) from corrupting an in-progress Placement. This is the Section 14 (Accidental Input) baseline rule, stated here as the foundational touch model.
+  06_INPUT_DRAG_AND_DROP_UX.md:81: **The conversion boundary:** visual position is converted to a logical board position candidate on every frame during `DRAGGING`, using the resolution rule in Section 7. This conversion is **read-only against the Board** — evaluating a candidate origin via `validatePlacement` for Ghost Preview purposes (Section 8) never mutates Board state, matching `03_BOARD_ENGINE_AND_RULES.md` Section 4's explicit read-only guarantee for validation calls. Only a successful Release (Section 10, Section 12) ever calls `commitPlacement`.
+  06_INPUT_DRAG_AND_DROP_UX.md:202: - **Queued input is not buffered/replayed** — if a Down occurs before `ACTIVE` is re-entered (e.g., during `ENEMY_ACTION`'s brief resolution), that Down is simply ignored (not queued for later execution); the player must re-touch once `ACTIVE` is live. This avoids surprising "delayed" input execution, which would itself violate predictability (Section 1, rule 5) more than a dropped early touch would.
+  07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md:11: ## 1. Purpose
+  07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md:123: | Modifier | Purpose | Rules | Player Readability | Difficulty Impact | Implementation Complexity | MVP or Later |
+  07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md:223: **DESIGN DECISION:** Five content-authoring Tiers, distinct in *purpose* from `04_SPAWN_RNG_AND_DIFFICULTY.md` Section 12's three *generation-weighting* bands (Early/Mid/Late-run) — the two systems serve different layers (authored encounter design vs. procedural Tray weighting) and are cross-referenced, not merged, to avoid contradicting either document's ownership.
+  08_UI_UX_MASTER_SPECIFICATION.md:11: ## 1. Document Purpose
+  08_UI_UX_MASTER_SPECIFICATION.md:106: | Screen | Purpose | Entry | Exit | Primary Action | Secondary Actions | Critical Information |
+  09_VISUAL_DESIGN_SYSTEM.md:20: - **Clean energy** — not minimalist sterility, but a purposeful openness that lets the puzzle breathe.
+  09_VISUAL_DESIGN_SYSTEM.md:48: - **Clear** — the purpose of every element is legible at a glance.
+  09_VISUAL_DESIGN_SYSTEM.md:56: `tactile` - `weighted` - `readable` - `warm` - `precise` - `bold` - `clean` - `expressive` - `confident` - `grounded` - `layered` - `purposeful`
+  09_VISUAL_DESIGN_SYSTEM.md:67: | `skeuomorphic-kitsch` | Wood textures, felt-table backgrounds, stitched leather panels — genre tropes used without purpose. |
+  09_VISUAL_DESIGN_SYSTEM.md:101: | Brutalist UI design (applied softly) | Purposeful whitespace, bold typographic hierarchy, nothing decorative unless earned. |
+  09_VISUAL_DESIGN_SYSTEM.md:148: - **HUD chrome:** Low detail — structural purpose only.
+  09_VISUAL_DESIGN_SYSTEM.md:460: ### 11.1 Purpose Distinction
+  09_VISUAL_DESIGN_SYSTEM.md:462: | Element | Purpose |
+  09_VISUAL_DESIGN_SYSTEM.md:582: The background is the **least important visual layer.** Its purpose:
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:27: The palette is built around a **warm-neutral base** with **purposeful accent saturation**. The goal is a palette that:
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:85: | ID | Semantic Purpose | HEX | RGB | HSL | Usage Notes |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:96: | ID | Semantic Purpose | HEX | RGB | HSL | Usage Notes |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:106: | ID | Semantic Purpose | HEX | RGB | HSL | Usage Notes |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:123: | **Iris** | `CLR-PC-IRS-BASE` | `#6A3AAA` | `CLR-PC-IRS-LIGHT` | `#8A5AC8` | `CLR-PC-IRS-SHADOW` | `#44246E` | Violet-purple. Mystical, distinct from Tide. |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:131: | ID | Semantic Purpose | HEX | RGB | HSL | Accessibility notes |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:144: | ID | Semantic Purpose | HEX | RGB | HSL | Contrast ratio | Usage |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:157: | ID | Semantic Purpose | HEX | RGB | HSL | Usage |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:184: 5. **Iris** — violet-purple
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:238: At Absolute MVP, no special-purpose block color is defined beyond the standard seven identities. The following are reserved for future use and must not be repurposed for decorative or arbitrary use at Absolute MVP:
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:240: | Reserved purpose | Future color register | When it becomes active |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:527: | Context | Gradient type | Purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:623: - Piece identity **Rose** (`CLR-PC-ROS-BASE`, hue ~348°) uses a distinct rose-crimson that is visually distinct from the danger red (hue ~5°) by being shifted further toward the warm pink-purple direction. At a glance, Rose reads as pink-red, not danger-red. If in implementation testing they are found to be confusable, Rose shifts further toward magenta.
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:721: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:732: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:742: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:751: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:777: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:790: | Token ID | HEX | HSL | Semantic purpose |
+  10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md:803: | Token ID | HEX | HSL | Semantic purpose |
+  12_ANIMATION_MOTION_AND_GAME_FEEL.md:34: - **No floatiness:** Objects move purposefully. They never drift, float, or ease slowly through space without a physical justification.
+  18_TECHNICAL_ARCHITECTURE.md:11: ## 1. Technical Purpose
+  18_TECHNICAL_ARCHITECTURE.md:13: The purpose of this architecture is to build a robust, deterministic, and testable foundation for Block Battles. It acts as the "constitution" for all subsequent code generation, ensuring that logic remains decoupled from presentation, bugs are easily isolated, and new content (Relics, Enemies, Shapes) can be added purely via data.
+  19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md:114: - **Purpose:** Handles the Main Menu, run continuation, and meta-progression.
+  19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md:122: - **Purpose:** The core game loop container.
+  27_TESTING_QA_DEBUGGING_AND_AUTOMATION.md:138: | Tier | OS | Example Device | Purpose |
+  30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md:537: **Purpose:** The vertical slice is a mini-playable demo used for internal testing to confirm the core puzzle-combat loop is fun BEFORE investing dozens of hours in content production.
+  MASTER_DOCUMENT_INDEX.md:97: | File | Layer | One-Line Purpose | Primary Owner | Depends On | Used By |
+=== AudioSource ===
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:378: - Unity AudioSource is replaced by FlameAudio.
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:381: - AudioSource.Play() translates to FlameAudio.play(filename) or FlameAudio.playLongAudio(filename).
+  MASTER_DOCUMENT_INDEX.md:359: | D-008 | Object pooling mandatory for Pieces, Cells, VFX, AudioSources in Flame. | `26` | LOCKED |
+=== AudioMixer ===
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:379: - Unity AudioMixer / Audio Mixer Groups are handled via AudioCategory abstraction in AudioService (software volume categories).
+=== waitingForAnim ===
+  22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md:39: | `resolvingCombat`| Applying Relics, Enemy damage. | `waitingForAnim` |
+  22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md:40: | `waitingForAnim`| Input locked until Flame signals VFX complete. | `enemyTurn`, `victory`, `defeat` |
+  23_UI_IMPLEMENTATION_ARCHITECTURE.md:102: - **Synchronization:** When the UI needs to tell the domain it finished animating (e.g., enemy takes damage visual), the widget or component dispatches a `UIAnimationCompleteEvent` to the `BattleService` state machine, moving it out of `waitingForAnim`.
+=== POCO ===
+  20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md:221: POCO (Plain Old C# Object) equivalents in Dart. Mutated during play, serialized to JSON via Hive CE.
+=== replaces Unity ===
+  20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md:22: - **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` classes. Example: `EnemyDefinition` (contains `maxHp = 100`). Replaces Unity ScriptableObjects.
+=== Unity Ads ===
+  17_MONETIZATION_REWARD_AND_AD_UX.md:221: - **Privacy Compliance:** Integration of any Ad SDK (AdMob, Unity Ads, AppLovin) must include COPPA compliance for minors and an explicit Consent Management Platform (CMP) popup for GDPR/CCPA.
+  MASTER_DOCUMENT_INDEX.md:380: | O-002 | AdMob or Unity Ads as the Ad Network? | Phase 19. | `17`, `28` |
+=== DOTween ===
+  12_ANIMATION_MOTION_AND_GAME_FEEL.md:410: - DOTween references are replaced by the Flame Effect system (MoveEffect, ScaleEffect, ColorEffect, OpacityEffect, SequenceEffect) for game-world components, and Flutter AnimationController + Tween for UI widgets.
+=== 19_FLUTTER_PROJECT_STRUCTURE ===
+  21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md:4: **Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_FLUTTER_PROJECT_STRUCTURE_AND_ROUTING.md`
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:4: **Governing documents:** `11_BLOCK_VISUAL_MATERIAL_AND_ART_SPEC.md`, `13_VFX_PARTICLE_AND_IMPACT_SPEC.md`, `14_AUDIO_SFX_MUSIC_AND_MIXING.md`, `19_FLUTTER_PROJECT_STRUCTURE_AND_ARCHITECTURE.md`
+=== 20_DATA_MODEL_CATALOGS ===
+  24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md:4: **Governing documents:** `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md`, `17_MONETIZATION_REWARD_AND_AD_UX.md`, `20_DATA_MODEL_CATALOGS_AND_CONTENT_SCHEMA.md`
+=== Animator Controller ===
+  12_ANIMATION_MOTION_AND_GAME_FEEL.md:411: - Unity Animator Controllers and Animation Clips are replaced by Flame SpriteAnimationComponent or Flame effects.
+=== ParticleSystem ===
+  13_VFX_PARTICLE_AND_IMPACT_SPEC.md:248: - Unity ParticleSystem and VFX Graph are replaced by Flame particle effects or custom Flame component rendering.
+  18_TECHNICAL_ARCHITECTURE.md:46: ├── VFX & Audio (Flame Audio, ParticleSystemComponent)
+  19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md:171: └── ParticleSystemComponent
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:151: - **Color:** Particle textures must be pure white. Coloring is handled exclusively by the Flame `ParticleSystemComponent` or custom renderers.
+=== VFX Graph ===
+  13_VFX_PARTICLE_AND_IMPACT_SPEC.md:248: - Unity ParticleSystem and VFX Graph are replaced by Flame particle effects or custom Flame component rendering.
+=== Unity ===
+  06_INPUT_DRAG_AND_DROP_UX.md:372: - Unity Input System actions are replaced by Flame DragCallbacks (pointerDown, onDragUpdate, onDragEnd).
+  06_INPUT_DRAG_AND_DROP_UX.md:376: - Input blocking is handled via Flutter AbsorbPointer / IgnorePointer instead of Unity UI EventSystem.
+  12_ANIMATION_MOTION_AND_GAME_FEEL.md:411: - Unity Animator Controllers and Animation Clips are replaced by Flame SpriteAnimationComponent or Flame effects.
+  13_VFX_PARTICLE_AND_IMPACT_SPEC.md:248: - Unity ParticleSystem and VFX Graph are replaced by Flame particle effects or custom Flame component rendering.
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:378: - Unity AudioSource is replaced by FlameAudio.
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:379: - Unity AudioMixer / Audio Mixer Groups are handled via AudioCategory abstraction in AudioService (software volume categories).
+  14_AUDIO_SFX_MUSIC_AND_MIXING.md:380: - Unity AudioClips map directly to audio files in assets/audio/.
+  16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md:149: - **Storage:** Settings are saved to a local preferences file (e.g., `PlayerPrefs` in Unity, `UserDefaults` in iOS, `SharedPreferences` in Android).
+  17_MONETIZATION_REWARD_AND_AD_UX.md:221: - **Privacy Compliance:** Integration of any Ad SDK (AdMob, Unity Ads, AppLovin) must include COPPA compliance for minors and an explicit Consent Management Platform (CMP) popup for GDPR/CCPA.
+  18_TECHNICAL_ARCHITECTURE.md:272: 3. **Code over Configuration:** Everything is written in Dart. There is no Unity Inspector to hide wiring. AI can read and write the entire app perfectly because the UI, Engine, and Logic are entirely code-based.
+  19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md:200: Instead of Unity sorting layers, use Flame's `priority` property.
+  20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md:22: - **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` classes. Example: `EnemyDefinition` (contains `maxHp = 100`). Replaces Unity ScriptableObjects.
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:16: **Core Rule:** Ensure all assets are properly declared in `pubspec.yaml` and rely on canonical naming. We do not have Unity `.meta` files to bail us out of bad file-management habits.
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:90: Instead of Unity ScriptableObjects, we author data content in pure Dart files (e.g., `shape_catalog.dart`, `enemy_catalog.dart`, `relic_catalog.dart`).
+  25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md:179: Unlike Unity, which explicitly processes ASTC or ETC2 compression during import, Flutter and the Android build system handle texture compression under the hood during the APK/AAB build process. Rely on the Flutter build pipeline. Ensure source PNGs are properly downscaled prior to inclusion to keep APK size low.
+  MASTER_DOCUMENT_INDEX.md:380: | O-002 | AdMob or Unity Ads as the Ad Network? | Phase 19. | `17`, `28` |

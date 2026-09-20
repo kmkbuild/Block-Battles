@@ -138,7 +138,7 @@ The strict state machine flow:
 
 Content must be authored without touching complex imperative code.
 
-- **Dart Const Classes:** Used for all static game data (replaces ScriptableObjects).
+- **Dart Const Classes:** Used for all static game data.
   - `ShapeDefinition` (Matrix arrays for pieces)
   - `EnemyDefinition` (HP, Portrait, Behavior list)
   - `RelicDefinition` (Name, ID, Base Multipliers, visual icon)
@@ -269,7 +269,7 @@ To maximize the effectiveness of AI coding tools (Copilot, ChatGPT, Antigravity)
 
 1. **Small Files:** Keep classes under 300 lines. AI context windows degrade on massive files.
 2. **Explicit Interfaces:** Always define the abstract class/interface *before* asking the AI to write the implementation.
-3. **Code over Configuration:** Everything is written in Dart. There is no Unity Inspector to hide wiring. AI can read and write the entire app perfectly because the UI, Engine, and Logic are entirely code-based.
+3. **Code over Configuration:** Everything is written in code. There is no hidden configuration layer. AI can read and write the entire app because the UI, Engine, and Logic are entirely code-based.
 
 ---
 

@@ -11,8 +11,8 @@
 ## 1. Flutter/Dart SDK Policy
 
 **Project Standard:**
-- **SDK:** Flutter stable channel (Current: 3.x LTS)
-- **Language:** Dart 3.x (with strict null safety)
+- **SDK:** Flutter channel: stable. Use the current stable Flutter SDK available at the time of project initialization.
+- **Language:** Dart (with strict null safety)
 - **Target Platform:** Android (primary), iOS (secondary)
 - **Build Type:** Production Mobile Release (App Bundle)
 - **Project Policy:** Once development begins, Flutter SDK version remains locked in `pubspec.yaml` via standard version constraints unless a critical production issue requires an upgrade.
@@ -102,9 +102,8 @@ The app uses `GoRouter` for strictly defined, deep-linkable paths. The MVP requi
 1. `/` — Home Screen (Main Menu)
 2. `/battle` — Core Gameplay Screen (Hosts `GameWidget`)
 3. `/settings` — App Settings Menu
-4. `/compendium` — (Optional) Relic & Enemy database
 
-**Overlays (Not Routes):**
+**Battle-local Overlays (NOT GoRouter routes):**
 Battle specific UI such as Pause Menu, Relic Selection, Victory, and Defeat screens are **Flutter Overlays** stacked on top of the `GameWidget` within the `/battle` route, NOT separate GoRouter routes.
 
 ---
@@ -197,7 +196,7 @@ Stack
 
 ## 11. Rendering Layers (Flame Priority)
 
-Instead of Unity sorting layers, use Flame's `priority` property.
+Use Flame's `priority` property to control render order between components. Higher priority renders on top.
 
 1. `Background` (priority: 0)
 2. `Board` (priority: 10)

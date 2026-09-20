@@ -146,7 +146,7 @@ As established in `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md`.
 
 ## 12. Settings Persistence
 
-- **Storage:** Settings are saved to a local preferences file (e.g., `PlayerPrefs` in Unity, `UserDefaults` in iOS, `SharedPreferences` in Android).
+- **Storage:** Settings are saved using `SharedPreferences`, providing lightweight persistent key-value storage across app sessions.
 - **Timing:** Written to disk exactly when the toggle/slider is modified (on pointer release).
 - **Scope:** Settings are global. They persist across all Runs and Battles.
 

@@ -374,10 +374,8 @@ Example: `sfx_board_place_01.wav`
 **End of `14_AUDIO_SFX_MUSIC_AND_MIXING.md`.**
 
 
-## Implementation Note (Flutter/Flame/Dart)
-- Unity AudioSource is replaced by FlameAudio.
-- Unity AudioMixer / Audio Mixer Groups are handled via AudioCategory abstraction in AudioService (software volume categories).
-- Unity AudioClips map directly to audio files in assets/audio/.
-- AudioSource.Play() translates to FlameAudio.play(filename) or FlameAudio.playLongAudio(filename).
-- AudioManager MonoBehaviour is replaced by AudioService, a pure Dart class wrapping FlameAudio.
-- Audio Settings are stored via SharedPreferences-backed SettingsRepository.
+**Implementation Notes:**
+- All audio playback uses `FlameAudio` (from the `flame_audio` package): `FlameAudio.play(filename)` for SFX, `FlameAudio.playLongAudio(filename)` for looping BGM
+- Volume categories (Music, SFX, UI) are managed by `AudioService` as software-level gain multipliers, stored via `SettingsRepository`
+- App lifecycle pause/resume is handled via `Flutter AppLifecycleListener` to pause/resume audio
+- Audio files live in `assets/audio/` and must be declared in `pubspec.yaml`

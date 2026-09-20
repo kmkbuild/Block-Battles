@@ -89,9 +89,8 @@ Configured within Android project files (`android/app/build.gradle` and `Android
 
 *(Note: Exact API levels shift yearly. Verify against current Google Play requirements at the time of build).*
 
-- **Min SDK:** `minSdkVersion 24` (Android 7.0) - Ensures excellent market coverage while supporting modern Flutter engine requirements.
-- **Target SDK:** `targetSdkVersion 34+` (Always match the latest Google Play requirement).
-- **Compile SDK:** `compileSdkVersion 34+`.
+- **Min SDK:** `minSdkVersion`: Set based on Flutter minimum requirements and targeted device coverage. Verify current Flutter Android SDK requirements at project initialization.
+- **Target SDK / Compile SDK:** `targetSdkVersion` / `compileSdkVersion`: Use the latest stable Android SDK level supported by the selected Flutter/Android toolchain. Verify current Google Play requirements before release.
 - **Permissions (AndroidManifest.xml):** **Minimal.** 
   - Required: `INTERNET`, `ACCESS_NETWORK_STATE` (for Ads/Analytics).
   - Banned: Location, Contacts, Camera. Storage access relies on scoped app directories (via `path_provider`).

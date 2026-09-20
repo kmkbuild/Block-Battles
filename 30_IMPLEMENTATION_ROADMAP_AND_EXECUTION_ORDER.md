@@ -282,7 +282,7 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 ## Phase 11 — Run Structure
 
-**Goal:** Multiple battles chain together with persistent Relic and Stardust progression.
+**Goal:** Multiple battles chain together with in-memory Relic and Stardust progression across battles (file persistence is added in Phase 17).
 
 **Prerequisites:** Phase 10.
 
@@ -310,9 +310,10 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 11.
 
 **Tasks:**
-- Build `home_screen.dart` and `battle_screen.dart`.
-- Build overlays for Pause, Defeat, and Victory using `Navigator.push` with `ModalRoute` or `Overlay.insert`.
-- Configure GoRouter routes (`/home`, `/battle`) in `app_router.dart`.
+- Build `home_screen.dart` (for route `/`) and `battle_screen.dart` (for route `/battle`).
+- Build Settings screen for route `/settings`.
+- Build overlays for Pause, Victory, Defeat, RelicSelection, and RunComplete. These are shown via Flutter Stack/conditional rendering in `BattleScreen`, driven by state via Riverpod, NOT separate routes.
+- Configure GoRouter routes (`/`, `/battle`, `/settings`) in `app_router.dart`.
 - Build scene transition logic through GoRouter.
 
 **Files to Create:**

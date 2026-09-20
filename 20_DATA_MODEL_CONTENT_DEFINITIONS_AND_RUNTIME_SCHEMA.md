@@ -19,7 +19,7 @@ The core gameplay systems must be entirely agnostic to the content they are proc
 
 There is a strict boundary between what the designer authors and what the game manipulates:
 
-- **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` classes. Example: `EnemyDefinition` (contains `maxHp = 100`). Replaces Unity ScriptableObjects.
+- **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` Dart classes. Example: `EnemyDefinition` (contains `maxHp = 100`).
 - **Runtime Data (State Classes):** Mutable state instantiated at runtime. Example: `EnemyRuntimeState` (contains `currentHp = 75`, initialized from `EnemyDefinition.maxHp`).
 
 ---
@@ -218,7 +218,7 @@ class RunDefinition {
 
 ## 9. Persistent Runtime State Classes (`run_state.dart`)
 
-POCO (Plain Old C# Object) equivalents in Dart. Mutated during play, serialized to JSON via Hive CE.
+Pure Dart runtime state classes. Mutated during play, serialized via Hive CE.
 
 ```dart
 class BoardState {

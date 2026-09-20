@@ -118,7 +118,7 @@ These documents govern **how the project is navigated and executed**. They exist
 | `17_MONETIZATION_REWARD_AND_AD_UX.md` | B | Ad flow, IAP, ethical monetization design. | Product | 00, 08 | 28 |
 | `18_TECHNICAL_ARCHITECTURE.md` | C | Flutter/Flame/Dart architecture, layering, and engineering principles. | Tech Lead | 00–17 | 19–28 |
 | `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` | C | Flutter project structure, Flame game organization, route architecture. | Flutter Architect | 18 | 20–28 |
-| `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` | C | Dart content definitions (replacing ScriptableObjects), runtime state schemas. | Data Architect | 18, 01–07 | 21, 24 |
+| `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` | C | Dart content definitions, runtime state schemas. | Data Architect | 18, 01–07 | 21, 24 |
 | `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md` | C | Dart services, Riverpod providers, Flame component wiring. | Systems Architect | 18, 19, 20 | 22, 23 |
 | `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` | C | Dart event dispatcher, typed events, state machine orchestration. | Systems Architect | 18, 21 | 23, 26 |
 | `23_UI_IMPLEMENTATION_ARCHITECTURE.md` | C | Flutter widget architecture, Flame rendering boundary, GoRouter navigation. | UI Engineer | 08, 18, 22 | 26 |
@@ -356,7 +356,7 @@ If a design decision is reversed, DO NOT delete the old text. Instead, prepend t
 | D-005 | Android-first. No server backend for MVP. | `00`, `28` | LOCKED |
 | D-006 | Domain Layer has zero Flutter/Flame references. | `18` | LOCKED |
 | D-007 | All gameplay randomness uses a single seeded GameRNG. | `04`, `18` | LOCKED |
-| D-008 | Object pooling mandatory for Pieces, Cells, VFX, AudioSources in Flame. | `26` | LOCKED |
+| D-008 | Object pooling mandatory for Pieces, Cells, and VFX in Flame. | `26` | LOCKED |
 | D-009 | No heavy allocation in the combat turn loop. | `26` | LOCKED |
 | D-010 | All EventBus payloads are pure Dart classes/records. | `22` | LOCKED |
 | D-011 | Flutter UI strictly handles overlays/menus, Flame handles the board. | `23` | LOCKED |
@@ -377,7 +377,7 @@ If a design decision is reversed, DO NOT delete the old text. Instead, prepend t
 | ID | Question | Blocking | Relevant Docs |
 |---|---|---|---|
 | O-001 | Exact Flutter/Flame stable versions? | Soft block for setup. | `19` |
-| O-002 | AdMob or Unity Ads as the Ad Network? | Phase 19. | `17`, `28` |
+| O-002 | Ad Network choice (e.g., AdMob, AppLovin MAX)? | Phase 19. | `17`, `28` |
 | O-003 | Firebase Crashlytics or alternative? | Phase 20. | `28` |
 | O-004 | Final Package Identifier (com.X.Y)? | Phase 21. | `28` |
 | O-005 | Studio/Company Name for store listing? | Phase 21. | `28` |

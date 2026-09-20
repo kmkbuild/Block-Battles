@@ -406,9 +406,8 @@ Run this checklist at every milestone build:
 **End of `12_ANIMATION_MOTION_AND_GAME_FEEL.md`.**
 
 
-## Implementation Note (Flutter/Flame/Dart)
-- DOTween references are replaced by the Flame Effect system (MoveEffect, ScaleEffect, ColorEffect, OpacityEffect, SequenceEffect) for game-world components, and Flutter AnimationController + Tween for UI widgets.
-- Unity Animator Controllers and Animation Clips are replaced by Flame SpriteAnimationComponent or Flame effects.
-- transform.DOScale() corresponds to ScaleEffect in Flame.
-- transform.DOShakePosition() corresponds to a custom Flame effect or MoveEffect sequence.
-- image.DOFade() and CanvasGroup.DOFade() correspond to OpacityEffect in Flame or Flutter FadeTransition / AnimatedOpacity.
+## Implementation Notes:
+- Flame Effect system (MoveEffect, ScaleEffect, ColorEffect, OpacityEffect, SequenceEffect) is used for all game-world component animations
+- Flutter AnimationController with Tween handles UI widget animations and transitions
+- Flame SpriteAnimationComponent is used for sprite-sheet based animations on game entities
+- ReducedMotion flag (Riverpod provider) sets all animation durations to 0ms when enabled

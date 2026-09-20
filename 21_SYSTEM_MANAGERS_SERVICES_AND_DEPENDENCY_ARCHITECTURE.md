@@ -1,7 +1,7 @@
 # 21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md
 ## Block Battles — System Managers, Services, and Dependencies
 
-**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_FLUTTER_PROJECT_STRUCTURE_AND_ROUTING.md`
+**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md`
 **Document status:** Layer C — Engineering Authority
 
 **Inheritance confirmation:** This document dismantles the classic "GameManager God Class" anti-pattern. It assigns strict boundaries and lifetimes to every functional component required by the game, enforcing the Clean Architecture rules established in Doc 18. The tech stack relies on Flutter, Flame, and Riverpod.
@@ -42,7 +42,7 @@ The architecture is divided into three distinct categories: **Infrastructure Ser
 |---|---|---|---|---|
 | **SaveRepository** | Hive CE box initialization, JSON/binary disk I/O, serialization. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
 | **RunService** | Owns run state (Stardust, active Relics list, current floor index) via `RunStateNotifier`. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over state |
-| **BattleService**| Owns battle state and turn phases. Restores exact mid-battle state on load. | Board array, HP math. | Piece placements, Anim completions | Battle state changes |
+| **BattleService** | Owns battle state and turn phases. Restores exact mid-battle state on load. | Board array, HP math. | Piece placements | Battle state changes |
 | **BoardEngine** | 8x8 cell-state array (each cell encodes Occupancy + Modifier), collision math, line clearing math. | Piece drag graphics, scoring. | Piece coordinates, enemy mutations | `LinesCleared`, `CellsCleared` |
 | **TrayEngine** | The 3 available pieces, Ghost preview logic. | Input touch events, Board collision. | `ShapeData[]`, Board queries | `PlacementCommitted` |
 | **CombatEngine** | Damage calculation, Combo (L-value) multipliers. | Relic definitions, Enemy HP. | `LinesCleared` | `DamageDealt` |
@@ -110,7 +110,7 @@ class CombatEngine {
 
 ## 6. Initialization Order
 
-1. **Boot (`main.dart`):** `main()` awaits `Hive.initFlutter()`, `SharedPreferences.getInstance()`, and Flame Audio initialization before running `runApp(ProviderScope(...))`.
+1. **Boot (`main.dart`):** `main()` awaits `Hive.initFlutter()`, `SharedPreferences.getInstance()`, and Flame Audio initialization before running `runApp(ProviderScope(...))`. *(Note: Hive CE is initialized in main() as infrastructure. Active persistence (read/write of save data) is implemented in Phase 17.)*
 2. **Persistent Services:** Instantiated on first read or eagerly initialized by a `bootstrapProvider`.
 3. **Run:** `RunService` initializes from Save Data, spins up `GameRNG` with the saved seed.
 4. **Battle (`FlameGame.onLoad`):** The `FlameGame` reads the domain engines from `BattleService` and wires up the visual components to the pure Dart engines.

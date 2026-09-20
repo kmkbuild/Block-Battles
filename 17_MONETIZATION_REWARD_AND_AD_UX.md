@@ -218,7 +218,7 @@ Only collect telemetry necessary to monitor the health of the game economy and a
 
 ## 18. Accessibility & Privacy Considerations
 
-- **Privacy Compliance:** Integration of any Ad SDK (AdMob, Unity Ads, AppLovin) must include COPPA compliance for minors and an explicit Consent Management Platform (CMP) popup for GDPR/CCPA.
+- **Privacy Compliance:** Integration of any Ad SDK (e.g., AdMob, AppLovin MAX) must include COPPA compliance for minors and an explicit Consent Management Platform (CMP) popup for GDPR/CCPA.
 - **iOS ATT:** The App Tracking Transparency prompt must be contextualized. (e.g., "We use ads to keep the game free. Allowing tracking provides more relevant ads.")
 - **Audio Accessibility:** Ad SDKs must be configured to respect the hardware mute switch so video ads do not blast audio in quiet environments.
 

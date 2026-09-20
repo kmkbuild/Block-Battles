@@ -1,7 +1,7 @@
 # 25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md
 ## Block Battles — Asset Pipeline, Naming, and Production
 
-**Governing documents:** `11_BLOCK_VISUAL_MATERIAL_AND_ART_SPEC.md`, `13_VFX_PARTICLE_AND_IMPACT_SPEC.md`, `14_AUDIO_SFX_MUSIC_AND_MIXING.md`, `19_FLUTTER_PROJECT_STRUCTURE_AND_ARCHITECTURE.md`
+**Governing documents:** `11_BLOCK_VISUAL_MATERIAL_AND_ART_SPEC.md`, `13_VFX_PARTICLE_AND_IMPACT_SPEC.md`, `14_AUDIO_SFX_MUSIC_AND_MIXING.md`, `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md`
 **Document status:** Layer C — Production Authority
 
 **Inheritance confirmation:** This document establishes the rigid production pipeline required to execute the visual and auditory identity of Block Battles. It ensures that a solo developer, alongside AI content-generation tools, can maintain a pristine, highly organized Flutter project without breaking references or suffering from asset bloat.
@@ -13,7 +13,7 @@
 **"Predictability over Creativity in the Project Structure."**
 While the art itself is creative, the filenames, folder structures, and pubspec declarations must be ruthlessly standardized. An AI coding agent or script must be able to guess the filename of a sprite simply by knowing the project's naming conventions. 
 
-**Core Rule:** Ensure all assets are properly declared in `pubspec.yaml` and rely on canonical naming. We do not have Unity `.meta` files to bail us out of bad file-management habits.
+**Core Rule:** Ensure all assets are properly declared in `pubspec.yaml` and rely on canonical naming. Proper `pubspec.yaml` asset declarations are the only registration mechanism. Missing or misnamed assets will fail at runtime.
 
 ---
 
@@ -87,7 +87,7 @@ flutter:
 
 ## 6. Content Definition Files (Dart Catalogs)
 
-Instead of Unity ScriptableObjects, we author data content in pure Dart files (e.g., `shape_catalog.dart`, `enemy_catalog.dart`, `relic_catalog.dart`).
+All content data is authored as pure Dart files (e.g., `shape_catalog.dart`, `enemy_catalog.dart`, `relic_catalog.dart`).
 
 ```dart
 // lib/domain/catalogs/enemy_catalog.dart
@@ -176,7 +176,7 @@ Because a solo developer will likely use AI (Midjourney, DALL-E, Stable Diffusio
 
 ## 14. Texture Compression
 
-Unlike Unity, which explicitly processes ASTC or ETC2 compression during import, Flutter and the Android build system handle texture compression under the hood during the APK/AAB build process. Rely on the Flutter build pipeline. Ensure source PNGs are properly downscaled prior to inclusion to keep APK size low.
+The Flutter and Android build system handle texture compression during the APK/AAB build process. Source PNGs should be properly downscaled before inclusion to keep build size low.
 
 ---
 
