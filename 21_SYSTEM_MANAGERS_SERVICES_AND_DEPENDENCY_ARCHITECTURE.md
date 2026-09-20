@@ -1,28 +1,30 @@
 # 21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md
 ## Block Battles — System Managers, Services, and Dependencies
 
-**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md`
+**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_FLUTTER_PROJECT_STRUCTURE_AND_ROUTING.md`
 **Document status:** Layer C — Engineering Authority
 
-**Inheritance confirmation:** This document dismantles the classic Unity "GameManager God Class" anti-pattern. It assigns strict boundaries and lifetimes to every functional component required by the game, enforcing the Clean Architecture rules established in Doc 18.
+**Inheritance confirmation:** This document dismantles the classic "GameManager God Class" anti-pattern. It assigns strict boundaries and lifetimes to every functional component required by the game, enforcing the Clean Architecture rules established in Doc 18. The tech stack relies on Flutter, Flame, and Riverpod.
 
 ---
 
 ## 1. System Inventory
 
-The architecture is divided into two distinct categories: **Persistent Services** (Global) and **Domain Engines** (Contextual).
+The architecture is divided into three distinct categories: **Infrastructure Services** (Global), **Application Services** (Run & Orchestration), and **Domain Engines** (Contextual, Pure Dart).
 
-### Persistent Services
+### Infrastructure Services (Global Riverpod Providers)
 - `BootstrapService`
-- `SaveService`
-- `SettingsService`
-- `AudioService`
+- `SaveRepository` (Wraps Hive CE)
+- `SettingsService` (Wraps SharedPreferences)
+- `AudioService` (Wraps Flame Audio)
 - `HapticService`
-- `MonetizationService`
+- `MonetizationService` (Abstract, mock during dev)
 
-### Contextual Engines (Run & Battle)
-- `RunManager`
-- `BattleOrchestrator`
+### Application Services (Riverpod State Notifiers)
+- `RunService` & `RunStateNotifier` (Handles overall Run progression)
+- `BattleService` (Pure Dart orchestration of the battle state machine)
+
+### Contextual Domain Engines (Pure Dart, No Riverpod/Flutter/Flame coupling)
 - `BoardEngine`
 - `TrayEngine` (Handles Piece/Placement input state)
 - `CombatEngine` (Handles Scoring/Combo/Damage)
@@ -30,7 +32,7 @@ The architecture is divided into two distinct categories: **Persistent Services*
 - `RelicEngine`
 - `GameRNG`
 
-*(Note: VFX, UI, and Input are mapped to the Presentation Layer, not core systems).*
+*(Note: Flame components and Flutter widgets belong to the Presentation Layer, not core systems).*
 
 ---
 
@@ -38,23 +40,22 @@ The architecture is divided into two distinct categories: **Persistent Services*
 
 | System | Owns | Does Not Own | Inputs | Outputs |
 |---|---|---|---|---|
-| **SaveService** | JSON disk I/O, serialization of runtime state. Does NOT own gameplay logic. Static content is reloaded from canonical assets. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
-| **RunManager** | Owns run state (Stardust, active Relics list, current floor index). Initializes from loaded save data. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over event |
-| **BattleOrchestrator**| Owns battle state and turn phases. Restores exact mid-battle state on load. | Board array, HP math. | `OnDrop`, `OnAnimFinish` | `TurnStateChange` |
-| **BoardEngine** | 8x8 cell-state array (each cell encodes Occupancy + Modifier compactly per `03` Sec 3), collision math, line clearing math. Enemy systems request board mutations via `BoardEngine` API — they MUST NOT write directly to the internal array. | Piece drag graphics, scoring. | Piece coordinates, enemy-requested cell mutations | `LinesCleared`, `CellsCleared`, `BoardChanged` events |
-| **TrayEngine** | The 3 available pieces, Ghost preview logic. | Input touch events, Board collision. | `ShapeData[]`, Board queries | `PieceCommitted` event |
-| **CombatEngine** | Damage calculation, Combo (L-value) multipliers. | Relic definitions, Enemy HP. | `LinesCleared` event | `DamageDealt` event |
-| **RelicEngine** | Passing modifier math to the CombatEngine based on triggers. | Combat resolution. | `LinesCleared`, `TurnStart` | `RelicProc` event |
-| **EnemyEngine** | Enemy HP, telegraph intent generation, board-modification requests. Enemy resolves which cells to target, then calls `BoardEngine.SetCellModifier(cell, modifier, duration)` — it never writes raw cell values directly. | Damage dealing logic, Board math internals. | `DamageDealt` event | `EnemyDefeated`, `EnemyAction`, `BoardCellModified` |
+| **SaveRepository** | Hive CE box initialization, JSON/binary disk I/O, serialization. | Cloud syncing logic, gameplay state logic. | `RunSaveData` | `RunSaveData` (loaded) |
+| **RunService** | Owns run state (Stardust, active Relics list, current floor index) via `RunStateNotifier`. | Battle specifics, Enemy stats. | Battle Win/Loss events | Next Floor data, Run Over state |
+| **BattleService**| Owns battle state and turn phases. Restores exact mid-battle state on load. | Board array, HP math. | Piece placements, Anim completions | Battle state changes |
+| **BoardEngine** | 8x8 cell-state array (each cell encodes Occupancy + Modifier), collision math, line clearing math. | Piece drag graphics, scoring. | Piece coordinates, enemy mutations | `LinesCleared`, `CellsCleared` |
+| **TrayEngine** | The 3 available pieces, Ghost preview logic. | Input touch events, Board collision. | `ShapeData[]`, Board queries | `PlacementCommitted` |
+| **CombatEngine** | Damage calculation, Combo (L-value) multipliers. | Relic definitions, Enemy HP. | `LinesCleared` | `DamageDealt` |
+| **RelicEngine** | Passing modifier math to the CombatEngine based on triggers. | Combat resolution. | `LinesCleared`, `TurnStart` | `RelicProc` |
+| **EnemyEngine** | Enemy HP, telegraph intent generation, board-modification requests. | Damage dealing logic, Board math. | `DamageDealt` | `EnemyDefeated`, `EnemyAction` |
 
 ---
 
 ## 3. Service Lifetime
 
-- **Persistent (Global):** Created in `00_Boot` scene. Persists via `DontDestroyOnLoad` for the entire application session. (Save, Audio, Settings).
-- **Run-Local:** Created when a player clicks "Start Run". Destroyed when the player Abandons or loses the Run. (RunManager).
-- **Battle-Local:** Created at the start of `02_Battle` scene. Destroyed on victory/defeat. (BoardEngine, CombatEngine, EnemyEngine).
-- **Transient:** Created and destroyed multiple times per frame or turn (e.g., `DamageEvent` structs).
+- **App-Level (Global):** Provided via Riverpod globally in `ProviderScope` at `main.dart`. Persists for the entire application session (Save, Audio, Settings).
+- **Run-Local:** Lives inside the `RunStateNotifier` lifecycle. Reset when a run starts or ends.
+- **Battle-Local:** Created at the start of a battle (via `BattleService` or inside `FlameGame`). Destroyed on victory/defeat. (BoardEngine, CombatEngine, EnemyEngine).
 
 ---
 
@@ -63,13 +64,13 @@ The architecture is divided into two distinct categories: **Persistent Services*
 *Dependencies point downwards. Higher levels orchestrate lower levels.*
 
 ```text
-[Global Service Locator] (Provides generic access to IAudio, ISave)
+[Global Riverpod Providers] (SaveRepository, AudioService, SettingsService)
 
 [Application Orchestration]
-RunManager ──────> BattleOrchestrator
+RunService ──────> BattleService
 
 [Battle Domain]
-BattleOrchestrator
+BattleService
  ├──> TrayEngine
  ├──> BoardEngine
  ├──> RelicEngine
@@ -84,26 +85,24 @@ BattleOrchestrator
 
 ## 5. Dependency Injection Strategy
 
-**Decision:** Lightweight Service Locator (for Globals) + Constructor Injection (for Domain).
-**Forbidden:** Heavy Reflection-based DI frameworks (e.g., Zenject/Extenject).
+**Decision:** Riverpod for App/Infrastructure Services + Constructor Injection for Domain Engines.
+**Forbidden:** Singleton instances (e.g., `BoardEngine.instance`). 
 
-### 5.1 Global Services (Locator)
-To avoid passing `AudioService` through 15 layers of constructors, use a simple static locator for Global Services.
-```csharp
-// Used by Presentation layer
-ServiceLocator.Get<IAudioService>().PlaySFX(SFX.PiecePlace);
+### 5.1 App/Infrastructure Services (Riverpod)
+To avoid passing `AudioService` through layers of widgets, we use Riverpod.
+```dart
+// Used by Presentation layer (Flutter Widget)
+ref.read(audioServiceProvider).playSfx(Sfx.piecePlace);
 ```
 
 ### 5.2 Domain Engines (Constructor Injection)
-Core gameplay systems NEVER use the Service Locator. They must explicitly declare dependencies in their constructor. This ensures perfect testability for AI and unit tests.
-```csharp
-// Pure C#, highly testable
-public class CombatEngine {
-    private readonly IRelicEngine _relicEngine;
-    
-    public CombatEngine(IRelicEngine relicEngine) {
-        _relicEngine = relicEngine;
-    }
+Core gameplay systems NEVER use Riverpod or Flutter packages. They must explicitly declare dependencies in their constructors. This ensures perfect testability for AI and unit tests.
+```dart
+// Pure Dart, highly testable
+class CombatEngine {
+  final RelicEngine _relicEngine;
+  
+  CombatEngine(this._relicEngine);
 }
 ```
 
@@ -111,10 +110,10 @@ public class CombatEngine {
 
 ## 6. Initialization Order
 
-1. **Boot:** `BootstrapService` initializes Unity subsystems.
-2. **Persistent Services:** `SaveService` -> `SettingsService` -> `AudioService` -> `MonetizationService`.
-3. **Run:** `RunManager` initializes from Save Data, spins up `GameRNG` with the saved seed AND advances it by the saved `rngStateCalls` to resume exact deterministic sequence.
-4. **Battle:** `BattleOrchestrator` -> `BoardEngine` -> `EnemyEngine` -> `RelicEngine` -> `CombatEngine` -> `TrayEngine`.
+1. **Boot (`main.dart`):** `main()` awaits `Hive.initFlutter()`, `SharedPreferences.getInstance()`, and Flame Audio initialization before running `runApp(ProviderScope(...))`.
+2. **Persistent Services:** Instantiated on first read or eagerly initialized by a `bootstrapProvider`.
+3. **Run:** `RunService` initializes from Save Data, spins up `GameRNG` with the saved seed.
+4. **Battle (`FlameGame.onLoad`):** The `FlameGame` reads the domain engines from `BattleService` and wires up the visual components to the pure Dart engines.
 
 *Rule:* If System A depends on System B, System B must be completely initialized before System A's constructor is called.
 
@@ -122,94 +121,44 @@ public class CombatEngine {
 
 ## 7. Shutdown Order
 
-Order of destruction prevents memory leaks and dangling event subscriptions.
-1. **Battle End:** `BattleOrchestrator` cleans up event subscriptions between core Engines -> Destroys Battle Domain.
-2. **Run End:** `RunManager` serializes state -> Sends to `SaveService` -> Destroys Run Domain.
-3. **App Quit:** Disconnects `AudioService` and `MonetizationService`.
+1. **Battle End:** `BattleService` disposes domain engines and stream controllers. `FlameGame` unloads components.
+2. **Run End:** `RunService` serializes state -> Sends to `SaveRepository`.
+3. **App Quit:** OS handles memory cleanup; Hive boxes close gracefully.
 
 ---
 
 ## 8. Communication Rules
 
-- **Upward Communication (Domain to App/Presentation):** Always use C# `event` or `Action`. The BoardEngine does not call `AudioManager.Play()`. It fires `OnLineCleared`, and the Presentation layer listens and plays the audio.
-- **Downward Communication (App to Domain):** Use direct method calls. `BattleOrchestrator` calls `BoardEngine.PlacePiece()`.
-- **Lateral Communication (Domain to Domain):** Use direct interface calls if injected via constructor. 
+- **Upward Communication (Domain to App/Presentation):** Always use Dart `Stream` or an Event Dispatcher. The BoardEngine does not call `audioService.play()`. It fires a `LinesCleared` event, and the Application or Presentation layer listens and plays the audio.
+- **Downward Communication (App to Domain):** Use direct method calls. `BattleService` calls `BoardEngine.placePiece()`.
+- **Lateral Communication (Domain to Domain):** Use direct interface/class calls if injected via constructor. 
 
 ---
 
-## 9. Cross-System Contracts
+## 9. Error Handling
 
-Example sequence when a piece is dropped:
-1. `InputController` (Presentation) calls `TrayEngine.TryCommitPlacement(x, y)`.
-2. `TrayEngine` queries `BoardEngine.IsValid(piece, x, y)`.
-3. If valid, `TrayEngine` consumes the piece, tells `BoardEngine` to write to the array.
-4. `BoardEngine` detects lines, clears them, fires `OnLinesCleared(L_Value)`.
-5. `BattleOrchestrator` hears the event, pauses input.
-6. `BattleOrchestrator` tells `CombatEngine.CalculateDamage(L_Value)`.
-7. `CombatEngine` queries `RelicEngine` for modifiers.
-8. `CombatEngine` tells `EnemyEngine.TakeDamage(amount)`.
-9. `EnemyEngine` updates HP, fires `OnHPChanged`.
-10. `Presentation` layer reacts to all fired events with VFX/Animations.
+- **Guard Clauses:** Every Domain method must validate inputs and throw `StateError` or `ArgumentError` if constraints are violated.
+- **Service Failure:** If `MonetizationService` fails to initialize, it gracefully falls back to a mock/disabled state.
 
 ---
 
-## 10. Error Handling
+## 10. Testability
 
-- **Guard Clauses:** Every Domain method must immediately validate inputs and throw `ArgumentException` or `InvalidOperationException` if constraints are violated (e.g., placing a piece out of bounds).
-- **Service Failure:** If `MonetizationService` fails to initialize (e.g., no internet), the game degrades gracefully (Revive button is hidden), it does NOT crash the puzzle loop.
-
----
-
-## 11. Testability
-
-Because we use Constructor Injection for the Battle Domain, AI can instantly generate NUnit tests:
-```csharp
-[Test]
-public void CombatEngine_AppliesRelicMultiplier() {
-    var mockRelics = new MockRelicEngine(); // Returns 2x multiplier
-    var combat = new CombatEngine(mockRelics);
-    int damage = combat.CalculateDamage(linesCleared: 1, baseScore: 10);
-    Assert.AreEqual(20, damage);
-}
+Constructor Injection for the Battle Domain makes unit testing trivial in pure Dart:
+```dart
+test('CombatEngine applies relic multiplier', () {
+  final mockRelics = MockRelicEngine(); // Returns 2x multiplier
+  final combat = CombatEngine(mockRelics);
+  final damage = combat.calculateDamage(linesCleared: 1, baseScore: 10);
+  expect(damage, 20);
+});
 ```
 
 ---
 
-## 12. Debugging
+## 11. FlameGame vs Services
 
-- **IDebugService:** Implemented only in Editor/Development builds. 
-- Automatically logs all state transitions in `BattleOrchestrator` to the Unity Console.
-- Exposes a Cheats UI to force-trigger `CombatEngine.CalculateDamage` or `EnemyEngine.TakeDamage` for fast QA testing.
-
----
-
-## 13. Forbidden Dependencies (Anti-Patterns)
-
-1. **Circular Dependencies:** System A requires System B, which requires System A. (Fix: Extract an interface or move logic to a shared third system).
-2. **Domain depending on Presentation:** E.g., `CombatEngine` waiting for an `Animator` to finish. (Fix: Presentation must track the animator and notify the `BattleOrchestrator` when ready).
-3. **Singleton Abuse:** E.g., `BoardEngine.Instance`. The BoardEngine is battle-local, not a singleton. If two battles were instantiated in memory, a singleton would crash. 
-
----
-
-## 14. Example Battle Lifecycle (Turn State Machine)
-
-The `BattleOrchestrator` operates this internal state machine:
-- `STATE_INIT:` Spin up engines. Transition ->
-- `STATE_PLAYER_TURN:` Unlock input. Wait for `TrayEngine.OnCommit`. Transition ->
-- `STATE_COMBAT_EVAL:` Calculate damage, apply to enemy. Transition ->
-- `STATE_ANIMATION_WAIT:` Input locked. Wait for Presentation layer to signal VFX complete. Transition ->
-- `STATE_ENEMY_TURN:` `EnemyEngine` executes Board modifications. Transition ->
-- `STATE_BOARD_EVAL:` Check for Move Limit or Board Lock. If Battle Failure -> `STATE_BATTLE_END`. If safe -> `STATE_PLAYER_TURN`.
-
----
-
-## 15. Final Service Contract
-
-> **Everything has an owner. Nothing owns everything.**
->
-> By strictly defining these 14 core systems, we eliminate the spaghetti code that dooms most indie Unity projects. An AI coding agent will never need to guess where a line of code belongs. 
-> 
-> If it calculates damage, it goes in the Combat Engine. If it writes to disk, it goes in the Save Service. If it orchestrates turn order, it goes in the Battle Orchestrator. 
+`FlameGame` acts as the presentation bridge. Inside `onLoad()`, the game resolves required engines from Riverpod or a passed-in `BattleService` and instantiates Flame components (`PositionComponent`, etc.) passing the engines to them. Flame components DO NOT contain game rules.
 
 ---
 

@@ -23,10 +23,10 @@ Block Battles fuses the satisfying infinite loop of a block-placement puzzle (si
 START RUN (seeded)
      │
      ▼
-┌─────────────────────────────────────┐
+┌──────────────────────────────┐
 │ BATTLE BEGINS                       │
 │  Enemy appears with HP + Objective  │
-└──────────────────┬──────────────────┘
+└────────────────┬────────────────────┘
                    │
                    ▼
          ┌─────────────────┐
@@ -39,7 +39,7 @@ START RUN (seeded)
                   ▼                        │
          Rows/Cols full?                   │
           YES │     NO │                   │
-              │        └──────────────────►┤
+              │        └─────────────────►┤
               ▼                            │
       LINE CLEAR + DAMAGE                  │
       Relics evaluate & modify             │
@@ -48,7 +48,7 @@ START RUN (seeded)
               ▼                            │
      Objective complete?     No more valid placements?
           YES │     NO │          YES │
-              │        └─────────────┘│
+              │        └────────────┘│
               │                       ▼
               │                   DEFEAT ──► MENU
               ▼
@@ -136,10 +136,9 @@ All numeric values (BaseDamage, multiplier tables, Stardust rates) are authored 
 ## 7. Architecture Summary
 
 ### Data-Driven Design
-Enemies, Relics, Shapes, and Objectives are Unity ScriptableObjects. Adding content requires authoring data assets, not modifying C# logic. See `20`.
+Enemies, Relics, Shapes, and Objectives are Dart const data classes. Adding content requires authoring data assets, not modifying pure logic. See `20`.
 
 ### RNG & Determinism
-
 A seeded `GameRNG` class controls all piece spawns, enemy selections, and relic drops.
 - **New Runs:** Deterministic from seed + inputs (the same seed + input sequence always produces the same game state).
 - **Resumable Active Runs:** Restore exact serialized runtime state including deterministic RNG continuation (the exact number of RNG calls consumed), not just the seed. See `04`, `21`, and `24`.
@@ -148,13 +147,42 @@ A seeded `GameRNG` class controls all piece spawns, enemy selections, and relic 
 Domain systems (Board, Combat, Enemy) communicate via a type-safe `EventBus<T>`. Presentation systems (UI, Audio, VFX) listen to events and react. The Domain NEVER calls into Presentation. See `22`.
 
 ### Presentation Separation (Clean Architecture)
-- **Domain Layer** (Pure C#): Board math, damage formulas, RNG.
+- **Domain Layer** (Pure Dart): Board math, damage formulas, RNG.
 - **Application Layer** (Orchestration): Turn state machine, Run management.
-- **Presentation Layer** (Unity): MonoBehaviours, Canvases, AudioSources.
-- Dependencies point **inward only**. Domain knows nothing about Unity. See `18`.
+- **Presentation Layer** (Flutter/Flame): Flame components, Flutter widgets, GoRouter routes.
+- Dependencies point **inward only**. Domain knows nothing about Flutter or Flame. See `18`.
 
 ### Persistence
-JSON files written to `Application.persistentDataPath` using Atomic Save (tmp → bak → json). Player data never corrupts on crash. See `24`.
+Local save data managed via Hive CE with atomic writes. Player data never corrupts on crash. See `24`.
+
+---
+
+## TECHNOLOGY STACK
+| Concern | Technology |
+|---------|------------|
+| Language | Dart |
+| App Framework | Flutter |
+| Game Engine | Flame |
+| State Management | Riverpod |
+| Navigation | GoRouter |
+| Local Save Data | Hive CE |
+| Lightweight Preferences | SharedPreferences |
+| Game Audio | Flame Audio |
+| IDE | Android Studio |
+| Platform | Android |
+| Testing | dart test / flutter test / integration_test |
+| Release | flutter build appbundle |
+
+---
+
+## ARCHITECTURE LAYERS (ONE-SENTENCE RULE)
+| Layer | Rule |
+|-------|------|
+| lib/domain/ | Pure Dart only. ZERO imports from flutter, flame, riverpod, or hive packages. |
+| lib/data/ | Data persistence and content definitions. May use Hive CE. NO Flame or Flutter UI imports. |
+| lib/application/ | Orchestration and use cases. May use Riverpod. Pure Dart logic. |
+| lib/game/ | Flame components and game world. Imports Flame. NO direct domain mutation. |
+| lib/presentation/ | Flutter widgets, screens, overlays. Imports Flutter + Riverpod. |
 
 ---
 
@@ -171,9 +199,9 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp �
 | `ObjectiveEngine` | Tracks battle win condition progress. |
 | `RunManager` | Manages floor progression, stardust, and active relic list across battles. |
 | `BattleOrchestrator` | Turn state machine. Blocks input during resolution. |
-| `SaveService` | Reads/writes `PlayerProfileSave` JSON. Handles corruption recovery. |
-| `AudioService` | Object-pooled AudioSources. Controls mix groups. |
-| `VFXManager` | Object-pooled ParticleSystems. Fires effects on EventBus subscriptions. |
+| `SaveService` | Reads/writes Hive CE records. Handles corruption recovery. |
+| `AudioService` | Flame Audio wrapper. Controls mix groups. |
+| `VFXManager` | Flame particle/VFX spawners. Fires effects on EventBus subscriptions. |
 
 ---
 
@@ -195,9 +223,9 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp �
 | **Ghost Preview** | The transparent indicator showing where a dragged piece will land. |
 | **Combo** | Consecutive multi-line clears within a turn sequence (see `05`). |
 | **Telegraph** | An enemy's declared next action shown N turns in advance. |
-| **ShapeData** | A ScriptableObject defining a piece's 5x5 boolean matrix. |
-| **EnemyData** | A ScriptableObject defining enemy stats and behavior patterns. |
-| **RelicData** | A ScriptableObject defining relic trigger, condition, and effect. |
+| **ShapeData** | A Dart const defining a piece's 5x5 boolean matrix. |
+| **EnemyData** | A Dart const defining enemy stats and behavior patterns. |
+| **RelicData** | A Dart const defining relic trigger, condition, and effect. |
 
 ---
 
@@ -212,8 +240,8 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp �
 | Any animation timing | `12_ANIMATION_MOTION_AND_GAME_FEEL.md` |
 | Any copy/text string | `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md` |
 | Any architecture pattern | `18_TECHNICAL_ARCHITECTURE.md` |
-| Any folder/file location | `19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md` |
-| Any data schema | `20_DATA_MODEL_SCRIPTABLEOBJECTS_AND_CONTENT_SCHEMA.md` |
+| Any folder/file location | `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` |
+| Any data schema | `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` |
 | Any event definition | `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` |
 | Any save field | `24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md` |
 | Any naming convention | `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` |
@@ -223,21 +251,35 @@ JSON files written to `Application.persistentDataPath` using Atomic Save (tmp �
 
 ---
 
+## COMMON AI MISTAKES TO AVOID
+1. Creating Flame components that contain game rules
+2. Importing flutter or flame packages into lib/domain/
+3. Using setState() or StatefulWidget for game state (use Riverpod)
+4. Using Flutter GestureDetector for board piece dragging (use Flame DragCallbacks)
+5. Implementing runtime piece rotation (no rotation exists - orientation is static)
+6. Calling runApp or WidgetsBinding methods outside main.dart
+7. Adding packages to pubspec.yaml without documenting in Phase notes
+8. Forgetting to run flutter analyze before declaring work complete
+9. Ignoring the document hierarchy (game design docs are authoritative)
+10. Inventing mechanics not in Layer A/B docs
+
+---
+
 ## 11. Forbidden Behaviors
 
 An AI working on this project MUST NEVER:
 1. Write `if (relicName == "IronMallet")` in core logic. Use enum + data.
-2. Put game logic in a UI script (`Canvas`, `Button`, `Text`).
-3. Use `UnityEngine.Physics2D` or `Collider2D` for board placement.
-4. Call `Instantiate()` or `Destroy()` during the combat turn loop.
-5. Use `LINQ`, `new List<>()`, or string concatenation during gameplay.
-6. Create a `GameManager.cs` that owns more than one responsibility.
-7. Delete a `.meta` file and re-create it (destroys Prefab references).
+2. Put game logic in a UI script/widget (`Widget`, `StatelessWidget`, etc.).
+3. Use Flutter physics for board placement.
+4. Call `add()` or `removeFromParent()` arbitrarily during the combat turn loop outside Flame's lifecycle (`onLoad`, `update`, `render`).
+5. Use `dart:io` in domain logic during gameplay.
+6. Create a `GameManager.dart` that owns more than one responsibility.
+7. Change Dart package import rules / ignore architecture layers.
 8. Invent a mechanic, balance value, or system not specified in the docs.
 9. Wrap a bug in `try { } catch { }` without logging and fixing the root cause.
-10. Push to `main` without passing the NUnit test suite.
+10. Push to `main` without passing the `dart test` suite.
 11. Implement a generalized hazard/special-cell framework during MVP unless a later approved document explicitly activates it. MVP board states are strictly limited to `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`. `HAZARDOUS`, `INDESTRUCTIBLE`, and `SPECIAL` are explicitly deferred.
-12. Implement board logic using raw single-state checks like `if (cell.state == EMPTY)`. The board uses a two-axis model (Occupancy + Modifier). All placement and clearing logic must use semantic predicates like `CanReceiveBlock(cell)` and `CountsTowardLineClear(cell)`.
+12. Implement board logic using raw single-state checks like `if (cell.state == EMPTY)`. The board uses a two-axis model (Occupancy + Modifier). All placement and clearing logic must use semantic predicates like `canReceiveBlock(cell)` and `countsTowardLineClear(cell)`.
 
 ---
 
@@ -246,9 +288,16 @@ An AI working on this project MUST NEVER:
 - **Read the spec first.** The Markdown documentation is the source of truth.
 - **Make surgical changes.** Fix only what was asked. No unrelated refactors.
 - **Data over code.** New enemies and relics are data. New mechanics are not added casually.
-- **Test after every Domain change.** If you touched the Board, Combat, or Relics — run the NUnit suite.
+- **Test after every Domain change.** If you touched the Board, Combat, or Relics — run the `dart test` suite.
 - **Ask, don't guess.** If a value is missing from a document, ask the developer. Do not invent defaults.
 - **No speculative complexity.** Do not build `AbstractManagerFactoryBase<T>` for a solo mobile game.
+
+---
+
+## PROJECT WORKSPACE
+- Documentation: E:\Block Buster (this folder)
+- Game project: E:\block battles (when it exists)
+- GitHub: https://github.com/kmkbuild/Block-Battles.git
 
 ---
 
@@ -261,31 +310,13 @@ An AI working on this project MUST NEVER:
 | Relics | 10 unique relics |
 | Objective Types | 3 (Defeat, ClearLines, SurviveMoves) |
 | Encounters / Floors | 5-7 per run |
-| Scenes | 3 (Boot, MainMenu, Battle) |
+| Screens | 3 (Boot, MainMenu, Battle) |
 | Audio SFX | ~20 unique clips |
 | BGM Tracks | 2-3 looping tracks |
 
 ---
 
-## 14. Technical Stack
-
-| Area | Decision |
-|---|---|
-| Engine | Unity 2022.3 LTS (or newer) |
-| Scripting Backend | IL2CPP |
-| Language | C# (.NET Standard 2.1) |
-| Target Platform | Android-first (Google Play) |
-| Min SDK | Android API 26 (Android 8.0) |
-| Architecture | ARM64 |
-| JSON Serialization | Newtonsoft.Json (Json.NET for Unity) |
-| UI Animation | DOTween |
-| UI Text | TextMeshPro exclusively |
-| Rendering | 2D / URP |
-| Physics | NONE (forbidden for gameplay logic) |
-
----
-
-## 15. Build Order Summary
+## 14. Build Order Summary
 
 21 phases in strict dependency order:
 `0` Setup → `1` Board Model → `2` Shapes → `3` Placement/Input → `4` Tray → `5` Line Clear → `6` Game Over → `7` Combat → `8` Enemy → `9` Objectives → `10` Relics → `11` Run Structure → `12` Core UI → `13` Visuals → `14` Animation → `15` VFX → `16` Audio → `17` Save → `18` Settings → `19` Monetization → `20` QA → `21` Release.
@@ -294,7 +325,7 @@ Do NOT jump ahead. The board must exist before combat. Combat must work before R
 
 ---
 
-## 16. Where to Look
+## 15. Where to Look
 
 | Question | Read |
 |---|---|
@@ -317,11 +348,11 @@ Do NOT jump ahead. The board must exist before combat. Combat must work before R
 | Settings and accessibility? | `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` |
 | Monetization and ads? | `17_MONETIZATION_REWARD_AND_AD_UX.md` |
 | Overall engineering architecture? | `18_TECHNICAL_ARCHITECTURE.md` |
-| Folder structure, scenes, prefabs? | `19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md` |
-| ScriptableObject schemas? | `20_DATA_MODEL_SCRIPTABLEOBJECTS_AND_CONTENT_SCHEMA.md` |
+| Folder structure, screens, Flame components? | `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` |
+| Content schemas and definitions? | `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` |
 | System managers and ownership? | `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md` |
 | EventBus, state machine, events? | `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` |
-| Unity UI implementation? | `23_UI_IMPLEMENTATION_ARCHITECTURE.md` |
+| Flutter UI implementation? | `23_UI_IMPLEMENTATION_ARCHITECTURE.md` |
 | Save data and persistence? | `24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md` |
 | Asset naming and pipeline? | `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` |
 | Performance and optimization? | `26_PERFORMANCE_MEMORY_AND_MOBILE_OPTIMIZATION.md` |
@@ -332,7 +363,7 @@ Do NOT jump ahead. The board must exist before combat. Combat must work before R
 
 ---
 
-## 17. Final AI Instruction
+## 16. Final AI Instruction
 
 > **Read this file first.**
 > Then read ONLY the documents relevant to your current task.

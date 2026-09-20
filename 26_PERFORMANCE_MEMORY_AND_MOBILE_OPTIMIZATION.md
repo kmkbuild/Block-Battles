@@ -13,9 +13,9 @@
 **"Smoothness is a Mechanic."**
 
 Block Battles relies on "Tactile Snap" (`12_ANIMATION_MOTION_AND_GAME_FEEL.md`). If the game drops a frame precisely when a block snaps to the grid, the physical illusion shatters. 
-- **Rule 1:** Optimize what happens 100 times a minute (Placement, UI updates). Do not obsess over what happens once per run (Menu loading).
-- **Rule 2:** Avoid the garbage collector like the plague during gameplay. 
-- **Rule 3:** Overdraw is the silent killer of mobile GPUs.
+- **Rule 1:** Optimize what happens 100 times a minute (Placement, Flame rendering, UI rebuilds). Do not obsess over what happens once per run (Menu loading).
+- **Rule 2:** Avoid the Dart garbage collector like the plague during tight gameplay loops (combat resolution). 
+- **Rule 3:** Overdraw is the silent killer of mobile GPUs, and unnecessary Flutter widget rebuilds are the silent killer of CPU frame budgets.
 
 ---
 
@@ -23,191 +23,142 @@ Block Battles relies on "Tactile Snap" (`12_ANIMATION_MOTION_AND_GAME_FEEL.md`).
 
 - **Minimum Spec:** 3GB RAM, Snapdragon 660 / Apple A10 (e.g., iPhone 7 / mid-range 2018 Android).
 - **Target Spec:** 4GB+ RAM, Snapdragon 845 / Apple A12 or newer.
-- **Why:** Puzzle games appeal to a broad, casual demographic. The game must run flawlessly on 5-year-old hardware to succeed in the mobile market.
+- **Why:** Puzzle games appeal to a broad, casual demographic. The game must run flawlessly on older hardware to succeed in the mobile market.
 
 ---
 
 ## 3. FPS Target
 
-- **Gameplay Target:** 60 FPS locked.
-- **Menu Target:** 30 FPS or 60 FPS (depending on battery save mode).
-- **Rationale:** 30 FPS for drag-and-drop gameplay feels sluggish and disconnects the player's finger from the piece. 60 FPS is non-negotiable for the core loop.
+- **Gameplay Target:** 60 FPS locked on mid-range Android.
+- **Menu Target:** 30 FPS or 60 FPS (depending on battery save mode/Flutter's native target).
+- **Rationale:** 60 FPS is non-negotiable for the core loop involving dragging pieces and rendering board updates. 
 
 ---
 
 ## 4. Frame-Time Budget
 
 To achieve 60 FPS, a frame must render in under **16.6ms**.
+Flutter separates execution into UI and Raster threads.
 
 | Subsystem | Budget | Notes |
 |---|---|---|
-| **CPU (Scripts & Logic)**| < 3.0 ms | Board math is instant. Time is spent in UI updating. |
-| **CPU (Physics)** | 0.0 ms | Physics is strictly forbidden (`19` Sec 15). |
-| **GPU (Rendering)** | < 10.0 ms| Particle systems and UI overdraw. |
-| **Overhead (OS, Audio)** | < 3.6 ms | Unity internal overhead. |
+| **CPU (Dart Logic/UI)**| < 5.0 ms | Pure Dart Domain math is instant. Time is spent in Flame `update()` and Riverpod UI rebuilds. |
+| **GPU (Raster Thread)**| < 10.0 ms| Rendering Flame components, particle systems, and Flutter overlays. Overdraw is the main risk here. |
+| **Overhead** | < 1.6 ms | OS and Engine overhead. |
 
 ---
 
 ## 5. Memory Budget
 
 - **Target Active RAM:** < 250 MB.
-- **Maximum App Size (Download):** < 100 MB.
-- **Texture Budget:** < 50 MB in VRAM (Easily achievable via Sprite Atlases).
-- **Audio Budget:** < 20 MB in RAM (Compressed SFX).
+- **Maximum App Size (Download):** APK/AAB size < 100 MB.
+- **Texture Budget:** < 50 MB in RAM (Leverage Flame SpriteSheets).
+- **Audio Budget:** < 20 MB in RAM (Stream large audio, preload small SFX).
 
 ---
 
-## 6. CPU Considerations
+## 6. CPU and Dart GC Considerations (Zero Allocation Rule)
 
-- **Cache Misses:** Iterating through the 8x8 Board array must be done in a 1D array (`int[64]`) rather than a `List<int>` or nested objects, maximizing CPU cache coherency.
-- **`Update()` Calls:** Minimize MonoBehaviours using `Update()`. A single `BattleOrchestrator` calling `Tick()` on its subsystems is significantly faster than 64 `CellView` scripts running empty `Update()` loops.
-
----
-
-## 7. GPU Considerations
-
-- **Overdraw Limit:** Mobile GPUs die on fill-rate. Transparent pixels cost just as much as opaque pixels. Ensure all UI elements are trimmed tightly, and disable the `Image` component entirely if it has an Alpha of 0.
-- **Draw Calls:** Batch the board and pieces into a single Sprite Atlas. The entire board layer MUST render in <= 3 draw calls.
+- **The Zero Allocation Rule:** GC spikes cause frame hitches. They are forbidden during combat resolution. Do not allocate large numbers of new objects, lists, or strings inside tight `update()` loops or during the instantaneous pure Dart board evaluation.
+- **Dart AOT:** Release builds use Dart AOT compilation, making them exceptionally fast. However, memory allocation still triggers GC.
+- **Iterations:** Iterating through the 8x8 Board array should avoid creating intermediate lists. Use standard `for` loops rather than chained `.where().toList()` when raw speed and zero allocation matter in combat math.
 
 ---
 
-## 8. UI Performance
+## 7. Flame Render Performance
+
+- **Component Count:** Keep the Flame `Component` tree as flat as possible. Avoid thousands of deep nested components.
+- **Sprite Batching:** Use Flame's `SpriteBatch` or `SpriteSheet` to draw multiple identical sprites (like grid tiles) in a single pass rather than instantiating 64 independent complex `SpriteComponent`s if rendering becomes a bottleneck.
+- **Update Loop:** Ensure the `update(dt)` overrides in Flame components only do necessary math. Do not poll complex state if it hasn't changed.
+
+---
+
+## 8. Flutter UI Performance (Rebuilds)
 
 As mandated in `23_UI_IMPLEMENTATION_ARCHITECTURE.md`:
-1. **Canvas Splitting:** Modifying one text element forces Unity to rebuild the entire Canvas. Keep static UI (Backgrounds) and dynamic UI (HP Bars, Damage Text) on separate Canvases.
-2. **Raycast Targets:** Uncheck `Raycast Target` on EVERY `Image` and `TextMeshPro` component unless it is a clickable button. 
-3. **No Animators:** Do not use Unity `Animator` on UI. Use DOTween to tween `RectTransforms` directly, avoiding heavy Canvas dirtiness.
+1. **const Widgets:** Use `const` on all stateless widgets and constructors. This prevents Flutter from rebuilding them when their parents rebuild.
+2. **Selective Watches:** Riverpod `ref.watch()` must be aggressively scoped. Do NOT watch the entire `battleProvider` at the top of the UI tree. Use `ref.watch(battleProvider.select((state) => state.enemyHp))` to ensure only the HP bar widget rebuilds when HP changes.
+3. **Avoid Opacity:** Animating the `Opacity` widget is expensive. Prefer animating colors or using `FadeTransition`.
 
 ---
 
-## 9. VFX Performance
+## 9. VFX and Object Pooling
 
-- **Max Particles:** Capped at 300 active particles globally (`13` Sec 16.1).
-- **Render Mode:** Avoid massive soft-edged additive sprites overlapping. Use crisp, opaque geometric fragments.
-- **Culling:** Ensure particle systems have `Culling Mode` set to `Pause and Catch-up` or `Stop` when off-screen/invisible.
-
----
-
-## 10. Animation Performance
-
-- **Sprite Animation:** For the few enemies that require frame-by-frame animation, use a lightweight script to swap the `SpriteRenderer.sprite` array index instead of the heavy Unity `Animator` if blending/state-machines are not required.
+- **Max Particles:** Capped at 300 active particles globally.
+- **Flame Component Pooling:** Creating and destroying Flame components frequently (e.g., damage numbers, clear burst fragments) causes GC pressure.
+- **Manual Pool:** Implement a manual or package-based object pool for `DamageNumberComponent` and `ParticleComponent`. When an effect is done, disable it and return it to the pool instead of removing it from the component tree.
 
 ---
 
-## 11. Audio Memory
+## 10. Asset and Audio Memory
 
-- **SFX:** Must be set to `Force To Mono` (halves memory) and `Decompress On Load` (prevents CPU spikes on playback).
-- **Music:** Must be set to `Streaming` or `Compressed In Memory`. Never decompress a 3-minute BGM track into RAM.
-
----
-
-## 12. Asset Size
-
-- **ASTC Compression:** All sprites must use ASTC compression (4x4 or 6x6). ASTC offers superior visual quality at tiny file sizes on modern mobile devices.
-- **Sprite Atlases:** Group all `spr_blk_` assets into a single `BlockAtlas`. Group all UI icons into a `UIAtlas`. This eliminates texture switching on the GPU.
+- **Sprite Reuse:** Load shared sprites once globally or via a centralized `Images` cache, and pass references to components.
+- **Audio Streaming vs Preload:**
+  - SFX (Short): Preload via `FlameAudio.audioCache.loadAll()` during startup. 
+  - BGM (Long): Stream via `FlameAudio.bgm.play()` to prevent large `.mp3` files from ballooning RAM.
 
 ---
 
-## 13. Garbage Collection (The GC Spike)
+## 11. Profiling Workflow
 
-GC spikes cause frame hitches. They are forbidden during `BATTLE_IDLE` and `RESOLVING_COMBAT`.
-
-- **No `new` during gameplay:** Do not instantiate arrays or objects dynamically when a piece is placed.
-- **No LINQ:** `IEnumerable`, `.Where()`, and `.ToList()` allocate garbage. Use standard `for` loops when iterating over the 8x8 grid.
-- **Strings:** Do not build strings in combat (e.g., `"Damage: " + amt`). Use `TextMeshPro`'s `SetText(char[])` or pre-allocate string buffers if numbers change rapidly, OR accept the minor string allocation for damage numbers *only* if they are pooled.
-- **Event Payloads:** All `EventBus` payloads (`22` Sec 5) MUST be `structs`, not `classes`, to avoid heap allocation.
-
----
-
-## 14. Object Pooling
-
-Object Pooling is mandatory. Calling `Instantiate` or `Destroy` during gameplay is an architectural failure.
-
-**What MUST be pooled:**
-1. Block Sprites (Pieces)
-2. Board Cells
-3. Damage Numbers (Floating Text)
-4. VFX Particle Systems (`vfx_clear_burst`, `vfx_enemy_hit`)
-5. AudioSources (A generic pool of 24 AudioSources for SFX playback).
-
-*Warmup:* All pools must instantiate their required initial count during the loading screen before the Battle begins.
-
----
-
-## 15. Loading
-
-- **Synchronous Loading:** Banned.
-- **Workflow:** Use `SceneManager.LoadSceneAsync`. While loading, display a fade-to-black or loading screen. Wait for pooling warmup to finish before fading in.
-
----
-
-## 16. Scene Transitions
-
-- All transitions are masked by a `TransitionCanvas` (sorting order 100).
-- Loading a new run deletes the old Battle domain, forces `Resources.UnloadUnusedAssets()`, forces a `System.GC.Collect()`, and then builds the new Battle domain. 
-- *Note:* Forcing GC during a loading screen is safe and recommended. Forcing GC during gameplay is disastrous.
-
----
-
-## 17. Battery
-
-- High framerates drain batteries.
-- If the game is paused or waiting in the Main Menu, use `Application.targetFrameRate = 30` to preserve battery.
-- When `02_Battle` loads, restore to `Application.targetFrameRate = 60`.
-
----
-
-## 18. Thermal Considerations
-
-- If the OS reports thermal throttling, the game must not crash.
-- Implement an emergency fallback: If frame rate drops below 45 FPS for more than 10 seconds, automatically trigger `SettingsManager.EnableReducedMotion(true)` and cap framerate to 30 FPS to let the device cool down.
-
----
-
-## 19. Low-End Fallbacks
-
-If the device fails a baseline hardware check on boot (e.g., < 3GB RAM):
-- **VFX:** Disable additive glows (`vfx_clear_glow`).
-- **Post-Processing:** Disable all Unity Post-Processing (Bloom, Vignette) entirely.
-- **Resolution:** Limit rendering resolution scale to 0.8x native.
-
----
-
-## 20. Profiling Workflow
-
-**Never profile in the Unity Editor and assume the results are valid for mobile.**
-1. Build to a physical Android device.
+**Never profile performance in Debug mode or the IDE and assume the results are valid for mobile.**
+1. Build to a physical Android device in **Profile Mode** (`flutter run --profile`).
 2. Connect via WiFi / USB.
-3. Use the **Unity Profiler** to check CPU ms/frame and GC Allocations.
-4. Use the **Memory Profiler** to detect memory leaks.
-5. Use the **Frame Debugger** to verify draw call batching is working.
+3. Open **Flutter DevTools**.
+4. Use the **Performance Tab** to monitor UI/Raster thread frame times and identify Jank.
+5. Use the **Memory Tab** to detect Dart memory leaks and GC spikes.
+6. Use the **CPU Profiler** to find bottlenecks in the Flame `update()` loop or Domain logic.
 
 ---
 
-## 21. Performance Test Scenarios
+## 12. Startup Time
+
+Android-specific startup time matters.
+- Defer non-critical initializations. Open the Hive CE `progressionBox` immediately, but defer loading massive audio banks or heavy SpriteSheets until the loading screen or main menu.
+- Ensure the splash screen is lightweight.
+
+---
+
+## 13. Battery & Frame Pacing
+
+- High framerates drain batteries. 
+- While in deep menus without animations, Flutter is naturally efficient because it only paints when state changes.
+- If implementing an explicit power-save mode, capping Flame's internal update/render rate could be considered, though standard Flutter engine pacing generally handles this adequately.
+
+---
+
+## 14. Thermal Considerations & Low-End Fallbacks
+
+If the device reports poor performance (e.g., dropping below 45 FPS consistently):
+- **VFX Fallback:** Automatically trigger `ReducedMotion` in preferences, which scales back Flame particle counts by 75% or disables screen shakes.
+- **Resolution:** Flutter handles DPI scaling automatically, but avoid extremely high-resolution assets that stress VRAM on older devices.
+
+---
+
+## 15. Performance Test Scenarios
 
 ### "The Cascade Test"
 - **Setup:** A full 8x8 board. The player drops an I-Piece that clears 4 lines simultaneously (L=4). The player has 3 Relics active that trigger on line clear. 
-- **Requirement:** The game must calculate the board math, trigger all 3 relics, calculate enemy damage, and trigger the `vfx_clear_burst_L4` particle systems WITHOUT dropping below 55 FPS.
+- **Requirement:** The Pure Dart Domain must resolve the cascade instantly. Flame must render the 4-line clear burst, and Flutter must update the score/combo UI, WITHOUT the Raster thread dropping below 16ms.
 
 ---
 
-## 22. Release Performance Gate
+## 16. Release Performance Gate
 
 A build cannot be submitted to the App Store / Google Play unless it passes:
-1. **The Leak Test:** Play 10 consecutive battles. Memory usage must not grow by more than 5MB from Battle 1 to Battle 10.
-2. **The Allocation Test:** Playing a standard turn (Drag, Drop, Clear 1 Line) must generate exactly **0 bytes** of GC allocation in the Unity Profiler.
-3. **The Size Test:** Final compiled `.apk` / `.aab` is under 100 MB.
+1. **The Leak Test:** Play 10 consecutive battles. Memory usage in DevTools must plateau and not grow linearly from Battle 1 to Battle 10.
+2. **The Allocation Test:** Playing a standard turn (Drag, Drop, Clear 1 Line) must avoid massive GC pauses in the DevTools timeline.
+3. **The Size Test:** Final compiled `.aab` / `.apk` is under 100 MB.
 
 ---
 
-## 23. Final Performance Contract
+## 17. Final Performance Contract
 
 > **Performance is respect.**
 >
 > Dropped frames, device overheating, and massive download sizes are forms of disrespect to the player. As a solo developer, we cannot fix performance by rewriting the rendering pipeline—we fix performance by being disciplined. 
 > 
-> We pool our objects. We squash our textures. We split our canvases. We do not use LINQ. We do not use physics. We build a mathematically pure simulation, and we render it as cheaply and beautifully as possible.
+> We pool our Flame components. We use `const` Flutter widgets. We selectively watch Riverpod state. We do not trigger Dart GC in the combat loop. We build a mathematically pure simulation, and we render it as cheaply and beautifully as possible.
 
 ---
 

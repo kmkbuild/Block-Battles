@@ -1,19 +1,29 @@
 # Block Battles
 
-Welcome to the Block Battles documentation repository!
+Block Battles is a Flutter + Flame mobile puzzle-RPG for Android.
 
-To understand the project and navigate the documentation, please read these files first:
+## Tech Stack
+- **Language:** Dart
+- **App Framework:** Flutter (stable channel)
+- **Game Engine:** Flame
+- **State Management:** Riverpod
+- **Navigation:** GoRouter
+- **Persistence:** Hive CE
+- **Preferences:** SharedPreferences
+- **Audio:** Flame Audio
+- **IDE:** Android Studio
+- **Target:** Android (portrait, touch)
 
-1. [AI_START_HERE.md](AI_START_HERE.md) - **Start Here.** Compressed orientation for humans and AI agents.
-2. [MASTER_DOCUMENT_INDEX.md](MASTER_DOCUMENT_INDEX.md) - The complete navigation map for the entire documentation system.
+## Project Locations
+- **Documentation folder:** E:\Block Buster (this repo)
+- **Game project (when created):** E:\block battles
+- **GitHub:** https://github.com/kmkbuild/Block-Battles.git
 
----
+## Quick Start
+Read `AI_START_HERE.md` first, then `MASTER_DOCUMENT_INDEX.md`.
 
-### Project Files
-
-All other specifications and documents are logically grouped into the following layers. See the `MASTER_DOCUMENT_INDEX.md` for a complete breakdown of each layer.
-
-* **Layer A (Design):** `00` through `07`
-* **Layer B (Presentation):** `08` through `17`
-* **Layer C (Engineering):** `18` through `28`
-* **Layer D (Meta/Agent):** `29` through `30`
+## Document Layer Summary
+- **Layer A:** Game design
+- **Layer B:** UX/presentation
+- **Layer C:** Engineering
+- **Layer D:** Meta/agent

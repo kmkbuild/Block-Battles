@@ -32,7 +32,7 @@ Target: Modern premium puzzle titles (e.g., *Monument Valley*, *Threes*, *Tetris
 
 ## 2. Audio Hierarchy
 
-Audio events are prioritized by their importance to gameplay. If the engine maxes out its voice count, lower-priority sounds are culled first.
+Audio events are prioritized by their importance to gameplay. If the FlameAudio maxes out its voice count, lower-priority sounds are culled first.
 
 1. **Critical Gameplay Feedback:** Invalid placement warnings, Board Lock triggers, Move Limit warnings. (Must always be heard).
 2. **Combat/Clear Events:** Line clears, Combos (L=1 to L=4), Enemy damage, Defeat/Victory.
@@ -234,7 +234,7 @@ The game audio is routed through the following bus structure:
 
 ## 17. Ducking Rules (Sidechain Compression)
 
-To ensure critical sounds are heard, the engine will use audio ducking:
+To ensure critical sounds are heard, the AudioService will use software ducking:
 
 - **When a Tier 4 (Full Combo) clear plays:** The Music Bus is ducked (reduced) by -6dB for 500ms, recovering smoothly over 1 second.
 - **When an Enemy Defeated sound plays:** The Music Bus is ducked by -10dB.
@@ -372,3 +372,12 @@ Example: `sfx_board_place_01.wav`
 ---
 
 **End of `14_AUDIO_SFX_MUSIC_AND_MIXING.md`.**
+
+
+## Implementation Note (Flutter/Flame/Dart)
+- Unity AudioSource is replaced by FlameAudio.
+- Unity AudioMixer / Audio Mixer Groups are handled via AudioCategory abstraction in AudioService (software volume categories).
+- Unity AudioClips map directly to audio files in assets/audio/.
+- AudioSource.Play() translates to FlameAudio.play(filename) or FlameAudio.playLongAudio(filename).
+- AudioManager MonoBehaviour is replaced by AudioService, a pure Dart class wrapping FlameAudio.
+- Audio Settings are stored via SharedPreferences-backed SettingsRepository.

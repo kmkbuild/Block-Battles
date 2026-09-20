@@ -18,51 +18,53 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 ## Phase 0 — Project Setup & Infrastructure
 
-**Goal:** An empty Unity project that compiles, runs, and has the structural skeleton in place.
-**Reason for Order:** Nothing can be built until the folder structure, ASMDEFs, and services exist.
+**Goal:** An empty Flutter project that compiles, runs, and has the structural skeleton in place.
+**Reason for Order:** Nothing can be built until the folder structure and foundational packages exist.
 
 **Prerequisites:** None.
 
 **Tasks:**
-- Create Unity project (Unity 2022.3+ LTS) with 2D URP template.
-- Build the folder hierarchy (`_Project/Scripts/Core`, `Application`, `Presentation`, `Services`, `Utils`) per `19` Sec 2.
-- Create 5 Assembly Definitions per `19` Sec 3.
-- Create the `00_Boot` scene with a `[Services]` GameObject.
-- Stub out `ISaveService`, `IAudioService`, `IMonetizationService` interfaces.
-- Add `Newtonsoft.Json` and `DOTween` Unity packages.
-- Create `GameConstants.cs` with all numeric constants from Layer A docs.
+- Install Flutter stable, Android Studio, run `flutter doctor`.
+- Run `flutter create block_battles` to initialize the project.
+- Add dependencies in `pubspec.yaml` (`flame`, `flutter_riverpod`, `go_router`, `hive_ce`, `hive_ce_flutter`, `shared_preferences`, `flame_audio`).
+- Build the directory structure (`lib/domain`, `lib/application`, `lib/game`, `lib/presentation`, `lib/data`) per doc 19.
+- Stub out interfaces or empty classes for services.
+- Create `core/game_constants.dart` with all numeric constants from Layer A docs.
+- Create an initial `domain/board/board_model.dart` (stub).
 - Set up Git repository. Initial commit.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/GameConstants.cs`
-- `Assets/_Project/Scripts/Services/ISaveService.cs`
-- `Assets/_Project/Scripts/Services/IAudioService.cs`
-- `Assets/_Project/Scripts/Services/IMonetizationService.cs`
-- `Assets/_Project/Scripts/Application/ServiceLocator.cs`
-- `Assets/_Project/Scenes/00_Boot.unity`
+- `lib/main.dart`
+- `lib/app/app.dart`
+- `lib/app/app_router.dart`
+- `lib/core/game_constants.dart`
+- `lib/domain/board/board_model.dart`
+- `pubspec.yaml`
+- `analysis_options.yaml`
 
-**Tests:** Verify the project compiles with zero errors. All 5 ASMDEFs resolve correctly.
-**Acceptance Criteria:** The Boot scene runs and logs "Services Initialized" to the console.
+**Tests:** Verify `flutter analyze` passes with 0 issues.
+**Acceptance Criteria:** `flutter run` launches a blank screen with no errors.
 **Playable State:** Not playable. White screen.
-**Common Failure Modes:** ASMDEF circular references. Package version conflicts.
+**Common Failure Modes:** Package version conflicts in pubspec.yaml.
 **Rollback Strategy:** Delete the project. Restore from the initial Git commit.
 
 ---
 
 ## Phase 1 — Board Model (Domain)
 
-**Goal:** A pure C# 8x8 grid model with collision checking.
+**Goal:** A pure Dart 8x8 grid model with collision checking.
 **Reason for Order:** Every other gameplay system depends on the Board.
 
 **Prerequisites:** Phase 0.
 
 **Tasks:**
-- Implement `BoardModel.cs` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`). Ensure it supports MVP states: `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`.
-- Implement `CanReceiveBlock(cell)` and `CountsTowardLineClear(cell)` semantic predicates.
-- Implement `IsValidPlacement(ShapeMatrix, int x, int y)` method using `CanReceiveBlock`.
-- Implement `CommitPlacement(ShapeMatrix, int x, int y)` method.
-- Implement `SetCellModifier` and Line-Clear evaluation using `CountsTowardLineClear`.
-- Write NUnit tests covering bounds checking and the cell state rules.
+- Implement `board_model.dart` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`). Ensure it supports MVP states: `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`.
+- Implement `board_cell.dart`.
+- Implement `canReceiveBlock(cell)` and `countsTowardLineClear(cell)` semantic predicates.
+- Implement `isValidPlacement(ShapeMatrix, int x, int y)` method using `canReceiveBlock`.
+- Implement `commitPlacement(ShapeMatrix, int x, int y)` method.
+- Implement `setCellModifier` and Line-Clear evaluation using `countsTowardLineClear`.
+- Write Dart tests covering bounds checking and the cell state rules.
 
 **Tests (Must Verify):**
 - **Placement:** `EMPTY + NORMAL` works. `EMPTY + BLOCKED` fails. `FILLED + NORMAL` fails. `FILLED + FROZEN` fails.
@@ -70,10 +72,11 @@ This roadmap is NOT organized by document number. It is organized by **technical
 - **Clear reset:** Any cell that is actually cleared becomes: `EMPTY + NORMAL`.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Board/BoardModel.cs`
-- `Assets/_Project/Tests/Core/BoardModelTests.cs`
+- `lib/domain/board/board_model.dart`
+- `lib/domain/board/board_cell.dart`
+- `test/domain/board/board_model_test.dart`
 
-**Tests:** 10+ Unit Tests (Edit Mode). All pass before Phase 2.
+**Tests:** 10+ Unit Tests (`dart test`). All pass before Phase 2.
 **Acceptance Criteria:** Tests prove a piece placed at (0,0) writes to cell index 0. A piece placed at (8,0) is rejected.
 **Playable State:** Not playable. No visual.
 **Common Failure Modes:** Off-by-one errors in indexing. Incorrect coordinate mapping.
@@ -87,19 +90,18 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 1.
 
 **Tasks:**
-- Create `ShapeData.cs` ScriptableObject (5x5 `bool[25]` matrix, `OnValidate` auto-sizing) per `20` Sec 4.
-- Create `ShapeMatrix.cs` POCO (computed width, height, normalized occupied cells from the authored `bool[25]` array).
-- Author **all 24 canonical MVP shape assets** (SHP_001–SHP_024) as defined in `02_SHAPE_LIBRARY.md` Section 12. Begin with the first 5 simple shapes to verify the pipeline, then author the remaining 19 to complete the MVP catalog.
-- **Important:** Do NOT implement a `ShapeRotator.cs`. Piece orientation is static and fixed at authoring time. Runtime rotation is explicitly prohibited (`01`, `AI_START_HERE`).
+- Create `shape_definition.dart` and `shape_matrix.dart` (computed width, height, normalized occupied cells from an authored `bool` matrix or array).
+- Create `shape_catalog.dart` (contains all 24 shapes as const `ShapeDefinition` objects).
+- Author **all 24 canonical MVP shape definitions** (SHP_001–SHP_024) as defined in `02_SHAPE_LIBRARY.md` Section 12. Begin with the first 5 simple shapes to verify the pipeline, then author the remaining 19 to complete the MVP catalog.
+- **Important:** Do NOT implement a shape rotator. Piece orientation is static and fixed at authoring time. Runtime rotation is explicitly prohibited (`01`, `AI_START_HERE`). Shapes are purely Dart const objects.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Shapes/ShapeMatrix.cs`
-- `Assets/_Project/Data/Shapes/ShapeData.cs`
-- `Assets/_Project/Data/Shapes/shape_square_1x1.asset` *(SHP_001)*
-- `Assets/_Project/Data/Shapes/shape_line_1x2.asset` *(SHP_002)* ... through `shape_tetromino_t_d.asset` *(SHP_024)*
+- `lib/domain/shapes/shape_definition.dart`
+- `lib/domain/shapes/shape_matrix.dart`
+- `lib/data/definitions/shape_catalog.dart`
 
-**Tests:** Assert that `ShapeMatrix` built from a `ShapeData` asset produces the correct width, height, and occupied cell list. Assert that the `ShapeData.blockMatrix` array cannot be modified at runtime (the field is read-only by convention; no setter is exposed).
-**Acceptance Criteria:** All 24 canonical MVP shapes (SHP_001–SHP_024) are authored, validated by `OnValidate`, and can be placed into a `BoardModel` without errors. No rotation function exists anywhere in the `BlockBattles.Core` assembly.
+**Tests:** Assert that `ShapeMatrix` built from a `ShapeDefinition` produces the correct width, height, and occupied cell list using `dart test`.
+**Acceptance Criteria:** All 24 canonical MVP shapes (SHP_001–SHP_024) are authored as Dart consts and can be placed into a `BoardModel` without errors. No rotation function exists.
 
 ---
 
@@ -107,29 +109,25 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** A player can drag a piece and drop it onto the board.
 
-**Prerequisites:** Phase 1, Phase 2. First phase to require Unity Scene work.
+**Prerequisites:** Phase 1, Phase 2. First phase to require Flame + Flutter UI work.
 
 **Tasks:**
-- Create `02_Battle.unity` scene with a camera and placeholder board background.
-- Implement `InputController.cs` (Touch/Mouse drag detection, delta tracking).
-- Implement `DragDropController.cs` (maps world-space drag position to board grid coordinate).
-- Implement `BoardView.cs` (spawns 64 `CellView` GameObjects in a grid pattern).
-- Implement `PieceView.cs` (a draggable visual sprite parented to a `ShapeData`).
-- Implement Ghost Preview: On hover, highlights valid cells Green and invalid cells Red.
-- Wire `DragDropController` -> `BoardModel.IsValidPlacement` -> `BoardModel.CommitPlacement`.
+- Create `BattleScreen` widget, add a `GameWidget` hosting a `FlameGame` (`BlockBattlesGame`).
+- Implement `BlockBattlesGame` and component hierarchy.
+- Implement Flame `DragCallbacks` on `PieceComponent` for drag detection and positioning.
+- Implement Ghost preview logic: render valid cells Green and invalid cells Red in `BoardComponent.render()`.
+- Map world-space drag position to board grid coordinate.
+- Wire drag drop -> `BoardModel.isValidPlacement` -> `BoardModel.commitPlacement`.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Presentation/InputController.cs`
-- `Assets/_Project/Scripts/Presentation/DragDropController.cs`
-- `Assets/_Project/Scripts/Presentation/Board/BoardView.cs`
-- `Assets/_Project/Scripts/Presentation/Board/CellView.cs`
-- `Assets/_Project/Scripts/Presentation/Pieces/PieceView.cs`
-- `Assets/_Project/Prefabs/Board/pf_Board.prefab`
-- `Assets/_Project/Prefabs/Board/pf_Cell.prefab`
-- `Assets/_Project/Prefabs/Pieces/pf_Piece.prefab`
+- `lib/game/block_battles_game.dart`
+- `lib/game/components/board_component.dart`
+- `lib/game/components/cell_component.dart`
+- `lib/game/components/piece_component.dart`
+- `lib/game/input/drag_handler.dart`
 
-**Tests:** (PlayMode) Simulate a pointer-down on cell (3,3) and pointer-up on a valid board position. Assert `BoardModel[target]` is non-zero.
-**Acceptance Criteria:** A colored square can be dragged from the Tray area and dropped onto the 8x8 grid.
+**Tests:** (Widget test) Simulate a pointer-down on cell (3,3) and pointer-up on a valid board position using `flutter test`.
+**Acceptance Criteria:** A colored square can be dragged from the Tray area and dropped onto the 8x8 grid in the Flame canvas.
 
 ---
 
@@ -140,17 +138,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 2, Phase 3.
 
 **Tasks:**
-- Implement `TrayEngine.cs` (maintains array of 3 `ShapeData` references; removes one on commit).
-- Implement `TrayView.cs` (spawns 3 `PieceView` instances, handles spacing).
-- Implement `PieceSpawner.cs` (requests pieces from `GameRNG`).
-- Implement `GameRNG.cs` (seeded `System.Random`, bag-based draw for shapes).
+- Implement `tray_engine.dart` (maintains array of 3 shape references; removes one on commit).
+- Implement `tray_component.dart` (Flame component rendering 3 pieces, handles spacing).
+- Implement piece spawning requests from `GameRNG`.
+- Implement `game_rng.dart` (uses Dart's `Random(seed)` with bag-based draw for shapes).
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Tray/TrayEngine.cs`
-- `Assets/_Project/Scripts/Core/RNG/GameRNG.cs`
-- `Assets/_Project/Scripts/Presentation/Tray/TrayView.cs`
+- `lib/domain/tray/tray_engine.dart`
+- `lib/domain/rng/game_rng.dart`
+- `lib/game/components/tray_component.dart`
 
-**Tests:** Assert `GameRNG` with seed `12345` always produces the same piece sequence.
+**Tests:** Assert `GameRNG` with seed `12345` always produces the same piece sequence via `dart test`.
 **Acceptance Criteria:** At game start, 3 pieces appear. Dragging a piece to the board removes it from the tray. When all 3 are placed, 3 new pieces spawn. (M1 Milestone Achieved)
 
 ---
@@ -162,17 +160,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 4.
 
 **Tasks:**
-- Implement `LineScanner.cs` (iterates `BoardModel`, detects full rows and full columns).
-- Integrate `LineScanner` call inside `TrayEngine.OnCommit`.
-- Implement `LineClearResolver.cs` (clears cells from `BoardModel`, calculates L-Value).
-- Fire `LinesClearedEvent` via `EventBus`.
-- Wire `BoardView` to listen to `LinesClearedEvent` and flash cleared cells white.
+- Implement `line_scanner.dart` (iterates `BoardModel`, detects full rows and full columns).
+- Integrate scanner call inside tray/commit logic.
+- Implement `line_clear_resolver.dart` (clears cells from `BoardModel`, calculates L-Value).
+- Fire events via Dart `StreamController` (EventDispatcher per doc 22).
+- Wire `BoardComponent` to listen to `LinesCleared` stream and play flash effect.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Board/LineScanner.cs`
-- `Assets/_Project/Scripts/Core/Board/LineClearResolver.cs`
+- `lib/domain/board/line_scanner.dart`
+- `lib/domain/board/line_clear_resolver.dart`
 
-**Tests:** Assert placing 8 consecutive 1x1 blocks across row 0 triggers a `LinesClearedEvent` with `lineCount = 1`. Assert a 4-line simultaneous clear triggers `lineCount = 4`.
+**Tests:** Assert placing 8 consecutive 1x1 blocks across row 0 triggers a line cleared event with `lineCount = 1` via `dart test`.
 **Acceptance Criteria:** Full rows and columns disappear, clearing animation plays.
 
 ---
@@ -184,15 +182,14 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 4 (Tray).
 
 **Tasks:**
-- Implement `BoardLockDetector.cs` (checks all 3 tray pieces against all valid board positions).
-- Hook `BoardLockDetector` to run at the start of `ACTIVE` state.
-- Wire `BattleOrchestrator` state machine to handle `BoardLockDetected` event -> convert to `BattleFailed`.
-- Wire `RunManager` to handle `BattleFailed` -> `RunDefeated`.
+- Implement `board_lock_detector.dart` (checks all 3 tray pieces against all valid board positions).
+- Hook lock detector to run at the start of the active state.
+- Wire state machine to handle lock detected event -> convert to battle failed.
 
 **New Files:**
-- `Assets/_Project/Scripts/Core/Board/BoardLockDetector.cs`
+- `lib/domain/board/board_lock_detector.dart`
 
-**Tests:** Assert a completely full board (64 cells occupied) triggers `BoardLockDetected`. Assert a board with one open 1x1 cell and a tray containing only 1x1 pieces does NOT trigger lock.
+**Tests:** Assert a completely full board (64 cells occupied) triggers lock. Assert a board with one open 1x1 cell and a tray containing only 1x1 pieces does NOT trigger lock via `dart test`.
 **Acceptance Criteria:** Filling the board ends the session. (M2 Milestone Achieved — pure puzzle loop is complete)
 
 ---
@@ -204,16 +201,16 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 5, Phase 6. This is the first "BLOCK BATTLES" specific feature.
 
 **Tasks:**
-- Implement `CombatEngine.cs`: input is `lineCount` (L-value), output is `DamageDealtEvent`.
+- Implement `combat_engine.dart`: input is `lineCount` (L-value), output is damage dealt event.
 - Implement damage formula from `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` (Base * L_Multiplier).
-- Implement `ComboTracker.cs` (tracks consecutive multi-line clears within a turn).
-- Wire `CombatEngine` to listen to `LinesClearedEvent`.
+- Implement `combo_tracker.dart` (tracks consecutive multi-line clears within a turn).
+- Wire `combat_engine` to listen to line cleared events.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Combat/CombatEngine.cs`
-- `Assets/_Project/Scripts/Core/Combat/ComboTracker.cs`
+- `lib/domain/combat/combat_engine.dart`
+- `lib/domain/combat/combo_tracker.dart`
 
-**Tests:** Assert L=1 produces `BaseDamage * 1.0`. Assert L=3 produces `BaseDamage * 2.0`. Assert L=4 is capped.
+**Tests:** Assert L=1 produces `BaseDamage * 1.0`. Assert L=3 produces `BaseDamage * 2.0`. Assert L=4 is capped via `dart test`.
 **Acceptance Criteria:** Line Clears produce a logged damage number.
 
 ---
@@ -225,19 +222,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 7.
 
 **Tasks:**
-- Create `EnemyData.cs` ScriptableObject per `20` Sec 5.
-- Author 1 dummy test enemy asset.
-- Implement `EnemyEngine.cs` (owns `currentHP`, exposes `TakeDamage`, fires `EnemyDefeatedEvent`).
-- Implement `EnemyHUDView.cs` (portrait, HP bar, subscribes to `DamageDealtEvent`).
-- Wire `CombatEngine.DamageDealtEvent` -> `EnemyEngine.TakeDamage`.
+- Create `enemy_catalog.dart` (contains `EnemyDefinition` for test golem as Dart const) per `20` Sec 5.
+- Implement `enemy_service.dart` (owns current HP, exposes take damage logic).
+- Implement `enemy_hud_widget.dart` (Flutter `ConsumerWidget` watching `EnemyStateNotifier`, portrait, HP bar).
+- Wire combat damage events -> `enemy_service`.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Enemy/EnemyEngine.cs`
-- `Assets/_Project/Data/Enemies/EnemyData.cs`
-- `Assets/_Project/Data/Enemies/enm_test_golem.asset`
-- `Assets/_Project/Scripts/Presentation/HUD/EnemyHUDView.cs`
+- `lib/domain/enemies/enemy_service.dart`
+- `lib/data/definitions/enemy_catalog.dart`
+- `lib/presentation/battle/widgets/enemy_hud_widget.dart`
 
-**Tests:** Assert `EnemyEngine.TakeDamage(50)` on an HP=100 enemy sets HP=50. Assert `TakeDamage(200)` sets HP=0, not -100, and fires `EnemyDefeatedEvent`.
+**Tests:** Assert damage logic via `dart test`. `flutter test` for `EnemyHudWidget` UI logic.
 **Acceptance Criteria:** A visible enemy portrait has an HP bar. Line Clears visibly reduce the HP bar. (M3 Milestone Achieved — combat is playable)
 
 ---
@@ -249,16 +244,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 8.
 
 **Tasks:**
-- Create `ObjectiveData.cs` ScriptableObject per `20` Sec 7.
+- Create `objective_catalog.dart` and define models.
 - Author 2 test objectives: `DefeatEnemy`, `ClearLines(10)`.
-- Implement `ObjectiveEngine.cs` (tracks progress, fires `ObjectiveProgressedEvent` and `ObjectiveCompletedEvent`).
-- Implement `ObjectiveHUDView.cs` (bar or counter).
+- Implement `objective_service.dart` (tracks progress, fires completion events).
+- Implement `objective_hud_widget.dart` (bar or counter).
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Objectives/ObjectiveEngine.cs`
-- `Assets/_Project/Data/Objectives/ObjectiveData.cs`
+- `lib/domain/objectives/objective_service.dart`
+- `lib/data/definitions/objective_catalog.dart`
+- `lib/presentation/battle/widgets/objective_hud_widget.dart`
 
-**Tests:** Assert that clearing 10 lines triggers `ObjectiveCompletedEvent` on a `ClearLines(10)` objective. Assert progress halts at 100%.
+**Tests:** Assert that clearing 10 lines triggers completion on a `ClearLines(10)` objective via `dart test`.
 **Acceptance Criteria:** The HUD shows objective progress. Completing an objective triggers the Victory flow. (M5 Milestone Achieved)
 
 ---
@@ -267,21 +263,20 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** Persistent passive modifiers activate during combat.
 
-**Prerequisites:** Phase 9 (Relic effects often interact with Objectives and Combat).
+**Prerequisites:** Phase 9.
 
 **Tasks:**
-- Create `RelicData.cs` ScriptableObject per `20` Sec 6.
-- Implement `RelicEngine.cs` (subscribes to domain events, evaluates trigger conditions, returns multipliers to `CombatEngine`).
-- Author 2 relics: `BaseDamageBoost` and `OnLineClearMultiplier`.
-- Implement `RelicSelectionView.cs` (the post-battle Relic choice modal from `23`).
+- Create `relic_catalog.dart` with 2 relics as Dart consts (`BaseDamageBoost` and `OnLineClearMultiplier`).
+- Implement `relic_service.dart` (evaluates trigger conditions, returns multipliers).
+- Implement `relic_selection_overlay.dart` (Flutter overlay Stack for relic choice).
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Relics/RelicEngine.cs`
-- `Assets/_Project/Data/Relics/RelicData.cs`
-- `Assets/_Project/Scripts/Presentation/Modals/RelicSelectionView.cs`
+- `lib/domain/relics/relic_service.dart`
+- `lib/data/definitions/relic_catalog.dart`
+- `lib/presentation/battle/overlays/relic_selection_overlay.dart`
 
-**Tests:** Assert a `+50% Damage` Relic correctly modifies `CombatEngine.CalculateDamage` output.
-**Acceptance Criteria:** After beating an enemy, the player is offered 3 relics. The chosen relic activates in the next battle. (M4 Milestone Achieved)
+**Tests:** Assert a `+50% Damage` Relic correctly modifies output via `dart test`.
+**Acceptance Criteria:** After beating an enemy, the player is offered 3 relics via Flutter overlay. The chosen relic activates in the next battle. (M4 Milestone Achieved)
 
 ---
 
@@ -292,15 +287,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 10.
 
 **Tasks:**
-- Implement `RunModel.cs` POCO (seed, floor index, stardust, active relic list).
-- Implement `RunManager.cs` (manages floor progression, calls `BattleOrchestrator` to init each battle).
-- Implement `EncounterData.cs` ScriptableObject per `20` Sec 8.
+- Implement `run_model.dart` (pure Dart class: seed, floor index, stardust, active relics).
+- Implement `run_service.dart` (pure Dart orchestration for floor progression).
+- Implement `encounter_catalog.dart`.
+- Implement `run_state_notifier.dart` (Riverpod `StateNotifier`).
 - Wire: Enemy Defeated -> Show Relics -> Next Floor.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Core/Run/RunModel.cs`
-- `Assets/_Project/Scripts/Application/RunManager.cs`
-- `Assets/_Project/Data/Encounters/EncounterData.cs`
+- `lib/domain/run/run_model.dart`
+- `lib/application/run_service.dart`
+- `lib/data/definitions/encounter_catalog.dart`
+- `lib/application/providers/run_state_notifier.dart`
 
 **Acceptance Criteria:** The player defeats an enemy, selects a relic, and a new (slightly harder) enemy appears. After defeat, the Run ends. (M6 Milestone Achieved — full run loop is playable)
 
@@ -310,20 +307,23 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** The game has a real Main Menu, HUD, Pause, and Run Defeat (Game Over) screen.
 
-**Prerequisites:** Phase 11 (we need the run lifecycle to wire menus correctly).
+**Prerequisites:** Phase 11.
 
 **Tasks:**
-- Build `MainMenuView.cs` and `pf_MainMenu.prefab`.
-- Finalize `BattleHUDView.cs` (Score, Move Count, Run Floor).
-- Build `PauseModal.cs` and `pf_PauseModal.prefab`.
-- Build `DefeatView.cs` and `pf_DefeatModal.prefab` (displays Game Over / Run Defeat).
-- Build `VictoryView.cs` and `pf_VictoryModal.prefab`.
-- Implement `UIOrchestrator.cs` (Modal stack, Back button).
-- Build `00_Boot` to `01_MainMenu` to `02_Battle` scene transition flow.
+- Build `home_screen.dart` and `battle_screen.dart`.
+- Build overlays for Pause, Defeat, and Victory using `Navigator.push` with `ModalRoute` or `Overlay.insert`.
+- Configure GoRouter routes (`/home`, `/battle`) in `app_router.dart`.
+- Build scene transition logic through GoRouter.
 
-**Files to Create:** All UI prefabs and View scripts as per `23` Sec 2.
+**Files to Create:**
+- `lib/presentation/home/home_screen.dart`
+- `lib/presentation/battle/battle_screen.dart`
+- `lib/presentation/battle/overlays/pause_overlay.dart`
+- `lib/presentation/battle/overlays/defeat_overlay.dart`
+- `lib/presentation/battle/overlays/victory_overlay.dart`
+- `lib/app/app_router.dart`
 
-**Acceptance Criteria:** The full loop (Menu -> Start Run -> Battle -> Win/Lose -> Menu) functions with polished UI screens and correct data display.
+**Acceptance Criteria:** The full loop (Menu -> Start Run -> Battle -> Win/Lose -> Menu) functions with Flutter routing and overlays.
 
 ---
 
@@ -331,17 +331,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** The game looks like the visual spec (`11`, `09`, `10`).
 
-**Prerequisites:** Phase 12. UI must exist before visual polish is applied.
+**Prerequisites:** Phase 12.
 
 **Tasks:**
-- Replace placeholder board with the polished Block visual (bevel, gradient, specular) per `11`.
-- Apply color palette tokens from `10` to all Cell states (empty, occupied, hover, ghost).
-- Import and configure Sprite Atlas for Block assets.
-- Apply background art from `09_VISUAL_DESIGN_SYSTEM.md`.
-- Apply typography (TextMeshPro fonts) from `09`.
+- Replace placeholder Flame blocks with polished visuals (CustomPainter or Flame PositionComponent with canvas drawing).
+- Apply color palette tokens from `10` to all Cell states.
+- Configure Flame SpriteSheet / SpriteBatch for visual assets.
+- Apply background art from `09`.
+- Replace default fonts with custom typography via Flutter Text and `pubspec.yaml` fonts.
 - Apply color themes to Enemy HUD, HP bars.
 
-**Files to Create/Modify:** Art assets, Material assets, Board/Cell visual configs.
+**Files to Create/Modify:** Image assets in `assets/images`, Flame component visual configurations.
 
 **Acceptance Criteria:** The game visually matches the style-guide. The block surface has depth and bevel. The board has the correct dark grid. (M7 Milestone Achieved — visually polished prototype)
 
@@ -351,21 +351,22 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** All defined motion from `12_ANIMATION_MOTION_AND_GAME_FEEL.md` is implemented.
 
-**Prerequisites:** Phase 13 (visual assets must exist to animate).
+**Prerequisites:** Phase 13.
 
 **Tasks:**
-- Implement `AnimationController.cs` (DOTween orchestration layer).
+- Implement Flame Effect system (`MoveEffect`, `ScaleEffect`, etc.) and `SpriteAnimationComponent` for game-world logic.
+- Implement Flutter `AnimationController` + `Tween` for UI elements.
 - Piece pickup scale bounce, DragOffset lift.
 - Piece placement Thud + Grid Ripple.
 - Invalid placement Shake Rejection.
-- Line Clear Flash sequence (50ms flash -> 150ms dissolve per `12`).
+- Line Clear Flash sequence.
 - Enemy Hit Shake and HP bar smooth lerp.
-- All UI Panel entrance/exit DOTween animations.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Presentation/Animation/AnimationController.cs`
+- `lib/game/effects/` contents for Flame effects.
+- Use `AnimatedWidget` / `AnimatedBuilder` for UI elements in `lib/presentation/`.
 
-**Acceptance Criteria:** The game generates the "Tactile Snap" feeling. Placing pieces feels physical. Clearing a line feels satisfying. The `UIAnimationCompleteEvent` is fired reliably after every sequence.
+**Acceptance Criteria:** The game generates the "Tactile Snap" feeling. Placing pieces feels physical. Clearing a line feels satisfying.
 
 ---
 
@@ -373,18 +374,19 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** Particle effects from `13_VFX_PARTICLE_AND_IMPACT_SPEC.md` are implemented.
 
-**Prerequisites:** Phase 14 (particle systems augment, not replace, animation).
+**Prerequisites:** Phase 14.
 
 **Tasks:**
-- Implement `VFXManager.cs` (Object Pool for all VFX prefabs).
-- Create and wire the following particle systems: `pf_vfx_place_dust`, `pf_vfx_line_clear_burst`, `pf_vfx_line_clear_shard`, `pf_vfx_enemy_hit`, `pf_vfx_enemy_defeated`.
-- Wire Particle System playback to EventBus events.
+- Implement `vfx_manager.dart` using Flame component reuse patterns.
+- Create Flame particle components or custom rendering for dust, line clears, enemy hits.
+- Wire Flame effects to stream events.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Presentation/VFX/VFXManager.cs`
-- All `pf_vfx_*.prefab` files.
+- `lib/game/effects/vfx_manager.dart`
+- `lib/game/effects/place_dust_effect.dart`
+- `lib/game/effects/line_clear_effect.dart`
 
-**Acceptance Criteria:** A line clear spawns a visible burst of colorful particles. Enemy HP reaching 0 triggers a shatter effect. No VFX causes a frame drop below 55 FPS on a Cascade Test.
+**Acceptance Criteria:** A line clear spawns a visible burst of colorful particles. Enemy HP reaching 0 triggers a shatter effect. No VFX causes major frame drops.
 
 ---
 
@@ -395,18 +397,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 15.
 
 **Tasks:**
-- Implement `AudioService.cs` (Audio Source pools, Volume mixer groups for Music/SFX/UI).
-- Implement `MusicController.cs` (Plays looping BGM, fades on Scene change).
-- Wire all EventBus events to SFX playback (`sfx_cmb_damage_crit_01`, `sfx_brd_lineclear_L2`, etc.).
-- Implement placeholder audio assets.
-- Wire Settings volume sliders to Unity Audio Mixer.
+- Implement `audio_service.dart` using `FlameAudio`.
+- Setup `FlameAudio.play()` for SFX, `FlameAudio.playLongAudio()` for background music.
+- Wire domain events to SFX playback.
+- Implement placeholder audio assets in `assets/audio/`.
+- Setup `SharedPreferences`-backed volume control.
 
 **Files to Create:**
-- `Assets/_Project/Scripts/Services/AudioService.cs`
-- `Assets/_Project/Scripts/Services/MusicController.cs`
-- `Assets/_Project/Audio/` assets.
+- `lib/application/audio_service.dart`
+- `assets/audio/` files
 
-**Acceptance Criteria:** The game sounds cohesive and reactive. Muting the Master Volume in Settings silences everything. Backgrounding the app pauses the music.
+**Acceptance Criteria:** The game sounds cohesive and reactive. Muting volume in settings silences everything. Backgrounding the app pauses music.
 
 ---
 
@@ -414,21 +415,18 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Goal:** Player progress survives app close and reopen.
 
-**Prerequisites:** Phase 11 (Run system must exist for save data to be meaningful).
+**Prerequisites:** Phase 11.
 
 **Tasks:**
-- Implement `SaveService.cs` using `Newtonsoft.Json` + Atomic Save pattern (`24` Sec 7).
-- Implement `PlayerProfileSave.cs` + all child data classes, including deterministic `RunSaveData` (RNG calls, tray, enemy action).
-- Implement `BootstrapService.cs` to load save on boot and corrupt-file recovery.
-- Hook `OnApplicationPause` emergency save.
-- Implement save on Turn End + Battle Start per `24` Sec 8, following the Exact Restoration sequence (`24` Sec 9).
+- Implement `save_repository.dart` using Hive CE.
+- Setup `runBox` and `profileBox`.
+- Implement `run_save_data.dart` and `player_profile_data.dart`.
+- Handle exact deterministic state restoration (RNG calls, tray, enemy action).
+- Hook Flutter app lifecycle events for emergency saving.
 
 **Tests:**
-- Serialization roundtrip test. Corruption recovery test.
-- Save/Load determinism: Start run → Play known sequence → Save → Record expected next piece/action → Reload → Confirm exact same next result.
-- RNG restoration: Confirm `rngStateCalls` successfully resumes RNG stream.
-- Enemy state restoration: Confirm telegraph/action sequence matches post-load.
-- Objective & Combo restoration: Confirm objective progress and combo counter remain exact.
+- Mock Hive boxes in `dart test` for serialization roundtrip.
+- Save/Load determinism: Save state, load, and assert exactly matching RNG behavior.
 **Acceptance Criteria:** Closing the app mid-run and reopening restores the exact logical state (Seed + RNG state + board + tray + enemy telegraph + objective progress). Stardust survives a force-quit.
 
 ---
@@ -440,13 +438,17 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 16, Phase 17.
 
 **Tasks:**
-- Implement `SettingsManager.cs`.
-- Build `pf_SettingsModal.prefab` with Volume sliders, Haptics toggle, Reduced Motion toggle.
-- Implement `ReducedMotion` flag suppressing all DOTween animation durations.
-- Implement `SafeAreaFitter.cs` on all full-screen canvases.
+- Implement `settings_repository.dart` using `SharedPreferences`.
+- Build `settings_screen.dart` with Volume sliders, Haptics toggle, Reduced Motion toggle.
+- Expose `ReducedMotion` via Riverpod, disabling Flame effects durations and Flutter animation durations when active.
+- Utilize Flutter `SafeArea` widget for edge padding.
 
-**Tests:** Assert `ReducedMotion = true` causes the `pf_MainMenu` panel to snap without animation.
-**Acceptance Criteria:** All settings persist. Reduced Motion eliminates all non-essential animations. Notch/safe area is correctly padded on all test devices.
+**Files to Create:**
+- `lib/data/persistence/settings_repository.dart`
+- `lib/presentation/settings/settings_screen.dart`
+
+**Tests:** Assert `ReducedMotion = true` suppresses duration of animations via `flutter test`.
+**Acceptance Criteria:** All settings persist. Reduced Motion eliminates all non-essential animations. Safe area is correctly padded on devices.
 
 ---
 
@@ -457,13 +459,15 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** Phase 18.
 
 **Tasks:**
-- Implement `MonetizationService.cs` with IAP and Ad wrappers.
-- Implement `IMonetizationService` Mock for Editor and QA builds.
-- Wire Rewarded Ad button in Defeat modal.
-- Wire IAP "Remove Ads" purchase to permanently disable ad prompts.
-- Integrate GDPR/ATT consent popup in `BootstrapService`.
+- Implement `monetization_service.dart`.
+- Integrate Google Play Billing via `in_app_purchase` package.
+- Integrate Google Mobile Ads via `google_mobile_ads` package.
+- Wire Rewarded Ad button in Defeat overlay.
+- Wire IAP "Remove Ads" to disable ad prompts.
 
-**Tests:** Simulate an IAP purchase in Internal Testing with a mock account.
+**Files to Create:**
+- `lib/application/monetization_service.dart`
+
 **Acceptance Criteria:** A Rewarded Ad can be watched for a Revive. The Premium Unlock removes all ad prompts. Ad SDKs use Test IDs in QA builds. (M8 Milestone Achieved — content-complete MVP)
 
 ---
@@ -475,14 +479,13 @@ This roadmap is NOT organized by document number. It is organized by **technical
 **Prerequisites:** All 19 phases complete.
 
 **Tasks:**
-- Profile on minimum-spec Android device. Fix any frame time violations.
-- Run "Zero Allocation" profiler test on combat loop.
-- Run 10-battle memory leak test.
-- Execute full test suite and achieve >90% Domain coverage.
+- Execute `flutter run --profile` and analyze using Flutter DevTools timeline on minimum-spec device. Fix any frame time violations.
+- Run memory leak tests via DevTools.
+- Execute full test suite (`dart test` / `flutter test`) and achieve >90% Domain coverage.
 - Fix all S0 and S1 bugs.
 - Conduct external playtest session (5 people).
 
-**Acceptance Criteria:** All automated tests pass. Zero S0 bugs. Performance gates cleared.
+**Acceptance Criteria:** All automated tests pass. Zero S0 bugs. Performance gates cleared via DevTools.
 
 ---
 
@@ -494,12 +497,12 @@ This roadmap is NOT organized by document number. It is organized by **technical
 
 **Tasks:**
 - Generate Keystore (`28` Sec 11). Back it up securely.
-- Compile Release Build (`.aab`) with Production Ad Unit IDs.
-- Upload `symbols.zip` to Google Play Console.
+- Compile Release Build via `flutter build appbundle` with Production Ad Unit IDs.
+- Upload to Google Play Console.
 - Complete Store Listing (Screenshots, Description, Feature Graphic) per `28` Sec 18.
 - Set initial Staged Rollout to 10%.
 
-**Acceptance Criteria:** The game is live in Google Play Internal Testing and passes Google's automated pre-launch report with zero critical device incompatibilities. (M9 Milestone Achieved — Release Candidate)
+**Acceptance Criteria:** The game is live in Google Play Internal Testing and passes Google's automated pre-launch report. (M9 Milestone Achieved — Release Candidate)
 
 ---
 
@@ -577,19 +580,19 @@ Before proceeding past Phase 10, build a Vertical Slice:
 
 ### 1. Work One Subsystem at a Time
 Never ask an AI to implement "the whole combat system and the enemy system and the relics." 
-Ask: "Implement `CombatEngine.cs` based on `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 3."
+Ask: "Implement `combat_engine.dart` based on `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 3."
 
 ### 2. Provide Full Context
 When prompting, paste the relevant Markdown sections as context. Do not assume the AI remembers the correct values from previous sessions.
 
-### 3. Compile After Structural Changes
-After any change to `.asmdef` files, interfaces, or class constructors — compile immediately before continuing. Structural errors cascade catastrophically.
+### 3. Analyze After Structural Changes
+After any interface updates, file creation, or package modifications — run `flutter analyze` immediately before continuing. Structural errors cascade catastrophically. Ensure package imports from flutter/flame must not appear in `lib/domain/`.
 
 ### 4. Test After Gameplay Changes
-After any Domain Layer modification (Board, Combat, Relics), run the NUnit test suite before proceeding.
+After any Domain Layer modification (Board, Combat, Relics), run `dart test / flutter test` before proceeding.
 
 ### 5. Visual Review After UI Changes
-After any Prefab or Canvas modification, deploy to a device (or the Game view) to check layout, safe areas, and font sizing.
+After any Widget or UI modification, run `flutter run` on an Android device to check layout, safe areas, and font sizing.
 
 ### 6. Commit After Stable Milestones
 Commit to Git at every Milestone (`M1` through `M9`). Tag the commit (`git tag -a M1 -m "Playable puzzle loop"`).
@@ -600,14 +603,14 @@ Commit to Git at every Milestone (`M1` through `M9`). Tag the commit (`git tag -
 
 | Gate | Threshold | Tool |
 |---|---|---|
-| Architecture Gate | Zero Domain Layer Unity references. | ASMDEF compiler errors. |
-| Gameplay Gate | All 20+ NUnit domain tests pass. | Unity Test Runner. |
+| Architecture Gate | Zero domain layer flutter/flame imports. | `dart analyze` |
+| Gameplay Gate | All 20+ domain dart tests pass. | `dart test` |
 | UX Gate | No modal blocks input unintentionally on any test device. | Manual device test. |
 | Visual Gate | Art matches `09`/`10`/`11` color tokens and material spec. | Screenshot review. |
-| Audio Gate | All core gameplay events trigger the correct SFX. | Ear test + EventBus log. |
-| Performance Gate | 60 FPS on minimum spec. 0-byte GC allocation in combat. | Unity Profiler on device. |
-| QA Gate | All `27` Automated Tests pass. Zero S0/S1 bugs. | Unity Test Runner + Bug tracker. |
-| Release Gate | Complete `28` Sec 21 checklist item by item. | Manual verification. |
+| Audio Gate | All core gameplay events trigger the correct SFX. | Ear test + Event stream log. |
+| Performance Gate | 60 FPS on minimum spec. | Flutter DevTools on device. |
+| QA Gate | All `27` Automated Tests pass. Zero S0/S1 bugs. | `flutter test` + Bug tracker. |
+| Release Gate | Complete `28` Sec 21 checklist item by item. | `flutter build appbundle` check. |
 
 ---
 
@@ -618,8 +621,8 @@ Work units are expressed in "Sessions" (approximately 2-4 focused hours of solo 
 | Phase | Estimated Sessions | AI Acceleration Potential |
 |---|---|---|
 | Phase 0 (Setup) | 2 sessions | High (AI generates boilerplate/interfaces) |
-| Phase 1 (Board Model) | 2 sessions | High (Pure C# math) |
-| Phase 2 (Shape System) | 2 sessions | High (SO definitions + matrix logic) |
+| Phase 1 (Board Model) | 2 sessions | High (Pure Dart math) |
+| Phase 2 (Shape System) | 2 sessions | High (Dart const catalog definitions + matrix logic) |
 | Phase 3 (Placement) | 4 sessions | Medium (Requires manual device feel-testing) |
 | Phase 4 (Tray) | 2 sessions | High |
 | Phase 5 (Line Clear) | 2 sessions | High (deterministic math) |
@@ -631,16 +634,16 @@ Work units are expressed in "Sessions" (approximately 2-4 focused hours of solo 
 | Phase 11 (Run Structure) | 3 sessions | Medium |
 | Phase 12 (UI Screens) | 4 sessions | Medium (requires layout review) |
 | Phase 13 (Visual) | 5 sessions | Low (art judgment is human) |
-| Phase 14 (Animation) | 3 sessions | Medium (DOTween values require feel-testing) |
+| Phase 14 (Animation) | 3 sessions | Medium (Flame effect timing values require feel-testing) |
 | Phase 15 (VFX) | 3 sessions | Medium |
 | Phase 16 (Audio) | 3 sessions | Low (audio mixing is subjective) |
-| Phase 17 (Persistence) | 3 sessions | High (pure C# serialization) |
+| Phase 17 (Persistence) | 3 sessions | High (pure Dart serialization) |
 | Phase 18 (Settings) | 2 sessions | High |
 | Phase 19 (Monetization) | 3 sessions | Medium (requires test account setup) |
 | Phase 20 (QA) | 5 sessions | Medium (profiling requires device + judgment) |
 | Phase 21 (Release) | 3 sessions | Low (store assets require human creative) |
 
-**Where AI excels:** Generating boilerplate classes, writing NUnit test suites, generating ScriptableObject content, translating Markdown spec into C# code.
+**Where AI excels:** Generating boilerplate classes, writing Dart/Flutter test suites, Generating Dart catalog constants, translating Markdown spec into Dart code.
 **Where human judgment is mandatory:** Game feel tuning (animation timings), visual art direction, audio mixing levels, UX decisions not covered by a spec.
 
 ---

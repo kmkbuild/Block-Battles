@@ -42,7 +42,7 @@ The complete lifecycle a single touch/pointer passes through, mapped directly on
 | **Down** | Finger contacts a Tray Piece's touch target (Section 2). | Remains `ACTIVE` until pickup threshold met (Section 4). | Piece is marked as the candidate for pickup; no visual change yet beyond an immediate micro-feedback (Section 4). |
 | **Selection** | Down is registered on a valid Tray Piece and the pointer has not yet moved past the pickup threshold. | `ACTIVE → PIECE_SELECTED` (Gameplay Spec Section 4). | The Piece is visually "picked up" in place (Section 4) — lifted, scaled, ready to follow the finger, but not yet moved from its Tray slot's screen position. |
 | **Drag start** | Pointer moves past the pickup threshold (Section 4) while in `PIECE_SELECTED`. | `PIECE_SELECTED → DRAGGING` (Gameplay Spec Section 4). | The Piece begins following the pointer's visual position (Section 6); Ghost Preview (Section 8) becomes live the instant the pointer is over/near the Board. |
-| **Drag** | Continuous pointer movement while held, still over-board or off-board. | Remains `DRAGGING`. | Visual position updates every frame (Section 6); Snap-to-Grid (Section 7) and Ghost Preview (Section 8) re-evaluate continuously. |
+| **Drag** | Continuous pointer movement while held, still over-board or off-board. | Remains `DRAGGING`. | Visual position updates on every Flame game loop tick (onDragUpdate) (Section 6); Snap-to-Grid (Section 7) and Ghost Preview (Section 8) re-evaluate continuously. |
 | **Hover** | A sub-state of Drag specifically describing the pointer being positioned over a candidate Board cell long enough for Snap-to-Grid to settle on a specific origin. | Remains `DRAGGING`. | The Ghost Preview locks to the current best-candidate origin (Section 7); this is a continuous re-evaluation, not a timed "hover delay" — see Section 7's exact snapping rule. |
 | **Release** | Finger lifts while in `DRAGGING`. | `DRAGGING → PLACEMENT_RESOLUTION` (valid) or `DRAGGING → PIECE_SELECTED/ACTIVE` (invalid), per Gameplay Spec Section 4. | Section 10 defines the exact branching logic. |
 | **Cancel** | Finger lifts while still in `PIECE_SELECTED` (never crossed the pickup threshold into `DRAGGING`), OR an explicit cancel gesture during `DRAGGING` (Section 10). | `PIECE_SELECTED → ACTIVE` (deselect) or `DRAGGING → ACTIVE` (drag cancel). | The Piece visually returns to its Tray slot (Section 11's return behavior, applied identically whether the cause was cancel or invalid release). |
@@ -75,7 +75,7 @@ The complete lifecycle a single touch/pointer passes through, mapped directly on
 
 **DESIGN DECISION — two distinct, explicitly named position concepts, never conflated in implementation or in this document's own language:**
 
-1. **Visual position:** the screen-space coordinate at which the dragged Piece is currently rendered — continuous, sub-pixel, following the pointer with the Section 5 offset applied. Visual position updates every frame and has no relationship to Board cell boundaries.
+1. **Visual position:** the screen-space coordinate at which the dragged Piece is currently rendered — continuous, sub-pixel, following the pointer with the Section 5 offset applied. Visual position updates on every Flame game loop tick (onDragUpdate) and has no relationship to Board cell boundaries.
 2. **Logical board position:** the discrete `(boardRow, boardCol)` origin candidate — the same coordinate space `03_BOARD_ENGINE_AND_RULES.md` Section 2 defines — that the current visual position *resolves to* via Snap-to-Grid (Section 7). Logical board position is what `validatePlacement` (Board Engine Section 4) is ever called with; it is never called with a raw visual/pixel position.
 
 **The conversion boundary:** visual position is converted to a logical board position candidate on every frame during `DRAGGING`, using the resolution rule in Section 7. This conversion is **read-only against the Board** — evaluating a candidate origin via `validatePlacement` for Ghost Preview purposes (Section 8) never mutates Board state, matching `03_BOARD_ENGINE_AND_RULES.md` Section 4's explicit read-only guarantee for validation calls. Only a successful Release (Section 10, Section 12) ever calls `commitPlacement`.
@@ -244,7 +244,7 @@ Practical, testable targets — not aspirational language — for every time-sen
 | Parameter | Target | Rationale |
 |---|---|---|
 | Down → pickup visual acknowledgment (Section 4) | Within 1 rendered frame (~16ms at 60fps) | Section 1 rule 2 — input must never feel unacknowledged. |
-| Pickup movement threshold (Section 4) | A small, fixed screen-space distance (exact px/dp value owned by a platform-specific implementation doc) — deliberately generous, tuned toward "forgiving" per Master Vision Section 19 | Prevents accidental drag-start from a light tap. |
+| Pickup movement threshold (Section 4) | A small, fixed screen-space distance (exact px/dp value owned by a Flutter/Flame implementation layer) — deliberately generous, tuned toward "forgiving" per Master Vision Section 19 | Prevents accidental drag-start from a light tap. |
 | Visual position update rate during `DRAGGING` (Section 6) | Every rendered frame, no throttling | A dropped/throttled frame here reads directly as input lag. |
 | Ghost Preview re-evaluation rate (Section 7–8) | Matches visual position update rate exactly (no separate, slower cadence) | Prevents the Ghost Preview ever visibly "catching up" to the finger. |
 | Release → Commit (valid placement, Section 12) | Within 1–2 rendered frames | The Piece must lock into place with no perceptible delay after release. |
@@ -253,7 +253,7 @@ Practical, testable targets — not aspirational language — for every time-sen
 | Palm-rejection/edge inset margin (Section 14) | A small fixed inset from each screen edge within the Tray/Board interactive zones | Balances accidental-input protection against not shrinking usable touch area meaningfully. |
 | Haptic pulse duration (Sections 11–12) | Short, single discrete pulses (Invalid) vs. a distinguishable short pattern (Valid `L≥3`) — never a sustained/looping vibration | Keeps haptics as punctuation, never a distraction (Section 9's "not distracting" principle extended to touch feedback). |
 
-**DESIGN DECISION:** exact millisecond/pixel values are intentionally left to a platform-specific implementation doc rather than hardcoded here, since optimal values legitimately differ by device class and OS — this document fixes the *relationships* (must-be-same-frame, must-not-block, must-be-short) which are the actual feel-defining constraints, matching this document's own Section 1 philosophy over prescribing numbers that would need per-platform re-tuning anyway.
+**DESIGN DECISION:** exact millisecond/pixel values are intentionally left to a Flutter/Flame implementation layer rather than hardcoded here, since optimal values legitimately differ by device class and OS — this document fixes the *relationships* (must-be-same-frame, must-not-block, must-be-short) which are the actual feel-defining constraints, matching this document's own Section 1 philosophy over prescribing numbers that would need per-platform re-tuning anyway.
 
 ---
 
@@ -360,9 +360,17 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 - **Consumes from `04_SPAWN_RNG_AND_DIFFICULTY.md`:** indirectly — the Tray's contents (whatever Shapes were generated) are simply what this document's Piece Pickup (Section 4) operates on; this document has no direct dependency on generation logic itself, only on the Tray as a already-resolved input.
 - **Consumes from `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`:** the `DamageEvent` (Section 9 of that document) as the sole trigger for Section 12's Combat Feedback stage, and that document's Section 9 pipeline as the explicit thing Section 9 of this document forbids previewing or anticipating during `DRAGGING`.
 - **Exposes to a future Art Direction / Juice-VFX doc:** the exact trigger points (pickup, drag-follow, Ghost Preview states, return-to-tray, Commit, Board Feedback, Combat Feedback — Sections 4–5, 8, 11–12) as the complete set of moments that document must supply concrete visual/audio treatment for; this document defines *when* and *what kind* of feedback occurs, never the exact art/sound assets themselves.
-- **Exposes to a future platform-specific implementation doc:** Section 17's relationship-based latency targets as the constraints any concrete millisecond/pixel tuning must satisfy.
+- **Exposes to a future Flutter/Flame implementation layer:** Section 17's relationship-based latency targets as the constraints any concrete millisecond/pixel tuning must satisfy.
 - This document must not be edited to embed content owned by the above; it references them structurally only, per the pattern established across `01`–`05`.
 
 ---
 
 **End of `06_INPUT_DRAG_AND_DROP_UX.md`.**
+
+
+## Implementation Note (Flutter/Flame/Dart)
+- Unity Input System actions are replaced by Flame DragCallbacks (pointerDown, onDragUpdate, onDragEnd).
+- Camera.ScreenToWorldPoint mapping is replaced by Flame game coordinate mapping (gameRef.size, camera.viewport).
+- MonoBehaviour scripts (like DragDropController.cs) are replaced by pure Dart classes or Flame components (e.g., drag_handler.dart using DragCallbacks mixin).
+- The Ghost preview is rendered via overriding render() in the BoardComponent.
+- Input blocking is handled via Flutter AbsorbPointer / IgnorePointer instead of Unity UI EventSystem.

@@ -58,8 +58,8 @@ E:\Block Buster\
 │
 ├── [LAYER C — ENGINEERING]
 │   ├── 18_TECHNICAL_ARCHITECTURE.md
-│   ├── 19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md
-│   ├── 20_DATA_MODEL_SCRIPTABLEOBJECTS_AND_CONTENT_SCHEMA.md
+│   ├── 19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md
+│   ├── 20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md
 │   ├── 21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md
 │   ├── 22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md
 │   ├── 23_UI_IMPLEMENTATION_ARCHITECTURE.md
@@ -85,7 +85,7 @@ These documents define **what the game is and how it plays**. They are the groun
 These documents define **what the player sees, hears, and feels**. UI layouts, animation timings, color values, audio behavior, and player-facing copy. Layer B inherits from Layer A and may not introduce mechanics.
 
 ### Layer C — Engineering (Documents 18–28)
-These documents define **how the game is built**. Unity project structure, C# architecture, data schemas, event systems, persistence, performance, QA, and release. Layer C translates all design into precise technical contracts.
+These documents define **how the game is built**. Flutter project structure, Dart architecture, data schemas, event systems, persistence, performance, QA, and release. Layer C translates all design into precise technical contracts.
 
 ### Layer D — Meta / Agent Directives (Documents 29–30 + Context Files)
 These documents govern **how the project is navigated and executed**. They exist to orient new agents, prevent rework, and enforce discipline in solo development.
@@ -116,19 +116,19 @@ These documents govern **how the project is navigated and executed**. They exist
 | `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md` | B | All UI strings, tone, terminology glossary. | UX Writer | 08, 07 | 23 |
 | `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` | B | All player settings, a11y, reduced motion. | UX/A11y | 08, 12, 14 | 18, 24 |
 | `17_MONETIZATION_REWARD_AND_AD_UX.md` | B | Ad flow, IAP, ethical monetization design. | Product | 00, 08 | 28 |
-| `18_TECHNICAL_ARCHITECTURE.md` | C | Clean Architecture, layering, anti-patterns. | Tech Lead | 00–17 | 19–28 |
-| `19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md` | C | Folders, scenes, ASMDEFs, prefab hierarchy. | Unity Architect | 18 | 20–28 |
-| `20_DATA_MODEL_SCRIPTABLEOBJECTS_AND_CONTENT_SCHEMA.md` | C | All SO schemas, runtime POCO definitions. | Data Architect | 18, 01–07 | 21, 24 |
-| `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md` | C | Every runtime system, its lifetime, ownership. | Systems Architect | 18, 19, 20 | 22, 23 |
-| `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` | C | EventBus API, state machine, event payloads. | Systems Architect | 18, 21 | 23, 26 |
-| `23_UI_IMPLEMENTATION_ARCHITECTURE.md` | C | UI Canvas layers, prefabs, data binding. | UI Engineer | 08, 18, 22 | 26 |
-| `24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md` | C | Save schema, atomic writes, migration. | Systems Engineer | 16, 20, 21 | 28 |
-| `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` | C | Naming convention, import settings, AI art QA. | Technical Artist | 09–17, 19 | 26, 28 |
-| `26_PERFORMANCE_MEMORY_AND_MOBILE_OPTIMIZATION.md` | C | FPS/mem budgets, GC rules, pooling mandates. | Performance Eng | 18–25 | 27, 28 |
-| `27_TESTING_QA_DEBUGGING_AND_AUTOMATION.md` | C | Test types, device matrix, release gates. | QA Lead | All | 28 |
-| `28_BUILD_CONFIGURATION_PLATFORM_AND_RELEASE.md` | C | Build settings, signing, store assets, rollout.| Release Eng | All | None |
-| `29_AI_CODING_AGENT_DEVELOPMENT_RULES.md` | D | AI operating manual, forbidden behaviors. | Tech Lead | All | AI agents |
-| `30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md` | D | 21-phase build order, milestones, scope lock. | Producer | All | Developer |
+| `18_TECHNICAL_ARCHITECTURE.md` | C | Flutter/Flame/Dart architecture, layering, and engineering principles. | Tech Lead | 00–17 | 19–28 |
+| `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` | C | Flutter project structure, Flame game organization, route architecture. | Flutter Architect | 18 | 20–28 |
+| `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` | C | Dart content definitions (replacing ScriptableObjects), runtime state schemas. | Data Architect | 18, 01–07 | 21, 24 |
+| `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md` | C | Dart services, Riverpod providers, Flame component wiring. | Systems Architect | 18, 19, 20 | 22, 23 |
+| `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` | C | Dart event dispatcher, typed events, state machine orchestration. | Systems Architect | 18, 21 | 23, 26 |
+| `23_UI_IMPLEMENTATION_ARCHITECTURE.md` | C | Flutter widget architecture, Flame rendering boundary, GoRouter navigation. | UI Engineer | 08, 18, 22 | 26 |
+| `24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md` | C | Hive CE persistence, SharedPreferences for settings, save boundaries. | Systems Engineer | 16, 20, 21 | 28 |
+| `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` | C | Flutter asset pipeline, pubspec.yaml declarations, Flame asset loading. | Technical Artist | 09–17, 19 | 26, 28 |
+| `26_PERFORMANCE_MEMORY_AND_MOBILE_OPTIMIZATION.md` | C | Flutter DevTools profiling, Flame component optimization, Dart GC. | Performance Eng | 18–25 | 27, 28 |
+| `27_TESTING_QA_DEBUGGING_AND_AUTOMATION.md` | C | dart test / flutter test / integration_test QA framework. | QA Lead | All | 28 |
+| `28_BUILD_CONFIGURATION_PLATFORM_AND_RELEASE.md` | C | flutter build appbundle, Android signing, Google Play release. | Release Eng | All | None |
+| `29_AI_CODING_AGENT_DEVELOPMENT_RULES.md` | D | AI coding agent rules for Flutter/Flame/Dart development. | Tech Lead | All | AI agents |
+| `30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md` | D | Flutter/Flame implementation roadmap phases 0-21. | Producer | All | Developer |
 
 ---
 
@@ -138,25 +138,25 @@ These documents govern **how the project is navigated and executed**. They exist
 → Rules: `03_BOARD_ENGINE_AND_RULES.md`. Damage: `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`. Implementation: `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md`.
 
 **"What does an enemy do on its turn?"**
-→ `07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md` (design). `20_DATA_MODEL_SCRIPTABLEOBJECTS_AND_CONTENT_SCHEMA.md` (EnemyAction schema). `21` (EnemyEngine ownership).
+→ `07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md` (design). `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` (EnemyAction schema). `21` (EnemyEngine ownership).
 
 **"How are colors defined and where do they live?"**
 → `10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md` (authoritative palette). Applied to code via `23_UI_IMPLEMENTATION_ARCHITECTURE.md`.
 
 **"Where are Relics stored and how are they read?"**
-→ Authoring: `Assets/_Project/Data/Relics/`. Schema: `20`. Runtime: `RelicEngine.cs` per `21`.
+→ Authoring: `lib/data/relics/`. Schema: `20`. Runtime: `RelicEngine.dart` per `21`.
 
 **"How does a battle start?"**
 → Flow: `07`. Lifecycle: `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` (State Machine). Code: `BattleOrchestrator` per `21`.
 
 **"Where should I add a new Enemy?"**
-→ 1) Create `EnemyData.asset` per schema in `20`. 2) Author HP + action pattern per design in `07`. 3) Reference in `EncounterData.asset`. No C# changes required.
+→ 1) Create `enemy_data.dart` per schema in `20`. 2) Author HP + action pattern per design in `07`. 3) Reference in `encounter_data.dart`. No complex logic changes required.
 
 **"Where should I add a new Relic?"**
-→ 1) Create `RelicData.asset` per schema in `20`. 2) Verify Trigger and EffectType enums support it (see `21`). 3) If a new enum is needed, update `22` and the RelicEngine.
+→ 1) Create `relic_data.dart` per schema in `20`. 2) Verify Trigger and EffectType enums support it (see `21`). 3) If a new enum is needed, update `22` and the RelicEngine.
 
 **"How do I modify a button's appearance?"**
-→ Visual spec: `09`. Color: `10`. Copy: `15`. Unity implementation: `23`.
+→ Visual spec: `09`. Color: `10`. Copy: `15`. Flutter implementation: `23`.
 
 **"What should happen on a Board Lock or Run Defeat?"**
 → Game rule: `01`, `03`. State transition: `22`. UI screen: `08`. Implementation: `23`.
@@ -171,7 +171,7 @@ These documents govern **how the project is navigated and executed**. They exist
 → `06_INPUT_DRAG_AND_DROP_UX.md`. Saved to settings per `16`. Applied in code per `23`.
 
 **"Which file defines the folder where I put Enemy sprites?"**
-→ `19_UNITY_PROJECT_STRUCTURE_AND_SCENE_ARCHITECTURE.md` Sec 2, and `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` Sec 4.
+→ `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` Sec 2, and `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` Sec 4.
 
 **"How is the Stardust economy balanced?"**
 → `05` (earn rates), `17` (monetization context). Save field defined in `24`.
@@ -189,11 +189,11 @@ These documents govern **how the project is navigated and executed**. They exist
 Layer A documents form the foundation. Nothing higher can be built without them being stable.
 
 ```text
-                    ┌──────────────────────────┐
+                    ┌──────────────────────────────┐
                     │  00_MASTER_GAME_VISION   │
-                    └────────────┬─────────────┘
+                    └────────────┬─────────────────┘
                                  │ (Informs All)
-         ┌───────────────────────┴───────────────────────┐
+         ┌───────────────────────┴───────────────────────────────┐
          ▼                       ▼                       ▼
    01_GAMEPLAY            07_OBJECTIVES           LAYER B (08-17)
    SPECIFICATION               │                  (Presentation)
@@ -229,7 +229,7 @@ Layer A documents form the foundation. Nothing higher can be built without them 
 |---|---|
 | Code contradicts `01_GAMEPLAY_SPECIFICATION` | Fix the code. |
 | `05` formula contradicts `18` description | `05` is authoritative for the math. `18` describes it. Correct `18`. |
-| `10` color token contradicts a Prefab color | Correct the Prefab. `10` is the color authority. |
+| `10` color token contradicts a UI widget | Correct the UI widget. `10` is the color authority. |
 | `24` save schema contradicts actual JSON | Update the schema document and add a migration. |
 | Two Layer C docs disagree on architecture | `18_TECHNICAL_ARCHITECTURE.md` is the supreme engineering authority. |
 | An AI agent invents a rule not in any doc | Reject it. Flag it. Ask the developer to make a deliberate decision. |
@@ -239,22 +239,22 @@ Layer A documents form the foundation. Nothing higher can be built without them 
 ## 8. Change Impact Rules
 
 When a **gameplay rule** changes (e.g., damage formula):
-→ Update `05`. Review `07` (objective balance). Review `18` (architecture impact). Run domain unit tests from `27`.
+→ Update `05`. Review `07` (objective balance). Review `18` (architecture impact). Run domain tests from `27`.
 
 When a **UI layout** changes:
 → Update `08`. Review `23` (implementation). Check `15` (copy changes). Check `12` (animation changes). Verify safe areas per `19`.
 
 When a **color** changes:
-→ Update `10`. Review `11` (block material). Review `09` (design system). Update Prefabs. Run visual QA from `27`.
+→ Update `10`. Review `11` (block material). Review `09` (design system). Update Flutter widgets. Run visual QA from `27`.
 
 When **architecture** changes (new system, new manager):
 → Update `18`. Review `21` (ownership). Update `22` (new events if needed). Update `19` (folder if needed). Add to `29`.
 
-When a **data schema** changes (new SO field):
+When a **data schema** changes (new schema field):
 → Update `20`. Review `24` (save impact). Write a migration if save data is affected. Update tests in `27`.
 
 When **save structure** changes:
-→ Update `24`. Increment `saveVersion`. Write `IMigrationStrategy`. Run serialization roundtrip test from `27`.
+→ Update `24`. Increment `saveVersion`. Write migration strategy. Run serialization roundtrip test from `27`.
 
 When **monetization** changes:
 → Update `17`. Review `28` (build separation). Review `16` (consent impact). Review `15` (copy changes).
@@ -270,7 +270,7 @@ When **monetization** changes:
 `MASTER_DOCUMENT_INDEX.md` (this file) — To understand where to find specific answers.
 
 ### Third Read
-Only the **specific document governing your current task**. Do not read all 32 files for a small code change. Use Section 5 (Topic Lookup) or Section 16 of `AI_START_HERE.md` to find the right document.
+Only the **specific document governing your current task**. Do not read all 32 files for a small code change. Use Section 5 (Topic Lookup) or Section 15 of `AI_START_HERE.md` to find the right document.
 
 ### Do NOT Read Exhaustively
 Reading every document before writing a single line of code is wasteful. Route your questions. Read the source of truth. Make surgical, documented changes.
@@ -281,47 +281,47 @@ Reading every document before writing a single line of code is wasteful. Route y
 
 | Task | Primary Doc | Supporting Docs |
 |---|---|---|
-| Implement BoardModel.cs | `03` | `18`, `21`, `22` |
-| Add a new ShapeData asset | `02` | `20`, `25` |
-| Implement CombatEngine.cs | `05` | `18`, `21`, `22` |
+| Implement board_model.dart | `03` | `18`, `21`, `22` |
+| Add a new shape_data.dart | `02` | `20`, `25` |
+| Implement combat_engine.dart | `05` | `18`, `21`, `22` |
 | Balance damage values | `05` | `07` |
-| Add a new EnemyData asset | `07` | `20`, `25` |
-| Add a new RelicData asset | `05`, `07` | `20`, `21` |
-| Build TrayView.cs | `06` | `23`, `12` |
-| Build EnemyHUDView.cs | `08` | `23`, `10`, `15` |
+| Add a new enemy_data.dart | `07` | `20`, `25` |
+| Add a new relic_data.dart | `05`, `07` | `20`, `21` |
+| Build tray_view.dart | `06` | `23`, `12` |
+| Build enemy_hud_view.dart | `08` | `23`, `10`, `15` |
 | Add a new UI Modal | `08` | `23`, `09`, `10` |
-| Implement SaveService.cs | `24` | `20`, `21` |
+| Implement save_service.dart | `24` | `20`, `21` |
 | Configure Build Settings | `28` | `26`, `19` |
 | Import a new Sprite | `25` | `19` |
-| Write NUnit tests | `27` | `20`, `21`, `22` |
+| Write dart tests | `27` | `20`, `21`, `22` |
 | Fix a performance spike | `26` | `22`, `23` |
-| Implement a VFX | `13` | `25`, `22` |
+| Implement a Flame VFX | `13` | `25`, `22` |
 | Add a Settings toggle | `16` | `23`, `24` |
 | Implement MigrationV2 | `24` | `20` |
-| Set up scenes | `19` | `22` |
+| Set up GoRouter routes | `19` | `22` |
 | Debug a turn-order bug | `22` | `21`, `27` |
 
 ---
 
 ## 11. Implementation Mapping
 
-| Document | Primary C# Class(es) |
+| Document | Primary Dart Class(es) |
 |---|---|
-| `03` | `BoardModel.cs`, `LineScanner.cs`, `BoardLockDetector.cs` |
-| `04` | `GameRNG.cs`, `PieceSpawner.cs` |
-| `05` | `CombatEngine.cs`, `ComboTracker.cs` |
-| `06` | `InputController.cs`, `DragDropController.cs` |
-| `07` | `ObjectiveEngine.cs`, `EnemyEngine.cs` |
-| `20` | `ShapeData.cs`, `EnemyData.cs`, `RelicData.cs`, `EncounterData.cs` |
-| `21` | `RunManager.cs`, `BattleOrchestrator.cs`, `ServiceLocator.cs` |
-| `22` | `EventBus<T>.cs`, `BattleOrchestrator.cs` (State Machine) |
-| `23` | `BoardView.cs`, `EnemyHUDView.cs`, `UIOrchestrator.cs` |
-| `24` | `SaveService.cs`, `PlayerProfileSave.cs`, `MigrationV1toV2.cs` |
-| `12` | `AnimationController.cs` (DOTween wrappers) |
-| `13` | `VFXManager.cs`, all `pf_vfx_*.prefab` |
-| `14` | `AudioService.cs`, `MusicController.cs` |
-| `16` | `SettingsManager.cs`, `SettingsView.cs` |
-| `17` | `MonetizationService.cs` |
+| `03` | `BoardModel`, `LineScanner`, `BoardLockDetector` |
+| `04` | `GameRNG`, `PieceSpawner` |
+| `05` | `CombatEngine`, `ComboTracker` |
+| `06` | `InputController`, `DragDropController` |
+| `07` | `ObjectiveEngine`, `EnemyEngine` |
+| `20` | `ShapeData`, `EnemyData`, `RelicData`, `EncounterData` |
+| `21` | `RunManager`, `BattleOrchestrator`, `Providers` |
+| `22` | `EventBus<T>`, `BattleOrchestrator` (State Machine) |
+| `23` | `BoardWidget`, `EnemyHUDWidget`, `UIOrchestrator` |
+| `24` | `SaveService`, `PlayerProfileSave`, `MigrationV1toV2` |
+| `12` | `AnimationController` (Flame Effects/Flutter Animations) |
+| `13` | `VFXManager`, various particle components |
+| `14` | `AudioService`, `MusicController` |
+| `16` | `SettingsManager`, `SettingsWidget` |
+| `17` | `MonetizationService` |
 
 ---
 
@@ -354,21 +354,21 @@ If a design decision is reversed, DO NOT delete the old text. Instead, prepend t
 | D-003 | Tray holds exactly 3 pieces. | `01` | LOCKED |
 | D-004 | L-Value cap is L4 (4 simultaneous lines max). | `05` | LOCKED |
 | D-005 | Android-first. No server backend for MVP. | `00`, `28` | LOCKED |
-| D-006 | Domain Layer has zero UnityEngine references. | `18` | LOCKED |
+| D-006 | Domain Layer has zero Flutter/Flame references. | `18` | LOCKED |
 | D-007 | All gameplay randomness uses a single seeded GameRNG. | `04`, `18` | LOCKED |
-| D-008 | Object pooling mandatory for Pieces, Cells, VFX, AudioSources. | `26` | LOCKED |
-| D-009 | No LINQ or dynamic allocation in the combat turn loop. | `26` | LOCKED |
-| D-010 | All EventBus payloads are structs (not classes). | `22` | LOCKED |
-| D-011 | TextMeshPro exclusively. No Legacy Text. | `23` | LOCKED |
-| D-012 | Atomic Save pattern (tmp → bak → json). | `24` | LOCKED |
+| D-008 | Object pooling mandatory for Pieces, Cells, VFX, AudioSources in Flame. | `26` | LOCKED |
+| D-009 | No heavy allocation in the combat turn loop. | `26` | LOCKED |
+| D-010 | All EventBus payloads are pure Dart classes/records. | `22` | LOCKED |
+| D-011 | Flutter UI strictly handles overlays/menus, Flame handles the board. | `23` | LOCKED |
+| D-012 | Atomic Save pattern with Hive CE. | `24` | LOCKED |
 | D-013 | Monetization: Rewarded Ad + Premium Unlock only for MVP. | `17` | LOCKED |
-| D-014 | Unity 2022.3 LTS or newer. | `19` | LOCKED |
-| D-015 | IL2CPP scripting backend. ARM64 architecture. | `28` | LOCKED |
-| D-016 | PlayerPrefs banned for progression data. | `24` | LOCKED |
-| D-017 | Unity Physics (Rigidbody2D, Collider2D) banned for gameplay. | `18`, `19` | LOCKED |
-| D-018 | DOTween for all UI animation. No Unity Animator on UI. | `23` | LOCKED |
-| D-019 | Newtonsoft.Json for all save serialization. | `24` | LOCKED |
-| D-020 | 100 PPU for all game sprites. | `25` | LOCKED |
+| D-014 | Flutter/Flame stable versions. | `19` | LOCKED |
+| D-015 | Android appbundle build target. | `28` | LOCKED |
+| D-016 | SharedPreferences for settings, Hive CE for progression. | `24` | LOCKED |
+| D-017 | Flutter physics/Gestures banned for board gameplay (use Flame components). | `18`, `19` | LOCKED |
+| D-018 | Flame effects for board animation, Flutter animations for UI overlays. | `23` | LOCKED |
+| D-019 | Hive CE for all save serialization. | `24` | LOCKED |
+| D-020 | Dart GC optimization practices strictly enforced. | `26` | LOCKED |
 
 ---
 
@@ -376,15 +376,15 @@ If a design decision is reversed, DO NOT delete the old text. Instead, prepend t
 
 | ID | Question | Blocking | Relevant Docs |
 |---|---|---|---|
-| O-001 | Exact Unity version patch (e.g., 2022.3.X)? | Soft block for setup. | `19` |
+| O-001 | Exact Flutter/Flame stable versions? | Soft block for setup. | `19` |
 | O-002 | AdMob or Unity Ads as the Ad Network? | Phase 19. | `17`, `28` |
-| O-003 | Firebase Crashlytics or Unity Cloud Diagnostics? | Phase 20. | `28` |
+| O-003 | Firebase Crashlytics or alternative? | Phase 20. | `28` |
 | O-004 | Final Package Identifier (com.X.Y)? | Phase 21. | `28` |
 | O-005 | Studio/Company Name for store listing? | Phase 21. | `28` |
 | O-006 | Exact Stardust prices for Relic Unlocks? | Phase 11. | `05`, `17` |
 | O-007 | Exact BGM track count for MVP (2 or 3)? | Phase 16. | `14` |
 | O-008 | Whether to include a tutorial on first boot? | Phase 12. | `08`, `23` |
-| O-009 | Analytics SDK choice (Firebase Analytics vs Unity Analytics)? | Phase 20. | `28` |
+| O-009 | Analytics SDK choice (Firebase Analytics)? | Phase 20. | `28` |
 | O-010 | Final Enemy count for MVP (5 confirmed, more possible)? | Phase 8. | `07`, `30` |
 
 ---
@@ -395,7 +395,7 @@ If a design decision is reversed, DO NOT delete the old text. Instead, prepend t
 >
 > It belongs in the appropriate source-of-truth document.
 >
-> This repository is its own specification. When a developer opens any `.cs` file, they should be able to instantly locate the Markdown document that authorized every value, pattern, and rule they see in that code.
+> This repository is its own specification. When a developer opens any `.dart` file, they should be able to instantly locate the Markdown document that authorized every value, pattern, and rule they see in that code.
 >
 > A codebase without aligned documentation is a codebase that will be misunderstood, misimplemented, and broken by the next developer — human or AI — who touches it.
 

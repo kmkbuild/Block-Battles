@@ -351,9 +351,9 @@ The game is turn-based, but animations must overlap to prevent the game from fee
 Animation complexity directly impacts the 60fps target.
 
 1. **No runtime mask animation:** Do not animate clipping masks (e.g., for wiping effects) on the board layer. They break GPU batching.
-2. **Transform and Opacity only:** 95% of animations in this document rely exclusively on `Scale`, `Translate`, `Rotate`, and `Opacity`. These are heavily optimized by mobile game engines.
-3. **Avoid animating colors (Tints):** Changing a sprite's tint color per-frame can break sprite batching in some engines. When a color change is required (e.g., Line Clear flash), prefer overlaying a pre-colored white sprite and animating its opacity, rather than animating the tint of the block itself.
-4. **Physics simulation:** Do not use a 2D physics engine (Box2D) to calculate the Spring easings. Use mathematical tweening functions (e.g., an underdamped sine wave tween). Real physics introduces non-determinism and massive overhead for simple UI bounce effects.
+2. **Transform and Opacity only:** 95% of animations in this document rely exclusively on `Scale`, `Translate`, `Rotate`, and `Opacity`. These are heavily optimized by Flame and Flutter.
+3. **Avoid animating colors (Tints):** Changing a sprite's tint color per-frame can break Flame rendering batching. When a color change is required (e.g., Line Clear flash), prefer overlaying a pre-colored white sprite and animating its opacity, rather than animating the tint of the block itself.
+4. **Physics simulation:** Do not use a 2D physics engine (Box2D) to calculate the Spring easings. Use Flame Effect system (MoveEffect, ScaleEffect, OpacityEffect) (e.g., an underdamped sine wave tween). Real physics introduces non-determinism and massive overhead for simple UI bounce effects.
 
 ---
 
@@ -404,3 +404,11 @@ Run this checklist at every milestone build:
 ---
 
 **End of `12_ANIMATION_MOTION_AND_GAME_FEEL.md`.**
+
+
+## Implementation Note (Flutter/Flame/Dart)
+- DOTween references are replaced by the Flame Effect system (MoveEffect, ScaleEffect, ColorEffect, OpacityEffect, SequenceEffect) for game-world components, and Flutter AnimationController + Tween for UI widgets.
+- Unity Animator Controllers and Animation Clips are replaced by Flame SpriteAnimationComponent or Flame effects.
+- transform.DOScale() corresponds to ScaleEffect in Flame.
+- transform.DOShakePosition() corresponds to a custom Flame effect or MoveEffect sequence.
+- image.DOFade() and CanvasGroup.DOFade() correspond to OpacityEffect in Flame or Flutter FadeTransition / AnimatedOpacity.
