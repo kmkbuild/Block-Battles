@@ -103,7 +103,9 @@ The roadmap executes in **5 Master Phases** prioritizing visual polish and tacti
    ├── SplashScreen (Snappy branded animation)
    ├── HomeScreen (Minimalist: Mode Selection, High Score, Settings)
    ├── ClassicGameScreen & StageGameScreen (Host GameWidget and HUD overlays)
-   └── Overlays: GameOverOverlay, StageClearOverlay, PauseOverlay, SettingsSheet
+   ├── StageSelectScreen (Mode 2 stage grid and star progression)
+   ├── SettingsScreen (Audio sliders and haptic preferences)
+   └── Overlays: PauseOverlay, GameOverOverlay, StageClearOverlay, StageFailedOverlay
 
 [ FLAME PRESENTATION LAYER (Game Engine & Feel) ]
    ├── BlockBattlesGame (Flame-Flutter bridge)

@@ -30,8 +30,8 @@ The purpose of this architecture is to build a robust, deterministic, tactile, a
    └── Save/Load IO (Hive CE for Game Progress & Sessions; SharedPreferences for Settings)
 
 [ FLUTTER UI LAYER (App Shell & Overlays) ]
-   ├── Screens: SplashScreen, HomeScreen, GameView
-   ├── Overlays: GameOverDialog, PauseModal, SettingsSheet
+   ├── Screens: SplashScreen, HomeScreen, ClassicGameScreen, StageSelectScreen, StageGameScreen, SettingsScreen
+   ├── Overlays: PauseOverlay, GameOverOverlay, StageClearOverlay, StageFailedOverlay
    └── State Wiring: Riverpod Providers
 
 [ FLAME PRESENTATION LAYER (Game View & Feel) ]
@@ -116,7 +116,7 @@ The purpose of this architecture is to build a robust, deterministic, tactile, a
 6. **Game Over Resolution:**
    - Board visually greys out.
    - If `Score > HighScore`, persist new High Score and flag celebratory state.
-   - Show `GameOverDialog` with "Play Again" and "Home" actions.
+   - Show `GameOverOverlay` with "Play Again" and "Home" actions.
 
 ---
 

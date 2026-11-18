@@ -96,33 +96,39 @@ The application boot sequence ensures all persistent services are ready before a
 
 ## 4. Screen/Route Inventory
 
-The app uses `GoRouter` for strictly defined, deep-linkable paths. The MVP requires these core routes:
+The app uses `GoRouter` for strictly defined, deep-linkable paths corresponding to the two-mode architecture:
 
-1. `/` — Home Screen (Main Menu)
-2. `/game` — Core Gameplay Screen (Hosts `GameWidget`)
-3. `/settings` — App Settings Menu
+1. `/` — `HomeScreen` (Main Menu, Mode Selection: Classic & Stages, High Score Trophy, Settings)
+2. `/classic` — `ClassicGameScreen` (Mode 1 Endless: hosts `GameWidget` + Classic HUD & Overlays)
+3. `/stages` — `StageSelectScreen` (Mode 2 Stage Challenge: grid of stages, star progress $1\dots 3\star$, level select)
+4. `/stage_play` — `StageGameScreen` (Mode 2 Gameplay: hosts `GameWidget` + Stage HUD with move counter and color objectives)
+5. `/settings` — `SettingsScreen` (Audio volume, SFX/Music toggles, Haptics preferences)
 
 **Game-local Overlays (NOT GoRouter routes):**
-Gameplay UI such as Pause Menu, Game Over Modal, and Level Clear Modal are **Flutter Overlays** stacked on top of the `GameWidget` within the `/game` route, NOT separate GoRouter routes.
+Gameplay UI such as Pause, Game Over, and Stage results are **Flutter Overlays** rendered conditionally in a `Stack` on top of the `GameWidget` within `ClassicGameScreen` or `StageGameScreen`, NOT separate GoRouter routes:
+- `PauseOverlay` (Both modes: resume, restart, settings, quit to home)
+- `GameOverOverlay` (Classic mode: board locked, final score tally, new best celebration)
+- `StageClearOverlay` (Stage mode: objectives complete, 1–3 stars awarded, next level)
+- `StageFailedOverlay` (Stage mode: out of moves before completing objectives)
 
 ---
 
 ## 5. Home Screen Architecture (`/`)
 
-- **Purpose:** Handles the Main Menu, mode selection (Classic Endless or Stage Challenges), session continuation, and settings.
+- **Purpose:** Handles the Main Menu, mode selection (Classic Endless or Stage Challenges), session continuation, and settings navigation.
 - **Widgets:** Standard Flutter UI (`Scaffold`, `Column`, `ElevatedButton`).
-- **Flow:** When the player taps "Play Classic" or selects a Stage, a Riverpod controller initializes or restores the game session state in Hive CE, and calls `context.go('/game')`.
+- **Flow:** When the player taps "Play Classic", navigation calls `context.go('/classic')`. When the player taps "Stage Mode", navigation calls `context.go('/stages')`.
 
 ---
 
-## 6. Game Screen Architecture (`/game`)
+## 6. Gameplay Screen Architecture (`/classic` and `/stage_play`)
 
-- **Purpose:** The core game loop container. 
+- **Purpose:** The core game loop container for both modes. 
 - **Widgets:** 
   - A `Scaffold` containing a `Stack`.
   - The bottom layer of the Stack is `GameWidget<BlockBattlesGame>`.
-  - The top layers are reactive Flutter overlays (Score HUD, High Score Trophy, Streak Badge, Pause button) listening to Riverpod providers.
-- **Flow:** `BlockBattlesGame` (the Flame game engine) is instantiated and mounted. It runs the pure puzzle logic. When a round ends (Board Lock or Level Clear), it communicates via the Event Bus / Riverpod, triggering the celebratory Game Over or Level Clear modal.
+  - The top layers are reactive Flutter HUD widgets (`ClassicHudOverlay` for Classic Mode; `StageHudOverlay` for Stage Mode) and conditional modal overlays (`PauseOverlay`, `GameOverOverlay`, `StageClearOverlay`, `StageFailedOverlay`) listening to Riverpod providers.
+- **Flow:** `BlockBattlesGame` (the Flame game engine) is instantiated and mounted. It runs the pure puzzle board and drag logic. When a round ends (Board Lock or Stage Completion/Failure), it communicates via the Event Bus / Riverpod, triggering the corresponding overlay.
 
 ---
 
@@ -140,8 +146,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
-        path: '/game',
-        builder: (context, state) => const GameScreen(),
+        path: '/classic',
+        builder: (context, state) => const ClassicGameScreen(),
+      ),
+      GoRoute(
+        path: '/stages',
+        builder: (context, state) => const StageSelectScreen(),
+      ),
+      GoRoute(
+        path: '/stage_play',
+        builder: (context, state) => const StageGameScreen(),
       ),
       GoRoute(
         path: '/settings',
@@ -173,14 +187,14 @@ BlockBattlesGame
 
 ## 9. Flutter Widget Hierarchy (HUD)
 
-In `game_screen.dart`, the overlay ensures UI is easy to build with standard Flutter widgets:
+In `classic_game_screen.dart` and `stage_game_screen.dart`, the overlay ensures UI is easy to build with standard Flutter widgets:
 
 ```text
 Stack
 ├── GameWidget(game: BlockBattlesGame())
-├── Positioned(top) -> HUDWidget (Score, High Score, Streak Badge, Goal Chips)
+├── Positioned(top) -> Mode-Specific HUD (Classic: Score, High Score, Streak Badge; Stage: Goals, Moves)
 ├── Positioned(topRight) -> ActionButtons (Pause)
-└── RiverpodConsumer -> Conditional Overlays (PauseModal, GameOverModal, LevelClearModal)
+└── RiverpodConsumer -> Conditional Overlays (PauseOverlay, GameOverOverlay, StageClearOverlay, StageFailedOverlay)
 ```
 
 ---

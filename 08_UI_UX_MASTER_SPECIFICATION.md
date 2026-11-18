@@ -61,7 +61,7 @@ MINIMALIST HOME SCREEN
 
 ### 3.3 Classic In-Game HUD
 - **Top App Bar (Height: 56dp):**
-  - Left: Pause button (opens Pause Modal).
+  - Left: Pause button (opens `PauseOverlay`).
   - Center: Current Running Score (`1,420`) in large, bold numbers.
   - Right: Best Score with miniature trophy icon (`BEST: 12,450`).
 - **Streak / Combo Badge:**
@@ -73,8 +73,8 @@ MINIMALIST HOME SCREEN
   - Clean horizontal container hosting up to 3 shape previews.
   - Fixed aspect ratio preview containers with generous spacing.
 
-### 3.4 Game Over Modal / Dialog
-- **Trigger:** Transition to `BOARD_LOCK_GAME_OVER` when zero legal moves exist.
+### 3.4 Game Over Overlay (GameOverOverlay)
+- **Trigger:** Transition to `BOARD_LOCK_GAME_OVER` when zero legal moves exist (Mode 1 Classic).
 - **Content:**
   - Title: "BOARD LOCKED" / "GAME OVER".
   - Final Score counter with count-up animation.
@@ -86,20 +86,41 @@ MINIMALIST HOME SCREEN
   - [ PLAY AGAIN ] (High-contrast button, restarts board and tray instantly).
   - [ HOME ] (Secondary button, returns to Home Screen).
 
-### 3.5 Pause Modal
-- **Trigger:** Tapping pause icon on top bar.
+### 3.5 Pause Overlay (PauseOverlay)
+- **Trigger:** Tapping pause icon on top bar (Both modes).
 - **Options:**
   - [ RESUME ]
   - [ RESTART ] (Prompts confirmation to prevent accidental loss)
   - [ SETTINGS ] (Quick audio & haptics sliders)
   - [ QUIT TO HOME ]
 
-### 3.6 Settings Sheet
+### 3.6 Settings Screen (SettingsScreen)
+- **Route:** `/settings`
 - **Controls:**
   - Sound Effects (SFX) Volume Slider / Toggle.
   - Music Volume Slider / Toggle.
   - Haptic Feedback Toggle (On/Off).
   - Reduced Motion Toggle (Disables camera shake for accessibility).
+
+### 3.7 Stage Clear Overlay (StageClearOverlay)
+- **Trigger:** All stage goals met in Mode 2.
+- **Content:**
+  - Title: "STAGE CLEAR!".
+  - Star Rating: 1, 2, or 3 animated stars bursting in with sparkling chimes.
+  - Score Breakdown: Base score + Remaining moves bonus.
+- **Actions:**
+  - [ NEXT STAGE ] (Advances to next level).
+  - [ REPLAY ] (Try for 3 stars).
+  - [ STAGES ] (Returns to Stage Select grid).
+
+### 3.8 Stage Failed Overlay (StageFailedOverlay)
+- **Trigger:** Remaining moves reach 0 before completing objectives (Mode 2).
+- **Content:**
+  - Title: "OUT OF MOVES".
+  - Unmet objective tally.
+- **Actions:**
+  - [ TRY AGAIN ] (Restarts current stage).
+  - [ STAGES ] (Returns to Stage Select grid).
 
 ---
 
@@ -118,7 +139,7 @@ MINIMALIST HOME SCREEN
 - Home screen clearly displays local High Score and prominent Play button.
 - In-Game HUD displays Score and Best Score with real-time updates.
 - Ghost preview snaps accurately under drag with finger offset.
-- Game Over modal opens promptly on Board Lock with clear Play Again and Home actions.
+- GameOverOverlay opens promptly on Board Lock with clear Play Again and Home actions.
 - Zero clutter: No non-puzzle banners, no complex sub-menus, no distracting overlays.
 
 ---

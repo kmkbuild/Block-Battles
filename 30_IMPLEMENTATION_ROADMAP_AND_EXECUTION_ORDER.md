@@ -227,7 +227,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
      - Sleek "GOAL MODE (Coming Soon / Adventure)" card reserving space for Mode 2.
 3. **App Navigation (`AppRouter`):**
    - Clean GoRouter navigation with smooth cross-fade transitions:
-     - `/splash` $\to$ `/home` $\to$ `/classic`
+     - `/splash` $\to$ `/` (Home) $\to$ `/classic` / `/stages`
 4. **Goal-Driven Mode Architecture (Future Foundation):**
    - Define data schema and models for Mode 2 (`LevelObjective`, `HurdleType`, `GoalLevelConfig`):
      - Target Score hurdle
