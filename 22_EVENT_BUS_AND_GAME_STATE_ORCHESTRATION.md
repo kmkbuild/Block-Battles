@@ -1,133 +1,83 @@
 # 22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md
-## Block Battles — Event Bus and Game State Orchestration
+## Block Battles — Event Bus and Game State Orchestration (Pure Arcade Engine)
 
-**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md`
-**Document status:** Layer C — Engineering Authority
-
-**Inheritance confirmation:** This document defines the explicit communication protocol between decoupled systems in Dart. It prevents tight coupling while avoiding over-engineered message brokers, leveraging Riverpod and Dart Streams.
+**Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `01_GAMEPLAY_SPECIFICATION.md`, `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`  
+**Document status:** Layer C — Engineering Authority  
+**Core Authority:** Strongly-typed domain events, synchronous state evaluation, pure stream decoupling between Domain and Presentation.
 
 ---
 
 ## 1. Event Philosophy
 
-**"Explicit, Typed, and Traceable."**
+**"Explicit, Strongly-Typed, and Traceable."**
 
-We use a **Strongly-Typed Event Dispatcher** backing Dart Streams. An event is a declaration of fact: *"This happened in the past."* The Presentation layer (Flutter Widgets, Flame Components) listens to the Domain layer; the Domain layer never listens to the Presentation layer.
-
----
-
-## 2. Commands vs Events
-
-- **Command:** `BoardEngine.placePiece(x, y)`
-  - Moves downward in the architecture.
-  - Can be rejected (throws or returns false).
-- **Event:** `PiecePlacedEvent(x, y)`
-  - Moves upward/outward via Streams.
-  - Cannot be rejected.
-  - Triggers side effects (Flame VFX, Flame Audio, Riverpod state updates).
+All game events represent facts that have already occurred in the Domain. 
+- Domain logic runs synchronously and deterministically.
+- Presentation layers (Flame Components, Flutter Widgets) subscribe to Domain events to trigger visual animations, particles, haptics, and audio.
+- Visual animations NEVER block or delay domain state advancement.
 
 ---
 
-## 3. Battle State Machine
+## 2. Classic Game State Machine
 
-The `BattleService` governs the flow of a single battle using a pure Dart enum-based state machine. **Domain state transitions are instant and synchronous — they never wait for animations, VFX, or audio completion.**
+Managed by `ClassicGameService`:
 
-Presentation layers (Flame components, Flutter widgets) react to state changes and run their own independent visual sequences. No cosmetic effect can block or deadlock gameplay progression.
-
-| State | Description | Transitions To |
+| State | Description | Legal Next States |
 |---|---|---|
-| `idle` | Awaiting player drag/drop input. | `resolvingBoard` |
-| `resolvingBoard` | Line clearing and math resolution (synchronous). | `resolvingCombat` |
-| `resolvingCombat` | Applying Relics, Enemy damage. | `enemyTurn`, `victory`, `defeat` |
-| `enemyTurn` | Enemy board modification (synchronous). | `idle`, `defeat` |
-| `victory` | Encounter won. Presentation plays victory sequence concurrently. | `awaitingRelicSelection` |
-| `awaitingRelicSelection` | Player is selecting a Relic via Flutter overlay. | `idle` (Next floor starts) |
-| `defeat` | Board Lock or Objective Failure detected. | (Run ends) |
-
-**Architecture Rule:** Presentation layers observe the state machine via Riverpod or event streams. They play animations in response to state changes. The state machine never waits for a presentation layer to confirm completion before advancing.
+| `idle` | Waiting for player input. Board and tray are active. | `dragging`, `boardLocked` |
+| `dragging` | Player is actively dragging a tray piece. Ghost preview snaps to grid. | `resolvingTurn` (valid drop), `idle` (cancelled/invalid drop) |
+| `resolvingTurn` | Synchronous execution: commits placement, clears lines, updates score, replenishes tray if needed. | `evaluatingLock` |
+| `evaluatingLock` | Exhaustive check for any legal moves among remaining tray pieces. | `idle` (moves exist), `boardLocked` (zero moves exist) |
+| `boardLocked` | Game Over condition. Compares final score to High Score and triggers modal. | `idle` (on replay restart) |
 
 ---
 
-## 4. Canonical Event Registry
+## 3. Canonical Event Registry
 
-Events are sealed classes or final classes extending a base `DomainEvent`. A Riverpod provider `eventDispatcherProvider` or a dedicated `StreamController<DomainEvent>` broadcasts them.
+All events extend `GameDomainEvent`:
 
-### Input & Board Events
-- `PlacementCommitted`
-- `LinesCleared`
-- `CellsCleared`
-- `BoardLockDetected` (Triggers `defeat` state)
-- `BoardCellModified`
-- `BoardCellModifierExpired`
+### 3.1 Board & Input Events
+- `PlacementCommitted`: Fired when a piece is legally committed to the 8×8 grid.
+  - Payload: `{ String shapeId, Point origin, List<Point> placedCells }`
+- `LinesCleared`: Fired when 1 or more rows/columns are completed simultaneously.
+  - Payload: `{ int lineCount, List<int> rows, List<int> cols, List<Point> clearedCells }`
+- `BoardCleared`: Fired when the entire 8×8 board is left completely empty ($0$ filled cells).
+  - Payload: `{ int bonusPoints }`
 
-### Combat & Progression Events
-- `DamageDealt`
-- `EnemyDefeated`
-- `RelicTriggered`
-- `ObjectiveProgressed`
-- `ObjectiveCompleted`
-- `MoveLimitChanged`
+### 3.2 Scoring & Streak Events
+- `ScoreUpdated`: Fired after every placement turn, reporting points awarded.
+  - Payload: `{ int turnPoints, int totalScore, int streak }`
+- `StreakUpdated`: Fired when the combo streak increments or resets.
+  - Payload: `{ int streakTier, double multiplier }`
+- `NewHighScoreAchieved`: Fired the moment current score exceeds the all-time local record.
+  - Payload: `{ int previousBest, int newBest }`
 
-### Run Events
-- `BattleStarted`
-- `BattleVictory`
-- `BattleFailure`
-- `RunCompleted`
-- `RunDefeated`
-- `RelicSelected`
-- `FloorChanged`
+### 3.3 Tray & Game Lifecycle Events
+- `TrayReplenished`: Fired when all 3 tray slots are consumed and a fresh batch is generated.
+  - Payload: `{ List<ShapeDefinition> newShapes }`
+- `BoardLockDetected`: Fired when zero legal moves exist for any remaining tray piece.
+  - Payload: `{ int finalScore, int linesCleared, int maxStreak, bool isNewBest }`
+- `GameRestarted`: Fired when the player taps "Play Again" or restarts from pause.
+  - Payload: `{ int newSeed }`
 
 ---
 
-## 5. Event Payloads
-
-Events must carry all context necessary for listeners. We use final properties.
+## 4. Event Bus Architecture
 
 ```dart
-final class LinesClearedEvent extends DomainEvent {
-  final int lineCount;
-  final List<int> clearedCells;
-  
-  const LinesClearedEvent(this.lineCount, this.clearedCells);
+abstract class GameDomainEvent {
+  final DateTime timestamp;
+  GameDomainEvent() : timestamp = DateTime.now();
 }
 
-final class DamageDealtEvent extends DomainEvent {
-  final int amount;
-  final bool isCritical;
-  final String? sourceRelicId;
-  
-  const DamageDealtEvent(this.amount, this.isCritical, this.sourceRelicId);
-}
-```
-
----
-
-## 6. Event Ordering & Re-entrancy
-
-When multiple events fire, they resolve synchronously in the domain, emitting sequentially. The `BattleService` acts as the orchestrator to prevent infinite loops (e.g., Relic triggers line clear which triggers Relic). The UI/Flame layer queues animations based on the emitted stream of events.
-
----
-
-## 7. Save Restoration Event Policy
-
-**Rule:** Restoring a saved mid-run state MUST be silent on the Event Bus. 
-When `RunService` restores state, no visual events (`LinesCleared`, `DamageDealt`) should emit, preventing chaotic VFX on app boot.
-
----
-
-## 8. Event Bus Implementation
-
-A central event dispatcher manages a stream.
-
-```dart
 class EventDispatcher {
-  final _controller = StreamController<DomainEvent>.broadcast();
+  final StreamController<GameDomainEvent> _controller = StreamController<GameDomainEvent>.broadcast();
 
-  Stream<T> on<T extends DomainEvent>() {
+  Stream<T> on<T extends GameDomainEvent>() {
     return _controller.stream.where((event) => event is T).cast<T>();
   }
 
-  void dispatch(DomainEvent event) {
+  void dispatch(GameDomainEvent event) {
     _controller.add(event);
   }
 
@@ -139,36 +89,12 @@ class EventDispatcher {
 
 ---
 
-## 9. Subscription Rules
+## 5. Acceptance Criteria
 
-To prevent memory leaks:
-- **Riverpod:** Use `ref.listen` for global effects or Flutter UI.
-- **Flame Components:** Store `StreamSubscription` and cancel it in the component's `onRemove()` method.
-- **StatefulWidgets:** Store `StreamSubscription` and cancel in `dispose()`.
-
-```dart
-// In a Flame Component
-late StreamSubscription _sub;
-
-@override
-void onLoad() {
-  _sub = eventDispatcher.on<LinesClearedEvent>().listen(_onLinesCleared);
-}
-
-@override
-void onRemove() {
-  _sub.cancel();
-  super.onRemove();
-}
-```
-
----
-
-## 10. Final Event Contract
-
-> **Information flows up; Orders flow down.**
->
-> The core systems scream into the void: *"A line was cleared!"* It is up to the Flutter/Flame presentation layer to listen and make it look beautiful. No domain logic depends on the UI.
+- All events are immutable with strongly-typed properties.
+- Flame presentation reacts to streams without holding references to internal application controllers.
+- No event is emitted during silent state restoration from save files.
+- Zero references to combat, damage, enemies, or relics.
 
 ---
 

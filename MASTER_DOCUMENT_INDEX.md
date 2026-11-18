@@ -103,10 +103,10 @@ These documents govern **how the project is navigated and executed**. They exist
 | `02_SHAPE_LIBRARY.md` | A | 24 canonical MVP shape entries (SHP_001–024) from a 34-entry full catalog. Entries SHP_025–034 are deferred to post-MVP. | Game Designer | 01 | 04, 20 |
 | `03_BOARD_ENGINE_AND_RULES.md` | A | 8x8 board collision, line clearing rules. | Game Designer | 01, 02 | 05, 18, 21 |
 | `04_SPAWN_RNG_AND_DIFFICULTY.md` | A | Seeded RNG, piece spawn pools, difficulty. | Game Designer | 02, 03 | 18, 20, 21 |
-| `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` | A | L-Value formula, damage table, combo logic. | Game Designer | 03 | 07, 18, 20, 21 |
+| `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` | A | Pure arcade scoring, multi-line bonuses, streak multipliers, local high score. | Game Designer | 03 | 07, 18, 20, 21 |
 | `06_INPUT_DRAG_AND_DROP_UX.md` | A | Touch input, drag offset, ghost preview. | UX Designer | 01, 03 | 12, 23 |
-| `07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md` | A | Objective types, enemy definitions, level flow. | Game Designer | 01, 05 | 08, 20, 21 |
-| `08_UI_UX_MASTER_SPECIFICATION.md` | B | All screens, flows, and navigation structure. | UX Designer | 00–07 | 15, 23 |
+| `07_BATTLE_OBJECTIVES_AND_LEVEL_DESIGN.md` | A | Mode 2: Goal-Driven Mode & Level Hurdles (Reserved Architecture). | Game Designer | 01, 05 | 08, 20, 21 |
+| `08_UI_UX_MASTER_SPECIFICATION.md` | B | Minimalist UI flow: Splash, Home, Classic Game HUD, Game Over modal. | UX Designer | 00–07 | 15, 23 |
 | `09_VISUAL_DESIGN_SYSTEM.md` | B | Typography, grid system, spacing, iconography. | Art Director | 00, 08 | 10, 11, 23 |
 | `10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md` | B | Color palette, tokens, contrast, rarity hues. | Art Director | 09 | 11, 13, 23 |
 | `11_BLOCK_VISUAL_MATERIAL_AND_ART_SPEC.md` | B | Block face art, bevel, gradients, materials. | Technical Artist | 09, 10 | 13, 25 |
@@ -116,11 +116,11 @@ These documents govern **how the project is navigated and executed**. They exist
 | `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md` | B | All UI strings, tone, terminology glossary. | UX Writer | 08, 07 | 23 |
 | `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` | B | All player settings, a11y, reduced motion. | UX/A11y | 08, 12, 14 | 18, 24 |
 | `17_MONETIZATION_REWARD_AND_AD_UX.md` | B | Ad flow, IAP, ethical monetization design. | Product | 00, 08 | 28 |
-| `18_TECHNICAL_ARCHITECTURE.md` | C | Flutter/Flame/Dart architecture, layering, and engineering principles. | Tech Lead | 00–17 | 19–28 |
+| `18_TECHNICAL_ARCHITECTURE.md` | C | Flutter/Flame/Dart pure arcade architecture, layering, and determinism. | Tech Lead | 00–17 | 19–28 |
 | `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md` | C | Flutter project structure, Flame game organization, route architecture. | Flutter Architect | 18 | 20–28 |
 | `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` | C | Dart content definitions, runtime state schemas. | Data Architect | 18, 01–07 | 21, 24 |
 | `21_SYSTEM_MANAGERS_SERVICES_AND_DEPENDENCY_ARCHITECTURE.md` | C | Dart services, Riverpod providers, Flame component wiring. | Systems Architect | 18, 19, 20 | 22, 23 |
-| `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` | C | Dart event dispatcher, typed events, state machine orchestration. | Systems Architect | 18, 21 | 23, 26 |
+| `22_EVENT_BUS_AND_GAME_STATE_ORCHESTRATION.md` | C | Pure arcade domain event bus, typed events, synchronous turn orchestration. | Systems Architect | 18, 21 | 23, 26 |
 | `23_UI_IMPLEMENTATION_ARCHITECTURE.md` | C | Flutter widget architecture, Flame rendering boundary, GoRouter navigation. | UI Engineer | 08, 18, 22 | 26 |
 | `24_SAVE_DATA_PERSISTENCE_AND_VERSIONING.md` | C | Hive CE persistence, SharedPreferences for settings, save boundaries. | Systems Engineer | 16, 20, 21 | 28 |
 | `25_ASSET_PIPELINE_NAMING_AND_CONTENT_PRODUCTION.md` | C | Flutter asset pipeline, pubspec.yaml declarations, Flame asset loading. | Technical Artist | 09–17, 19 | 26, 28 |
@@ -128,7 +128,7 @@ These documents govern **how the project is navigated and executed**. They exist
 | `27_TESTING_QA_DEBUGGING_AND_AUTOMATION.md` | C | dart test / flutter test / integration_test QA framework. | QA Lead | All | 28 |
 | `28_BUILD_CONFIGURATION_PLATFORM_AND_RELEASE.md` | C | flutter build appbundle, Android signing, Google Play release. | Release Eng | All | None |
 | `29_AI_CODING_AGENT_DEVELOPMENT_RULES.md` | D | AI coding agent rules for Flutter/Flame/Dart development. | Tech Lead | All | AI agents |
-| `30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md` | D | Flutter/Flame implementation roadmap phases 0-21. | Producer | All | Developer |
+| `30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md` | D | 5 Streamlined Master Phases for pure arcade block puzzle game. | Producer | All | Developer |
 
 ---
 

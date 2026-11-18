@@ -8,56 +8,68 @@ This is the single entry point for any AI coding agent, language model, or autom
 
 ## 1. Project Identity
 
-**Name:** Block Battles
+**Name:** Block Battles (Pure Arcade Engine)
 
-**One-sentence definition:** Block Battles is a mobile puzzle-combat game where players place Tetromino-style blocks onto an 8x8 grid to clear lines and deal damage to handcrafted enemies.
+**One-sentence definition:** Block Battles is a tactile, premium mobile block-placement puzzle game featuring an endless Classic High-Score mode and an extensible Goal-Driven challenge architecture.
 
 **One-paragraph definition:**
-Block Battles fuses the satisfying infinite loop of a block-placement puzzle (similar in feel to Woodoku or 1010!) with a turn-based roguelite combat system. The player places pieces from a 3-slot tray onto an 8x8 board. When a full row or column is cleared, damage is dealt to the current enemy. As the player wins battles, they collect passive upgrades called Relics that fundamentally change how their damage, combos, and board interactions work. Each encounter has a specific Objective (defeat the enemy, clear N lines, survive N moves). The game is designed for Android-first, offline, solo-developer production with a deterministic engine fully compatible with AI-assisted coding.
+Block Battles fuses the deeply satisfying, tactile loop of an 8x8 block-placement puzzle (in the spirit of classic arcade block puzzles) with state-of-the-art audiovisual polish, physical game feel, and competitive local device scoring. The player places polyomino shapes from a 3-slot tray onto an 8x8 board. Completing full rows and columns clears lines, scores points, and triggers escalating combo streaks with rich particle VFX, screen shake, and melodic chimes. The app features an instant, clutter-free flow: App Icon → Animated Splash → Minimalist Home → Classic Mode (endless play competing against local device high scores until board lock) with architectural space reserved for Goal-Driven hurdle modes. Designed Android-first, offline, and solo-developer ready.
 
 ---
 
 ## 2. Core Game Loop (Visual)
 
 ```
-START RUN (seeded)
+[APP LAUNCH]
      │
      ▼
-┌──────────────────────────────┐
-│ BATTLE BEGINS                       │
-│  Enemy appears with HP + Objective  │
-└────────────────┬────────────────────┘
-                   │
-                   ▼
-         ┌─────────────────┐
-         │  PLAYER TURN    │◄──────────────┐
-         │  Pick a piece   │               │
-         │  Drag to board  │               │
-         │  Drop & Snap    │               │
-         └────────┬────────┘               │
-                  │                        │
-                  ▼                        │
-         Rows/Cols full?                   │
-          YES │     NO │                   │
-              │        └─────────────────►┤
-              ▼                            │
-      LINE CLEAR + DAMAGE                  │
-      Relics evaluate & modify             │
-      Enemy takes damage                   │
-              │                            │
-              ▼                            │
-     Objective complete?     No more valid placements?
-          YES │     NO │          YES │
-              │        └────────────┘│
-              │                       ▼
-              │                   DEFEAT ──► MENU
-              ▼
-        VICTORY
-        Select 1 Relic
-              │
-              ▼
-        Next Floor or
-        Run Complete
+[ANIMATED SPLASH SCREEN] (Smooth branded animation)
+     │
+     ▼
+[MINIMALIST HOME SCREEN] (Play Classic, High Score Trophy, Settings)
+     │
+     ├─────────────────────────────────────────┐
+     ▼                                         ▼
+[MODE 1: CLASSIC MODE (Active Focus)]     [MODE 2: GOAL-DRIVEN MODE (Reserved)]
+     │                                         │
+     ▼                                         ▼
+┌─────────────────────────┐               ┌─────────────────────────┐
+│ 8x8 PUZZLE BOARD        │               │ LEVEL OBJECTIVES        │
+│ 3-Slot Shape Tray       │               │ Target Score, Hurdles   │
+└────────────┬────────────┘               └─────────────────────────┘
+             │
+             ▼
+   ┌───────────────────┐
+   │ PLAYER TURN       │◄────────────────┐
+   │ Pick piece (lift) │                 │
+   │ Drag (ghost glow) │                 │
+   │ Drop & Snap       │                 │
+   └─────────┬─────────┘                 │
+             │                           │
+             ▼                           │
+     Rows/Cols full?                     │
+      YES │     NO │                     │
+          │        └────────────────────►┤
+          ▼                              │
+  LINE CLEAR & JUICE                     │
+  Simultaneous Row/Col Scan              │
+  White-hot Flash + Particles            │
+  Melodic Chime + Screen Shake           │
+  Score + Combo Streak Multiplier        │
+          │                              │
+          ▼                              │
+  Tray empty? ──YES──► Refill 3 Shapes   │
+          │                              │
+          ▼                              │
+  Any legal placement for tray pieces?   │
+     YES │      NO (Board Lock)          │
+         └─────────────┬─────────────────┘
+                       │
+                       ▼
+               [GAME OVER DIALOG]
+          Final Score & High Score Check
+          Celebratory New Best Fanfare
+          One-Tap "Play Again" or "Home"
 ```
 
 ---
@@ -66,51 +78,48 @@ START RUN (seeded)
 
 | Feature | What It Does |
 |---|---|
-| **Block Puzzle Foundation** | Players feel the deeply satisfying loop of placing pieces and clearing lines — no decay, no timer, pure zen decision-making. |
-| **Combat Integration** | Line clears deal real damage. More lines cleared simultaneously = higher L-Value multiplier = more damage. Combat is a natural consequence of good puzzle play. |
-| **Relic Builds** | After each victory, the player selects 1 of 3 random Relics. These are passive modifiers (e.g., "+20% damage on L3+ clear", "Restore 1 move when filling a corner"). Builds snowball and create unique playthroughs. |
-| **Handcrafted Objectives** | Each battle has a specific win condition (Defeat enemy, Clear N lines, Survive N moves). This prevents every battle feeling identical. |
-| **Roguelite Progression** | Runs begin fresh but Stardust (soft currency) carries over between runs to unlock Relic compendium entries. No energy gates, no pay-to-win. |
+| **Zero "AI Slop" Visuals** | Beveled, rich gradient block materials, frosted glass board frame, glowing ghost previews, and white-hot particle dissipation. |
+| **Tactile Physical Game Feel** | Finger-occlusion lift, elastic drag curves, micro-snap haptics, and proportionate camera shake on multi-line clears. |
+| **Pure Zen Endless Loop** | No timers, no stress, no energy gates. Pure spatial puzzle mastery and chasing your own device high score. |
+| **Clutter-Free Minimalism** | Clean app launch: Splash screen straight into a sleek Home menu. No bloated menus, no enemy clutter, no confusing micro-transactions. |
+| **Deterministic Fair RNG** | Board-aware shape generation ensures solvable, intelligent piece generation with duplicate prevention. |
+| **Goal-Driven Architecture** | Cleanly decoupled underlying architecture allows hurdle-based level modes to be introduced without polluting the Classic mode. |
 
 ---
 
 ## 4. Core Player Experience
 
-The game should feel: **calm, focused, satisfying — with moments of explosive reward.**
+The game should feel: **zen, tactile, premium, satisfying — with moments of explosive arcade reward.**
 
-The player should feel clever, not lucky. The board is a puzzle. The enemy is a constraint. The Relics are a build. Placing a piece should feel physically *right* — a tactile snap with gentle camera feedback. A 4-line clear should feel like a celebration. Losing should feel meaningful, not unfair.
+The player should feel clever, not lucky. The board is a spatial playground. Placing a piece must feel physically *right* — an elastic pickup lift, a tactile snap, and a clean haptic pulse. A multi-line clear should feel like an explosive celebration. Losing should feel earned and immediately prompt a one-tap retry.
 
 ---
 
 ## 5. MVP Scope
 
-### Included
-- 8x8 board, 3-piece tray, no rotation mechanic.
-- 24 canonical playable shape definitions (SHP_001–SHP_024, per `02_SHAPE_LIBRARY.md`).
-- Line clearing: rows + columns.
-- L-Value damage multiplier (L1 to L4+ capped).
-- 5 unique enemies with differing HP and attack patterns.
-- 10 unique Relics.
-- 3 Objective types: Defeat, Clear Lines, Survive Moves.
-- Run structure: multiple floors, Relic selection between battles.
-- Core VFX, SFX, and BGM.
-- Save/Load (offline JSON, Atomic writes).
-- Settings (Volume, Haptics, Reduced Motion).
-- Monetization: Rewarded Ad (Revive) + Premium Unlock (Remove Ads).
+### Included (Classic Mode Engine)
+- 8x8 grid board with responsive mobile auto-scaling.
+- 3-slot tray with deterministic `GameRNG` and solvability protection.
+- 24 canonical playable shape definitions (SHP_001–SHP_024).
+- Simultaneous line clearing (rows + columns) with single-clear intersection union.
+- Pure puzzle scoring system (placement points + line clear points + multi-line bonuses + combo streak multiplier).
+- Board Lock detection: exhaustively validates all 3 tray pieces across the board; triggers Game Over when zero moves remain.
+- Local High Score persistence (`shared_preferences` / `hive_ce`).
+- Animated Splash Screen & Minimalist Home Screen.
+- Polished Game Over dialog with "New Best!" celebration and instant replay.
+- Rich audiovisual juice: beveled block shaders, particle bursts, screen shake, audio chimes.
+- Offline-first: 100% playable without an internet connection.
 
-### Excluded from MVP
-- Cloud Save or server backend.
-- Leaderboards or social features.
-- Energy/stamina system.
-- Battle Pass or complex economy.
-- Multiple currencies.
-- Character skins or cosmetics.
+### Excluded / Retired from Scope
+- **RETIRED:** Enemy HP, combat attacks, damage formulas, and boss fights.
+- **RETIRED:** Relic collection and draft systems.
+- **RETIRED:** Dungeon floor progression runs.
+- **EXCLUDED:** Cloud Save or external server backend.
+- **EXCLUDED:** Energy / stamina timers.
+- **EXCLUDED:** Pay-to-win mechanics.
 
-### Deferred (Post-MVP)
-- Daily Challenges.
-- Boss encounters.
-- Additional Relic tiers.
-- Seasonal events.
+### Reserved (Future Goal-Driven Mode)
+- Level-based objective hurdles (reach target score, clear frozen obstacles, move limits) built on top of the same board engine.
 
 ---
 
@@ -121,13 +130,12 @@ The player should feel clever, not lucky. The board is a puzzle. The enemy is a 
 | Board Size | 8×8 grid |
 | Tray Slots | 3 (refills when all 3 placed) |
 | Piece Rotation | NONE. Pieces have a fixed orientation. |
-| Line Clear | Full row OR full column clears. Both can clear simultaneously. |
-| L-Value | Number of lines cleared in a single piece placement (1-4+). |
-| Damage Formula | `BaseDamage × L_Multiplier(L)` — see `05` for table. |
-| Game Over | When no piece in the tray can legally fit anywhere on the board. |
-| Relics | Passive. Selected between battles. Cannot be removed mid-run. |
-| Objectives | One primary per battle. Completion = Battle Victory. |
-| Stardust | Soft currency earned per run. Persists across runs. |
+| Line Clear | Full row OR full column clears. Both clear simultaneously. |
+| Intersection Rule | Intersection cells between cleared rows and cols are cleared exactly once. |
+| Scoring System | Block Placement Points + Line Clear Points + Multi-Clear Bonus + Streak Multiplier. |
+| Game Over | Triggered when none of the available tray pieces has any legal placement. |
+| High Score | Persisted locally on device; evaluated on game over. |
+| Input | Touch drag with finger-lift offset and live validity ghost preview. |
 
 All numeric values (BaseDamage, multiplier tables, Stardust rates) are authored exclusively in design documents. **Never hardcode them into logic.**
 
@@ -192,16 +200,13 @@ Local save data managed via Hive CE with atomic writes. Player data never corrup
 |---|---|
 | `BoardModel` | Owns the 8x8 cell-state array (compact occupancy + modifier). Validates and commits placements. |
 | `TrayEngine` | Manages the 3 active pieces. Requests new pieces from `GameRNG`. |
-| `LineScanner` | Detects and clears full rows/columns after each placement. |
-| `CombatEngine` | Receives L-Value, queries `RelicEngine`, outputs `DamageDealtEvent`. |
-| `EnemyEngine` | Tracks enemy HP. Executes enemy turn patterns. |
-| `RelicEngine` | Evaluates relic triggers on every domain event. Returns modifiers. |
-| `ObjectiveEngine` | Tracks battle win condition progress. |
-| `RunManager` | Manages floor progression, stardust, and active relic list across battles. |
-| `BattleOrchestrator` | Turn state machine. Blocks input during resolution. |
-| `SaveService` | Reads/writes Hive CE records. Handles corruption recovery. |
-| `AudioService` | Flame Audio wrapper. Controls mix groups. |
-| `VFXManager` | Flame particle/VFX spawners. Fires effects on EventBus subscriptions. |
+| `LineScanner` | Detects and clears full rows/columns simultaneously after each placement. |
+| `ScoreEngine` | Calculates placement points, line clears, multi-line bonuses, and combo streak multipliers. |
+| `BoardLockDetector` | Exhaustively checks remaining tray pieces against board; triggers Game Over when zero moves remain. |
+| `SaveService` | Reads/writes local High Score and preferences (Hive CE / SharedPreferences). |
+| `AudioService` | Flame Audio wrapper. Manages placement pops, line clear chimes, combo risers. |
+| `VFXManager` | Flame particle/VFX spawners. Fires white-hot line flash, particle bursts, and camera shake. |
+| `ClassicGameService` | Pure puzzle game lifecycle orchestrator (New Game, Active Turn, Board Lock, Replay). |
 
 ---
 
@@ -209,23 +214,14 @@ Local save data managed via Hive CE with atomic writes. Player data never corrup
 
 | Term | Definition |
 |---|---|
-| **L-Value** | The number of lines cleared by a single piece placement. L1=1 line, L4=4 lines. |
+| **L-Value** | The number of lines cleared by a single piece placement (1 to 4+). |
 | **Tray** | The 3-slot panel holding the current available pieces. |
-| **Relic** | A passive permanent modifier active for the duration of a run. |
-| **Encounter** | A single battle (one enemy, one objective, one board state). |
-| **Floor** | An Encounter within a Run. Each floor is harder. |
-| **Run** | A full playthrough from Floor 1 to Run Over. |
-| **Stardust** | The soft meta-currency earned from runs. Persists. |
-| **Board Lock** | No legal placement exists (a mathematical board condition). |
-| **Battle Failure** | Current battle has failed (due to Board Lock or Objective failure). |
-| **Run Defeat** | Entire run has ended (resulting from Battle Failure). |
-| **Game Over** | Player-facing/general failure presentation in the UI. |
-| **Ghost Preview** | The transparent indicator showing where a dragged piece will land. |
-| **Combo** | Consecutive multi-line clears within a turn sequence (see `05`). |
-| **Telegraph** | An enemy's declared next action shown N turns in advance. |
-| **ShapeData** | A Dart const defining a piece's 5x5 boolean matrix. |
-| **EnemyData** | A Dart const defining enemy stats and behavior patterns. |
-| **RelicData** | A Dart const defining relic trigger, condition, and effect. |
+| **Board Lock** | Mathematical condition where none of the remaining tray pieces can legally be placed anywhere on the board. |
+| **Game Over** | Player-facing failure presentation triggered by Board Lock. |
+| **High Score** | The all-time highest score achieved on this local device. |
+| **Ghost Preview** | The transparent indicator showing where a dragged piece will land (valid green, invalid red). |
+| **Combo / Streak** | Consecutive line clears across turns triggering escalating score multipliers. |
+| **ShapeData** | A Dart const defining a piece's normalized coordinates and bounding box. |
 
 ---
 
@@ -306,22 +302,22 @@ An AI working on this project MUST NEVER:
 | Category | MVP Target |
 |---|---|
 | Shapes | 24 canonical playable shapes (SHP_001–SHP_024) |
-| Enemies | 5 unique enemies |
-| Relics | 10 unique relics |
-| Objective Types | 3 (Defeat, ClearLines, SurviveMoves) |
-| Encounters / Floors | 5-7 per run |
-| Screens | 3 (Boot, MainMenu, Battle) |
-| Audio SFX | ~20 unique clips |
-| BGM Tracks | 2-3 looping tracks |
+| Game Modes | Mode 1: Classic Endless (Active Focus) + Mode 2: Goal-Driven (Reserved Architecture) |
+| Screens | 3 core flows (Animated Splash Screen, Minimalist Home, Classic Game with Game Over dialog) |
+| Audio SFX | ~12 tactile clips (Pickup pop, grid snap, line clear chime chord, combo riser, game over fanfare) |
+| Visual Polish | Beveled block textures, glowing glassmorphic board, particle bursts, screen shake |
 
 ---
 
-## 14. Build Order Summary
+## 14. Build Order Summary: 5 Master Phases
 
-21 phases in strict dependency order:
-`0` Setup → `1` Board Model → `2` Shapes → `3` Placement/Input → `4` Tray → `5` Line Clear → `6` Game Over → `7` Combat → `8` Enemy → `9` Objectives → `10` Relics → `11` Run Structure → `12` Core UI → `13` Visuals → `14` Animation → `15` VFX → `16` Audio → `17` Save → `18` Settings → `19` Monetization → `20` QA → `21` Release.
+The project executes in **5 high-impact Master Phases** designed for immediate visual excellence:
 
-Do NOT jump ahead. The board must exist before combat. Combat must work before Relics. Relics must work before runs. Full detail in `30`.
+1. **Phase 1: Pure Engine Foundations** — 8x8 BoardModel, 24 Canonical Shapes, Deterministic GameRNG, 3-slot TrayEngine with solvability protection.
+2. **Phase 2: Tactile Visual Presentation & Drag-and-Drop UX** — Beveled block materials, frosted glass board frame, touch pickup lift, live ghost preview, snap haptics.
+3. **Phase 3: Explosive Line Clearing & Game Feel Juice** — Simultaneous row/col scanning, white-hot flash, particle bursts, screen shake, audio chimes.
+4. **Phase 4: Classic Endless Mode, Score Engine & Local High Score** — Pure arcade scoring, combo streak multiplier, Board Lock detection, local high-score persistence, Game Over celebratory dialog.
+5. **Phase 5: App Shell, Splash Screen, Minimalist Home & Goal-Driven Hooks** — Animated Splash screen, clutter-free Home Screen, audio/haptic toggles, Goal-Driven mode data contracts.
 
 ---
 

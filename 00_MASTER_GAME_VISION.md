@@ -22,44 +22,43 @@ This document exists to define the single source of truth for what Block Battles
 
 ## 2. Product Definition
 
-**One sentence:** Block Battles is an 8×8 block-placement puzzle where clearing lines deals damage to enemies in a roguelite run built around relic-driven combat builds.
+**One sentence:** Block Battles is a premium, tactile 8×8 block-placement arcade puzzle game featuring an endless Classic High-Score mode and an extensible Goal-Driven challenge architecture.
 
-**One paragraph:** Block Battles takes the moment-to-moment satisfaction of placing pieces on a grid and clearing full rows and columns, and turns every clear into a weapon. Players fight a sequence of enemies and bosses by solving the board in front of them; each victory offers a relic that reshapes how future clears behave, encouraging distinct builds across runs. Handcrafted objectives occasionally bend the standard rules — a restricted board, a special win condition — without abandoning the core puzzle loop. Runs end in defeat, and defeat converts into permanent meta-progression that colors the next attempt.
+**One paragraph:** Block Battles takes the moment-to-moment satisfaction of placing polyomino pieces on an 8×8 grid and clearing full rows and columns, elevating it with world-class tactile game feel, physical block materials, and explosive arcade feedback. The player launches the game instantly into a clean, clutter-free experience: App Icon → Animated Splash → Minimalist Home → Classic Mode. In Classic Mode, the player plays an endless high-score loop competing against their own device's all-time best record until Board Lock is reached. The game engine is built on deterministic board-aware RNG and clean architecture, preserving dedicated extension hooks for a future level-based Goal-Driven mode without cluttering the pure arcade loop.
 
-**Elevator pitch:** "A block-puzzle roguelite: solve the grid, break the build."
+**Elevator pitch:** "Pure block puzzle mastery: place the grid, chase the record, feel the juice."
 
-**30-second explanation:** You get three pieces at a time and place them on an 8×8 grid. Full rows and columns clear and deal damage to whatever enemy you're facing. Beat the enemy, pick a relic that changes how your clears work — bigger combos, extra damage, new effects — and move to the next fight. Some fights are handcrafted puzzles with special rules layered on top of the same board. Eventually you lose, keep some permanent reward, and start a stronger run.
+**30-second explanation:** You get three pieces at a time and place them on an 8×8 grid. Full rows and columns clear simultaneously, scoring points and building combo streaks. High-juice particle bursts, screen shake, and melodic chimes celebrate your clears. When none of your tray pieces can fit on the board, Board Lock triggers Game Over, saving your new local High Score and offering an instant one-tap replay. A future Goal-Driven mode will introduce level hurdles on top of this same rock-solid engine.
 
-**Detailed product definition:** Block Battles is a single-player, session-based mobile puzzle game combining three established genre languages — block-placement puzzles, roguelite run structure, and light RPG-style build customization — into one loop that a solo developer can build, content, and maintain. The puzzle layer (placement, clearing) is the moment-to-moment gameplay; the combat layer (enemies, HP, damage) is the stakes that give placement decisions consequence; the relic layer (build choices) is the strategic layer that makes each run feel distinct; the objective layer (handcrafted encounters) is the content layer that injects authored variety without requiring a second game engine.
+**Detailed product definition:** Block Battles is a single-player, session-based mobile puzzle game focused on the timeless satisfaction of spatial organization and line clearing. The puzzle layer (placement, clearing, streak multipliers) is the core gameplay; the tactile presentation layer (beveled materials, lift offset, snap haptics, particle bursts) transforms basic flat blocks into a juicy, premium mobile experience; the persistence layer saves your local personal best on device; and the extensible architecture reserves clean hooks for level-based puzzle hurdles.
 
 ---
 
 ## 3. Core Fantasy
 
-**DESIGN DECISION:** The core fantasy is: *"I'm solving a simple block puzzle while building an increasingly broken combat build."*
+**DESIGN DECISION:** The core fantasy is: *"I'm in a pure zen flow state, mastering spatial placement, building massive combo streaks, and smashing my personal best high score."*
 
 Expanded into player-facing emotions:
 
-- **Competence:** "I'm good at reading this board" — the puzzle-solving skill the player already has (or quickly develops) is never invalidated by the combat layer.
-- **Escalation:** "My clears are getting stronger" — the same physical action (clearing a line) becomes visibly, numerically, and audiovisually more powerful as a run progresses.
-- **Ownership:** "This is *my* build" — relic choices should make two runs with the same starting shapes feel meaningfully different to play.
-- **Tension under control:** "I'm in danger, but I can see why" — threat should always be legible on the board, never a surprise the player couldn't have anticipated.
-- **Earned mastery:** "I know how to beat this now" — losing should teach something usable in the very next run, not feel arbitrary.
+- **Competence:** "I'm good at reading this board" — spatial intuition and forward planning are rewarded with clean, open board states.
+- **Escalation:** "My combo is heating up" — consecutive line clears ramp up pitch-rising audio chimes, glowing visual multipliers, and explosive particle bursts.
+- **Juice & Physicality:** "This feels incredible in my hands" — blocks lift with natural finger offsets, snap with micro-haptics, and dissolve in white-hot flashes.
+- **Tension under control:** "Space is tight, but I have a way out" — board tension is always visible, transparent, and fair.
+- **Earned mastery:** "One more game to beat my record" — game-over on board lock feels 100% fair and immediately prompts an instant restart.
 
-**DESIGN DECISION:** The fantasy is deliberately *not* "I'm a powerful hero" or "I'm exploring a world." It is a systems fantasy — the joy of watching a simple mechanical system compound in the player's favor.
+**DESIGN DECISION:** The fantasy is deliberately a systems and tactile arcade fantasy. It is not an RPG, not an enemy battler, and not an ad-bloated free-to-play grinder. It is a world-class, premium puzzle toy.
 
 ---
 
 ## 4. Target Player Experience
 
-- **First 10 seconds:** Player sees an empty 8×8 grid and one piece to place. No tutorial text blocks the view. The interaction is self-evident: drag, drop, see it snap.
-- **First minute:** Player completes their first line clear, sees immediate visual/audio payoff, and understands that clears matter beyond "the board gets emptier" — a damage number or bar makes the stakes visible.
-- **First battle:** Player faces a simple enemy with visible HP. The connection between "I cleared 2 lines" and "the enemy lost X HP" is unambiguous within the first exchange.
-- **First relic choice:** Player is offered 2–3 relics with plain-language effects and picks based on immediate understanding, not memorized system knowledge.
-- **First difficult battle:** Player experiences genuine risk — a fight they might lose — and can identify *why* they're struggling (board space, enemy mechanic, weak build) rather than feeling ambushed.
-- **First boss:** Player recognizes a step up in presentation and rule complexity, but the underlying puzzle remains the same 8×8 board they already understand.
-- **First failed run:** Player understands why the run ended and receives a persistent reward, softening the loss and motivating an immediate retry.
-- **Second run:** Player recognizes returning systems (shapes, board, some enemies) but experiences new relic combinations and, ideally, a different early build path than run one.
+- **First 3 seconds:** Player taps app icon. A clean, smooth animated Splash Screen loads effortlessly into a minimalist, clutter-free Home Screen.
+- **First 10 seconds:** Player taps "Play Classic" and is instantly on the 8×8 board with 3 tray pieces. No tutorial text walls. Touch pickup feels elastic; live ghost preview snaps beneath the finger.
+- **First minute:** Player completes their first line clear. An immediate white-hot flash and crisp audio chime trigger dopamine. The score updates with a floating pop-up.
+- **First streak:** Player clears lines on consecutive turns. A combo multiplier badge illuminates with rising musical pitches.
+- **First difficult board:** The board fills up. The player carefully scans the grid for open pockets. Board-aware RNG ensures fair, solvable draws without arbitrary dead-ends.
+- **First game over:** Board Lock occurs when no tray piece can fit. The board pauses cleanly, evaluates the final score against the device's all-time High Score, and presents a celebratory Game Over dialog with an instant one-tap "Play Again".
+- **Second session:** The player's device remembers their personal best score. They jump straight back into the loop to beat it.
 
 ---
 
@@ -68,46 +67,44 @@ Expanded into player-facing emotions:
 ### 5.1 Instant Clarity
 - **Definition:** Any player must understand the placement/clear loop within seconds, with zero required reading.
 - **Player benefit:** No onboarding friction; mobile players do not tolerate long tutorials.
-- **Implementation implication:** Visual grammar (grid, piece shapes, fill states) must be self-explanatory; combat numbers must be legible at a glance.
+- **Implementation implication:** Visual grammar (grid, piece shapes, fill states) must be self-explanatory; current score and best score are legible at a glance.
 - **Failure condition:** A first-time player hesitates on what action to take next.
 - **Acceptance criteria:** A player with zero instructions places a piece and clears a line correctly within their first 3 attempts.
 
 ### 5.2 Tactical Placement
-- **Definition:** Piece placement is a genuine spatial puzzle, not a formality before combat.
-- **Player benefit:** The core loop remains engaging on its own merits, independent of the combat wrapper.
-- **Implementation implication:** Piece variety and board size must preserve meaningful spatial tension (see REFERENCE OBSERVATION below).
+- **Definition:** Piece placement is a genuine spatial puzzle with deep replayability.
+- **Player benefit:** The core loop remains engaging for hundreds of hours on its own spatial merits.
+- **Implementation implication:** 24 canonical shapes and an 8×8 board size preserve meaningful spatial tension.
 - **Failure condition:** Optimal play becomes "place anywhere, clears happen automatically."
-- **Acceptance criteria:** Skilled players consistently outperform random placement in clear efficiency and board survival.
+- **Acceptance criteria:** Skilled players consistently achieve higher scores through strategic pocket management.
 
-**REFERENCE OBSERVATION:** 8×8 grids with multi-cell polyomino pieces are a commonly observed configuration in existing block-placement puzzle games, producing meaningful spatial tension without requiring memorized strategy.
-
-### 5.3 Meaningful Choices
-- **Definition:** Every relic offer and major decision point must create a real trade-off, not a strictly dominant option.
-- **Player benefit:** Build diversity and replayability.
-- **Implementation implication:** Relics must be designed and balanced in families, not added ad hoc.
-- **Failure condition:** A "solved" build emerges that always outperforms alternatives.
-- **Acceptance criteria:** Multiple viable build archetypes exist at MVP scale (see Section 12).
+### 5.3 Tactile Juice & Zero "AI Slop"
+- **Definition:** Every interaction feels weighted, physical, responsive, and aesthetically premium.
+- **Player benefit:** Moment-to-moment physical satisfaction that elevates a digital game into a luxury digital toy.
+- **Implementation implication:** Beveled gradient block materials, frosted glass board framing, elastic pickup lift, micro-snap haptics, particle bursts, and screen shake.
+- **Failure condition:** The game looks like flat, generic colored squares on a plain background.
+- **Acceptance criteria:** Players describe the physical feel as "addictive", "satisfying", and "crisp".
 
 ### 5.4 Satisfying Feedback
-- **Definition:** Every successful action (placement, clear, damage, relic pickup, victory) is confirmed with immediate, proportionate audiovisual response.
+- **Definition:** Every successful action (placement, clear, combo, new high score) is confirmed with immediate, proportionate audiovisual response.
 - **Player benefit:** Moment-to-moment dopamine that sustains long sessions.
-- **Implementation implication:** Feedback intensity must scale with clear size/combo without overwhelming small actions.
-- **Failure condition:** A large combo feels the same as a single clear.
-- **Acceptance criteria:** Players can distinguish clear magnitude by feedback alone, without reading numbers.
+- **Implementation implication:** Feedback intensity scales with clear size (L1 through L4+) and streak count.
+- **Failure condition:** A 3-line cross-clear feels the same as a single 1-line clear.
+- **Acceptance criteria:** Players can distinguish clear magnitude by sound and visual impact alone.
 
 ### 5.5 Controlled Randomness
-- **Definition:** RNG (piece draws, relic offers, enemy sequencing) creates decisions, not helplessness.
-- **Player benefit:** Replayability without unfair losses.
-- **Implementation implication:** Piece draw systems and relic pools need weighting/safeguards against unsolvable states.
+- **Definition:** RNG creates spatial decisions, not unfair helplessness.
+- **Player benefit:** Replayability without cheap losses.
+- **Implementation implication:** Seeded Mulberry32 `GameRNG`, solvability protection, duplicate shape prevention, and board occupancy reweighting.
 - **Failure condition:** A player loses due to an unavoidable RNG dead-end with no prior decision that could have prevented it.
-- **Acceptance criteria:** Post-mortem analysis of a loss can always trace back to a prior decision or knowable risk.
+- **Acceptance criteria:** Losses can always be traced to prior placement decisions.
 
-### 5.6 Fair Difficulty
-- **Definition:** Losses must feel earned and explainable, never arbitrary.
-- **Player benefit:** Trust in the system, motivating retry instead of abandonment.
-- **Implementation implication:** Enemy mechanics must telegraph before executing; damage must be predictable from visible information.
-- **Failure condition:** A player cannot explain why they lost.
-- **Acceptance criteria:** Enemy actions are previewed at least one player-turn in advance (see Section 10, Open Decision on turn structure).
+### 5.6 Fair Board Lock
+- **Definition:** Game Over occurs strictly when no legal moves remain on the board.
+- **Player benefit:** Complete trust in game rules; losses feel earned.
+- **Implementation implication:** Exhaustive validation checks all 3 tray pieces across all 64 coordinates before declaring Board Lock.
+- **Failure condition:** Game ends prematurely while a piece could have legally fit.
+- **Acceptance criteria:** Game Over fires if and only if zero legal placements exist.
 
 ### 5.7 Build Identity
 - **Definition:** Relic combinations should produce distinct playstyles across runs.
@@ -129,78 +126,64 @@ Expanded into player-facing emotions:
 
 **ASSUMPTION:** The following comparisons describe design intent, not verified market claims.
 
-- **Vs. pure block puzzle games:** Adds stakes (combat, HP, defeat/victory) and build progression (relics) on top of the placement loop, rather than pure endless score-chasing.
-- **Vs. traditional endless score-chasing:** Replaces an open-ended high-score loop with a bounded run structure (victory/defeat, relic choices, objectives) that gives each session a narrative arc.
-- **Vs. conventional roguelites:** Uses a puzzle-solving action (line clears) as the core combat mechanism, rather than direct-control combat (movement, attacks, dodging) or deckbuilding-as-combat.
-- **Vs. traditional match-3 games:** Uses deliberate multi-cell piece placement rather than tile-swapping/matching as the core mechanic, producing a different spatial-planning skill.
-- **Vs. deckbuilders:** Relics modify a continuous spatial puzzle rather than a hand of discrete cards; there is no card-draw-and-play resolution step.
-
-**DESIGN DECISION:** No claims of "first," "only," or "best" are made in player-facing or internal documentation. Differentiation is described structurally, not competitively.
+- **Vs. generic puzzle clones ("AI slop"):** Delivers luxury tactile feel, beveled materials, glassmorphism, responsive finger offsets, particle explosions, and screen shake from day one.
+- **Vs. ad-bloated casual games:** Pure, clutter-free flow: App Icon → Animated Splash → Minimalist Home → Instant Play. No intrusive pop-up spam, no fake playable ads, no energy timers.
+- **Vs. complex RPG puzzle hybrids:** Focuses on the pure, timeless spatial puzzle loop. Eliminates tedious enemy health bars, damage math, and relic drafting in favor of crisp high-score chasing.
+- **Vs. traditional endless puzzles:** Features deterministic fair RNG, board-aware solvability protection, and an extensible architecture ready for level-based hurdle goals.
 
 ---
 
 ## 7. Core Gameplay Architecture
 
 ```text
-RUN
- ↓
-BATTLE
- ↓
-BLOCK PUZZLE
- ↓
-LINE CLEAR
- ↓
-DAMAGE / EFFECT
- ↓
-ENEMY DEFEATED
- ↓
-RELIC CHOICE
- ↓
-NEXT BATTLE
- ↓
-BOSS / OBJECTIVE
- ↓
-RUN END
- ↓
-PERSISTENT REWARD
- ↓
-NEW RUN
+APP LAUNCH
+    ↓
+SPLASH SCREEN
+    ↓
+MINIMALIST HOME
+    ↓
+MODE SELECTION (Classic High Score vs Goal-Driven Hurdles)
+    ↓
+[CLASSIC MODE]
+    ↓
+8×8 PUZZLE BOARD (3-Slot Tray)
+    ↓
+PIECE PLACEMENT (Tactile Drag & Drop)
+    ↓
+LINE CLEAR (Simultaneous Row/Col Scan)
+    ↓
+SCORING & COMBO STREAKS (Visual & Audio Juice)
+    ↓
+TRAY REFILL (3 New Shapes, Deterministic Fair RNG)
+    ↓
+BOARD LOCK CHECK (Any legal moves remaining?)
+    ↓ (No moves left)
+GAME OVER
+    ↓
+LOCAL HIGH SCORE PERSISTENCE & EVALUATION
+    ↓
+INSTANT REPLAY / RETURN HOME
 ```
-
-- **RUN:** A single bounded playthrough, from first battle to defeat or completion.
-- **BATTLE:** One enemy encounter, resolved entirely on the 8×8 board.
-- **BLOCK PUZZLE:** The moment-to-moment placement of offered pieces.
-- **LINE CLEAR:** The trigger event converting puzzle-solving into combat output.
-- **DAMAGE / EFFECT:** Clears translate into damage and/or relic-driven secondary effects.
-- **ENEMY DEFEATED:** Battle-end condition; triggers reward.
-- **RELIC CHOICE:** Player selects one build-modifying reward from a small offered set.
-- **NEXT BATTLE:** Loop repeats with an incrementally tougher or different enemy.
-- **BOSS / OBJECTIVE:** Periodic handcrafted encounter with special rules (see Section 8).
-- **RUN END:** Triggered by defeat (or, later, a run-completion condition).
-- **PERSISTENT REWARD:** Meta-progression currency/unlocks carried beyond the run.
-- **NEW RUN:** Loop restarts, informed by persistent progression.
 
 ---
 
-## 8. Block Battles + Block Quest Hybrid
+## 8. Two Game Modes: Classic Mode + Goal-Driven Mode
 
-**DESIGN DECISION:** The project unifies two conceptual halves on one shared engine.
+**DESIGN DECISION:** The project unifies two distinct modes on one shared, rock-solid 8×8 board engine:
 
-### Block Battles (the roguelite combat half) provides:
-- enemies and enemy HP,
-- combat resolution via line clears,
-- relics that persist and compound within a run,
-- run-level progression and pacing (see Section 7).
+### Mode 1: Classic Mode (Primary Active Focus)
+- Pure, endless block puzzle play.
+- No timers, no enemies, no distractions.
+- Real-time scoring: Placement points + Line clear points + Multi-line bonus + Streak multipliers.
+- Compete against own device: All-time best High Score persisted locally.
+- Ends strictly on **Board Lock** (when none of the 3 tray pieces can fit anywhere on the board).
+- Celebratory Game Over dialog with instant "Play Again" or "Home".
 
-### Block Quest (the handcrafted objective half) provides:
-- authored objectives with specific win/loss conditions,
-- tactical restrictions (e.g., limited piece pool, pre-filled board cells, move/turn limits),
-- bonus conditions (optional stretch goals within an encounter),
-- scenario-specific rule modifiers layered on the standard board.
-
-**MASTER DESIGN RULE:** The objective system must modify a small, bounded number of parameters around the same core 8×8 placement/clear engine. It must never fork into a structurally different game (different board size/shape, different core input, different win condition category) without an explicit, separate design decision recorded in a future document. This keeps Block Quest content authorable as data (rule-parameter sets) rather than as new code.
-
-**OPEN DECISION:** The exact taxonomy of modifiable objective parameters (board pre-fill, piece restrictions, turn limits, special tiles, etc.) is deferred to a dedicated Objectives design document.
+### Mode 2: Goal-Driven Mode (Reserved Architecture)
+- Level-based puzzle challenges and hurdles.
+- Authored objectives: Reach target score, clear frozen blocks, clear pre-filled patterns within a move limit.
+- Cleanly decoupled: shares the exact same board, shapes, and input engine, with objective parameters configured as pure data.
+- Built after Classic Mode achieves god-level visual and tactile perfection.
 
 ---
 

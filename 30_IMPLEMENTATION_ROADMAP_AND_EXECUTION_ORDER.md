@@ -1,661 +1,278 @@
 # 30_IMPLEMENTATION_ROADMAP_AND_EXECUTION_ORDER.md
-## Block Battles — Implementation Roadmap and Execution Order
+## Block Battles — Streamlined Master Roadmap & Execution Order
+### Pure Arcade Engine: Classic Endless High-Score + Goal-Driven Architecture
 
-**Governing documents:** ALL `00_MASTER_GAME_VISION.md` through `29_AI_CODING_AGENT_DEVELOPMENT_RULES.md`
-**Document status:** Layer D — Production Authority
+**Governing documents:** ALL `00_MASTER_GAME_VISION.md` through `29_AI_CODING_AGENT_DEVELOPMENT_RULES.md`  
+**Document status:** Layer D — Production Authority  
+**Architecture:** 5 Streamlined Master Phases (Minimum Phases for God-Level Result)
 
 ---
 
 ## Governing Principle
 
-This roadmap is NOT organized by document number. It is organized by **technical dependency** and **playable milestone**. A feature cannot be built until its foundations exist. No foundation should ever be built twice.
+This roadmap is organized by **strict technical dependency** and **instant visual/gameplay excellence**.
+
+Instead of deferring visual polish, juice, audio, and game feel to late stages while building unnecessary combat clutter, **visual richness and physical tactile juice are core first-class citizens from Day One.**
+
+Every single phase produces a verified, visually stunning, test-passing deliverable.
 
 ---
 
-# PART 1: IMPLEMENTATION PHASES
+# PART 1: 5 MASTER PHASES
 
 ---
 
-## Phase 0 — Project Setup & Infrastructure
+## Phase 1 — Pure Engine Foundations (Domain Layer)
 
-**Goal:** An empty Flutter project that compiles, runs, and has the structural skeleton in place.
-**Reason for Order:** Nothing can be built until the folder structure and foundational packages exist.
+**Goal:** Establish a rock-solid, 100% pure Dart mathematical foundation for the 8×8 board, 24 canonical shapes, deterministic seeded RNG, and 3-piece tray generation with solvability protection.
 
-**Prerequisites:** None.
+**Why First:** The spatial grid, polyomino geometry, and piece generation are the fundamental mathematical rules everything else builds on.
 
-**Tasks:**
-- Install Flutter stable, Android Studio, run `flutter doctor`.
-- Run `flutter create block_battles` to initialize the project.
-- Add dependencies in `pubspec.yaml` (`flame`, `flutter_riverpod`, `go_router`, `hive_ce`, `hive_ce_flutter`, `shared_preferences`, `flame_audio`).
-- Build the directory structure (`lib/domain`, `lib/application`, `lib/game`, `lib/presentation`, `lib/data`) per doc 19.
-- Stub out interfaces or empty classes for services.
-- Create `core/game_constants.dart` with all numeric constants from Layer A docs.
-- Create an initial `domain/board/board_model.dart` (stub).
-- Set up Git repository. Initial commit.
+**Prerequisites:** Flutter baseline established (`lib/`, `test/`).
+
+**Micro-Tasks:**
+1. **BoardModel (Domain):**
+   - 8×8 grid with 1D flat array storage (64 cells, index `row * 8 + col`).
+   - Occupancy (`empty`, `filled`) and Modifiers (`normal`, `blocked`, `frozen`).
+   - Pure semantic predicates: `canReceiveBlock(cell)` and `countsTowardLineClear(cell)`.
+   - Read-only placement validation: `validatePlacement(shape, row, col)`.
+   - Atomic placement commit: `commitPlacement(shape, row, col)` (all-or-nothing mutation).
+2. **Canonical Shape System (Domain):**
+   - Author all 24 canonical MVP shapes (`SHP_001`–`SHP_024`) from `02_SHAPE_LIBRARY.md` as immutable Dart constants.
+   - Geometry validation: bounding box, normalization to `(0, 0)`, orthogonal edge connectivity via BFS.
+   - Strict static orientation (no runtime rotation).
+3. **Deterministic RNG (`GameRNG`):**
+   - Mulberry32 32-bit PRNG with seed tracking, monotonic draw index, and state reconstruction.
+4. **Tray System & Solvability Protection (`TrayEngine` & `ShapeGenerator`):**
+   - 3-piece tray slots (`TraySlot`).
+   - Two-stage generation: Family draw → Orientation draw.
+   - Duplicate shape ID prevention within a batch.
+   - Table 17.3 Solvability Protection: 3 redraw retries; fallback to `SHP_001` Single Block if board space is critical.
+   - Slot consumption and automatic 3-slot batch replenishment.
 
 **Files to Create:**
-- `lib/main.dart`
-- `lib/app/app.dart`
-- `lib/app/app_router.dart`
 - `lib/core/game_constants.dart`
-- `lib/domain/board/board_model.dart`
-- `pubspec.yaml`
-- `analysis_options.yaml`
-
-**Tests:** Verify `flutter analyze` passes with 0 issues.
-**Acceptance Criteria:** `flutter run` launches a blank screen with no errors.
-**Playable State:** Not playable. White screen.
-**Common Failure Modes:** Package version conflicts in pubspec.yaml.
-**Rollback Strategy:** Delete the project. Restore from the initial Git commit.
-
----
-
-## Phase 1 — Board Model (Domain)
-
-**Goal:** A pure Dart 8x8 grid model with collision checking.
-**Reason for Order:** Every other gameplay system depends on the Board.
-
-**Prerequisites:** Phase 0.
-
-**Tasks:**
-- Implement `board_model.dart` (1D array encoding Occupancy + Cell Modifier compactly, indexing logic `row * 8 + col`). Ensure it supports MVP states: `EMPTY`, `FILLED`, `BLOCKED`, and `FROZEN`.
-- Implement `board_cell.dart`.
-- Implement `canReceiveBlock(cell)` and `countsTowardLineClear(cell)` semantic predicates.
-- Implement `isValidPlacement(ShapeMatrix, int x, int y)` method using `canReceiveBlock`.
-- Implement `commitPlacement(ShapeMatrix, int x, int y)` method.
-- Implement `setCellModifier` and Line-Clear evaluation using `countsTowardLineClear`.
-- Write Dart tests covering bounds checking and the cell state rules.
-
-**Tests (Must Verify):**
-- **Placement:** `EMPTY + NORMAL` works. `EMPTY + BLOCKED` fails. `FILLED + NORMAL` fails. `FILLED + FROZEN` fails.
-- **Line clearing:** `FILLED + NORMAL` counts toward line completion. `FILLED + FROZEN` does not count. `EMPTY + NORMAL` does not count. `EMPTY + BLOCKED` does not count.
-- **Clear reset:** Any cell that is actually cleared becomes: `EMPTY + NORMAL`.
-
-**Files to Create:**
-- `lib/domain/board/board_model.dart`
 - `lib/domain/board/board_cell.dart`
-- `test/domain/board/board_model_test.dart`
+- `lib/domain/board/board_model.dart`
+- `lib/domain/shapes/shape_matrix.dart`
+- `lib/domain/shapes/shape_definition.dart`
+- `lib/data/definitions/shape_catalog.dart`
+- `lib/domain/rng/game_rng.dart`
+- `lib/domain/tray/shape_generator.dart`
+- `lib/domain/tray/tray_engine.dart`
 
-**Tests:** 10+ Unit Tests (`dart test`). All pass before Phase 2.
-**Acceptance Criteria:** Tests prove a piece placed at (0,0) writes to cell index 0. A piece placed at (8,0) is rejected.
-**Playable State:** Not playable. No visual.
-**Common Failure Modes:** Off-by-one errors in indexing. Incorrect coordinate mapping.
+**Verification:**
+- `dart test` passes 100% of domain tests (bounds, collision, solvability, RNG determinism).
+- `flutter analyze` passes with 0 issues.
+- Zero Flutter/Flame imports in `lib/domain/`.
 
 ---
 
-## Phase 2 — Shape System (Domain)
+## Phase 2 — Tactile Visual Presentation & Drag-and-Drop UX ("Killing AI Slop" Part 1)
 
-**Goal:** A data structure for all 24 defined shapes (`02_SHAPE_LIBRARY.md`).
+**Goal:** Transform the raw board and tray into a physical, responsive, luxury game surface. Eliminate generic flat squares with rich beveled materials, elastic drag pickup, and live ghost previews.
 
 **Prerequisites:** Phase 1.
 
-**Tasks:**
-- Create `shape_definition.dart` and `shape_matrix.dart` (computed width, height, normalized occupied cells from an authored `bool` matrix or array).
-- Create `shape_catalog.dart` (contains all 24 shapes as const `ShapeDefinition` objects).
-- Author **all 24 canonical MVP shape definitions** (SHP_001–SHP_024) as defined in `02_SHAPE_LIBRARY.md` Section 12. Begin with the first 5 simple shapes to verify the pipeline, then author the remaining 19 to complete the MVP catalog.
-- **Important:** Do NOT implement a shape rotator. Piece orientation is static and fixed at authoring time. Runtime rotation is explicitly prohibited (`01`, `AI_START_HERE`). Shapes are purely Dart const objects.
+**Micro-Tasks:**
+1. **Premium Visual Styling & Design Tokens:**
+   - Define color palettes and design tokens (`09_VISUAL_DESIGN_SYSTEM.md`, `10_COLOR_SYSTEM_AND_BLOCK_ART_DIRECTION.md`).
+   - Rich block materials: Beveled borders, subtle inner shadows, gradient fills (`11_BLOCK_VISUAL_MATERIAL_AND_ART_SPEC.md`).
+   - Frosted glass outer board container with rounded corners and glowing border.
+2. **Interactive Flame Game Canvas (`BlockBattlesGame` & `BoardComponent`):**
+   - Responsive viewport auto-scaling for mobile devices.
+   - Pre-allocated cached Paint objects (zero allocations in `render()`).
+3. **Tray Component & Piece Presentation (`TrayComponent` & `PieceComponent`):**
+   - 3 interactive tray pedestals centered below the board.
+   - Auto-scaled piece rendering with drop shadows.
+4. **Tactile Drag-and-Drop UX (`DragHandler`):**
+   - Single-active-touch multi-touch palm rejection.
+   - Touch pickup lift: piece scales up slightly (`1.05x`) with vertical finger-occlusion offset (48dp above touch point).
+   - Live snap-to-grid Ghost Preview:
+     - Valid placement: Translucent emerald green fill (`#22C55E80`) with bright border.
+     - Invalid/Blocked placement: Translucent ruby red fill (`#EF444480`) with color-blind accessible 'X' conflict markers.
+   - Drop release: Valid placement commits atomically; invalid release smoothly springs back to tray slot.
+5. **Haptic & Audio Touch Hooks:**
+   - Haptic click on pickup; light tick on grid-cell snap crossing.
 
-**Files to Create:**
-- `lib/domain/shapes/shape_definition.dart`
-- `lib/domain/shapes/shape_matrix.dart`
-- `lib/data/definitions/shape_catalog.dart`
-
-**Tests:** Assert that `ShapeMatrix` built from a `ShapeDefinition` produces the correct width, height, and occupied cell list using `dart test`.
-**Acceptance Criteria:** All 24 canonical MVP shapes (SHP_001–SHP_024) are authored as Dart consts and can be placed into a `BoardModel` without errors. No rotation function exists.
-
----
-
-## Phase 3 — Placement Logic & Input (Application + Presentation)
-
-**Goal:** A player can drag a piece and drop it onto the board.
-
-**Prerequisites:** Phase 1, Phase 2. First phase to require Flame + Flutter UI work.
-
-**Tasks:**
-- Create `BattleScreen` widget, add a `GameWidget` hosting a `FlameGame` (`BlockBattlesGame`).
-- Implement `BlockBattlesGame` and component hierarchy.
-- Implement Flame `DragCallbacks` on `PieceComponent` for drag detection and positioning.
-- Implement Ghost preview logic: render valid cells Green and invalid cells Red in `BoardComponent.render()`.
-- Map world-space drag position to board grid coordinate.
-- Wire drag drop -> `BoardModel.isValidPlacement` -> `BoardModel.commitPlacement`.
-
-**Files to Create:**
+**Files to Create / Modify:**
 - `lib/game/block_battles_game.dart`
 - `lib/game/components/board_component.dart`
 - `lib/game/components/cell_component.dart`
 - `lib/game/components/piece_component.dart`
-- `lib/game/input/drag_handler.dart`
-
-**Tests:** (Widget test) Simulate a pointer-down on cell (3,3) and pointer-up on a valid board position using `flutter test`.
-**Acceptance Criteria:** A colored square can be dragged from the Tray area and dropped onto the 8x8 grid in the Flame canvas.
-
----
-
-## Phase 4 — Tray System
-
-**Goal:** Three pieces appear at the bottom of the screen. Placing all three spawns a new set.
-
-**Prerequisites:** Phase 2, Phase 3.
-
-**Tasks:**
-- Implement `tray_engine.dart` (maintains array of 3 shape references; removes one on commit).
-- Implement `tray_component.dart` (Flame component rendering 3 pieces, handles spacing).
-- Implement piece spawning requests from `GameRNG`.
-- Implement `game_rng.dart` (uses Dart's `Random(seed)` with bag-based draw for shapes).
-
-**Files to Create:**
-- `lib/domain/tray/tray_engine.dart`
-- `lib/domain/rng/game_rng.dart`
 - `lib/game/components/tray_component.dart`
+- `lib/game/input/drag_handler.dart`
+- `test/game/components/board_component_test.dart`
+- `test/game/components/tray_component_test.dart`
+- `test/game/input/drag_handler_test.dart`
 
-**Tests:** Assert `GameRNG` with seed `12345` always produces the same piece sequence via `dart test`.
-**Acceptance Criteria:** At game start, 3 pieces appear. Dragging a piece to the board removes it from the tray. When all 3 are placed, 3 new pieces spawn. (M1 Milestone Achieved)
+**Verification:**
+- Full touch drag, lift offset, snap preview, and atomic placement work smoothly on Android hardware.
+- Unit tests verify touch lifecycle, coordinate mapping, and rejection rules.
 
 ---
 
-## Phase 5 — Line Clearing
+## Phase 3 — Explosive Line Clearing & Game Feel Juice ("Killing AI Slop" Part 2)
 
-**Goal:** Full rows and columns clear and award points.
+**Goal:** Deliver maximum audiovisual dopamine when rows and columns clear. Implement simultaneous line detection, white-hot flash highlights, particle burst dissipation, screen shake, and harmonic audio chimes.
+
+**Prerequisites:** Phase 2.
+
+**Micro-Tasks:**
+1. **Simultaneous Line Detection (`LineScanner`):**
+   - Evaluates full rows and full columns simultaneously against post-placement board state.
+   - Qualification predicate: `countsTowardLineClear(cell) == true` (`FILLED + NORMAL`).
+   - Frozen cells and blocked cells protect lines from completing.
+2. **Atomic Resolution (`LineClearResolver`):**
+   - Builds deduplicated set union $cellsToClear = \{ (r, c) \mid r \in rows \} \cup \{ (r, c) \mid c \in cols \}$.
+   - Intersection cells cleared exactly once; cells reset to canonical `EMPTY + NORMAL`.
+   - Returns immutable `LineClearResolution` (L-Value = total lines cleared).
+3. **Decoupled Event Dispatcher (`EventDispatcher`):**
+   - Dispatches strongly-typed broadcast events: `PlacementCommitted` $\to$ `LinesCleared` & `CellsCleared` $\to$ `BoardChanged`.
+4. **Explosive Line Clear Visuals & Game Feel:**
+   - White-hot flash overlay along cleared rows and columns with alpha fade.
+   - Bouncy cell dissipation animation (cells shrink and pop).
+   - Particle burst spawner across cleared coordinates.
+   - Micro camera shake on multi-line clears (intensity scales with L-Value: L1 = subtle, L3+ = heavy).
+5. **Harmonic Audio Chimes:**
+   - Pentatonic chord arpeggios that rise in pitch on multi-clears.
+
+**Files to Create / Modify:**
+- `lib/core/events/domain_event.dart`
+- `lib/core/events/event_dispatcher.dart`
+- `lib/domain/board/line_scanner.dart`
+- `lib/domain/board/line_clear_resolver.dart`
+- `lib/game/components/board_component.dart` (flash overlay & particle emitters)
+- `test/core/events/event_dispatcher_test.dart`
+- `test/domain/board/line_scanner_test.dart`
+- `test/domain/board/line_clear_resolver_test.dart`
+- `test/game/line_clearing_integration_test.dart`
+
+**Verification:**
+- Placing pieces that complete rows/cols triggers simultaneous clear, flash feedback, and event sequence.
+- All unit and integration tests pass with 100% coverage.
+
+---
+
+## Phase 4 — Classic Endless Mode, Score Engine & Local Device High Score
+
+**Goal:** Complete the full Classic Endless Mode gameplay loop. Score points for placements, line clears, multi-clears, and consecutive streaks; detect Board Lock (game over); persist device High Score; present a celebratory Game Over dialog with instant restart.
+
+**Prerequisites:** Phase 3.
+
+**Micro-Tasks:**
+1. **Pure Puzzle Scoring System (`ScoreEngine`):**
+   - Block Placement Points: +1 point per placed block.
+   - Line Clear Base Points:
+     - 1 Line (L1) = 100 pts
+     - 2 Lines (L2) = 300 pts
+     - 3 Lines (L3) = 600 pts
+     - 4 Lines (L4) = 1,000 pts
+     - 5+ Lines = $1000 + (L - 4) \times 500$ pts
+   - Consecutive Turn Streak / Combo Multiplier:
+     - Turn 1 clear = $1.0\times$
+     - Turn 2 consecutive clear = $1.5\times$
+     - Turn 3 consecutive clear = $2.0\times$
+     - Turn 4+ consecutive clear = $2.5\times$ (streak continues until a placement clears 0 lines).
+   - Floating score popups (`+120`, `STREAK x2!`) spawned at clear origins.
+2. **Board Lock Detection (`BoardLockDetector`):**
+   - Runs at the end of each turn after tray consumption / refill.
+   - Tests all remaining tray pieces across all 64 board origins using `boardModel.validatePlacement()`.
+   - If zero legal placements exist across all tray pieces $\to$ fires `BoardLockDetected` event.
+3. **Local High Score Persistence (`SaveService`):**
+   - Offline storage (`shared_preferences` / `hive_ce`).
+   - Stores `allTimeHighScore` on the local device.
+   - Emits `NewHighScoreEvent` when player exceeds prior record during active gameplay.
+4. **Classic Game HUD:**
+   - Sleek in-game header: Current Score, Trophy icon with All-Time Best score, active Combo Streak badge, Pause / Audio toggle.
+5. **Game Over Modal & Instant Replay Loop:**
+   - Polished dialog over frosted gameplay canvas:
+     - Final Score tally.
+     - "NEW RECORD!" glowing badge with celebratory audio fanfare if high score beaten.
+     - One-tap "PLAY AGAIN" button (resets board, RNG, tray instantly).
+     - "HOME" button.
+
+**Files to Create / Modify:**
+- `lib/domain/scoring/score_engine.dart`
+- `lib/domain/board/board_lock_detector.dart`
+- `lib/data/persistence/save_service.dart`
+- `lib/application/classic_game_service.dart`
+- `lib/presentation/battle/classic_game_screen.dart`
+- `lib/presentation/widgets/game_over_dialog.dart`
+- `lib/presentation/widgets/score_hud_widget.dart`
+- `test/domain/scoring/score_engine_test.dart`
+- `test/domain/board/board_lock_detector_test.dart`
+- `test/data/persistence/save_service_test.dart`
+
+**Verification:**
+- Full endless loop works seamlessly: play $\to$ score $\to$ board lock $\to$ high score saved $\to$ one-tap replay restarts game instantly.
+
+---
+
+## Phase 5 — App Shell, Animated Splash Screen, Minimalist Home & Goal-Driven Hooks
+
+**Goal:** Wrap the engine into a release-ready, clutter-free mobile app. Add smooth animated Splash Screen, clean Home Screen, audio/haptic toggles, and reserve decoupled data contracts for the future Goal-Driven mode.
 
 **Prerequisites:** Phase 4.
 
-**Tasks:**
-- Implement `line_scanner.dart` (iterates `BoardModel`, detects full rows and full columns).
-- Integrate scanner call inside tray/commit logic.
-- Implement `line_clear_resolver.dart` (clears cells from `BoardModel`, calculates L-Value).
-- Fire events via Dart `StreamController` (EventDispatcher per doc 22).
-- Wire `BoardComponent` to listen to `LinesCleared` stream and play flash effect.
+**Micro-Tasks:**
+1. **Animated Splash Screen (`SplashScreen`):**
+   - Smooth branded animation on app icon launch (fade-in emblem, glow pulse, seamless route to Home).
+   - Asset and audio pre-caching during splash.
+2. **Minimalist Home Screen (`HomeScreen`):**
+   - Clean, uncluttered UI:
+     - Prominent "PLAY CLASSIC" button with breathing glow.
+     - High Score Trophy card displaying device personal best.
+     - Audio & Haptics toggle pills.
+     - Sleek "GOAL MODE (Coming Soon / Adventure)" card reserving space for Mode 2.
+3. **App Navigation (`AppRouter`):**
+   - Clean GoRouter navigation with smooth cross-fade transitions:
+     - `/splash` $\to$ `/home` $\to$ `/classic`
+4. **Goal-Driven Mode Architecture (Future Foundation):**
+   - Define data schema and models for Mode 2 (`LevelObjective`, `HurdleType`, `GoalLevelConfig`):
+     - Target Score hurdle
+     - Pre-filled obstacle clearing
+     - Move limit hurdle
+   - Kept strictly decoupled in `lib/domain/goal_mode/` so it never pollutes Classic Mode.
+5. **Release Polish & Packaging:**
+   - Audio volume sliders and haptic feedback settings.
+   - Android back-button handling, safe-area compliance on all screen aspect ratios.
+   - Production Android build verification (`flutter build apk --release`).
 
-**Files to Create:**
-- `lib/domain/board/line_scanner.dart`
-- `lib/domain/board/line_clear_resolver.dart`
-
-**Tests:** Assert placing 8 consecutive 1x1 blocks across row 0 triggers a line cleared event with `lineCount = 1` via `dart test`.
-**Acceptance Criteria:** Full rows and columns disappear, clearing animation plays.
-
----
-
-## Phase 6 - Board Lock Detection
-
-**Goal:** The puzzle can end when no valid moves remain.
-
-**Prerequisites:** Phase 4 (Tray).
-
-**Tasks:**
-- Implement `board_lock_detector.dart` (checks all 3 tray pieces against all valid board positions).
-- Hook lock detector to run at the start of the active state.
-- Wire state machine to handle lock detected event -> convert to battle failed.
-
-**New Files:**
-- `lib/domain/board/board_lock_detector.dart`
-
-**Tests:** Assert a completely full board (64 cells occupied) triggers lock. Assert a board with one open 1x1 cell and a tray containing only 1x1 pieces does NOT trigger lock via `dart test`.
-**Acceptance Criteria:** Filling the board ends the session. (M2 Milestone Achieved — pure puzzle loop is complete)
-
----
-
-## Phase 7 — Combat System (Domain)
-
-**Goal:** Line Clears deal damage to an enemy.
-
-**Prerequisites:** Phase 5, Phase 6. This is the first "BLOCK BATTLES" specific feature.
-
-**Tasks:**
-- Implement `combat_engine.dart`: input is `lineCount` (L-value), output is damage dealt event.
-- Implement damage formula from `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` (Base * L_Multiplier).
-- Implement `combo_tracker.dart` (tracks consecutive multi-line clears within a turn).
-- Wire `combat_engine` to listen to line cleared events.
-
-**Files to Create:**
-- `lib/domain/combat/combat_engine.dart`
-- `lib/domain/combat/combo_tracker.dart`
-
-**Tests:** Assert L=1 produces `BaseDamage * 1.0`. Assert L=3 produces `BaseDamage * 2.0`. Assert L=4 is capped via `dart test`.
-**Acceptance Criteria:** Line Clears produce a logged damage number.
-
----
-
-## Phase 8 — Enemy System
-
-**Goal:** A visible enemy with HP receives damage, reacts, and can be defeated.
-
-**Prerequisites:** Phase 7.
-
-**Tasks:**
-- Create `enemy_catalog.dart` (contains `EnemyDefinition` for test golem as Dart const) per `20` Sec 5.
-- Implement `enemy_service.dart` (owns current HP, exposes take damage logic).
-- Implement `enemy_hud_widget.dart` (Flutter `ConsumerWidget` watching `EnemyStateNotifier`, portrait, HP bar).
-- Wire combat damage events -> `enemy_service`.
-
-**Files to Create:**
-- `lib/domain/enemies/enemy_service.dart`
-- `lib/data/definitions/enemy_catalog.dart`
-- `lib/presentation/battle/widgets/enemy_hud_widget.dart`
-
-**Tests:** Assert damage logic via `dart test`. `flutter test` for `EnemyHudWidget` UI logic.
-**Acceptance Criteria:** A visible enemy portrait has an HP bar. Line Clears visibly reduce the HP bar. (M3 Milestone Achieved — combat is playable)
-
----
-
-## Phase 9 — Objective System
-
-**Goal:** Each battle has a specific win condition beyond simply killing the enemy.
-
-**Prerequisites:** Phase 8.
-
-**Tasks:**
-- Create `objective_catalog.dart` and define models.
-- Author 2 test objectives: `DefeatEnemy`, `ClearLines(10)`.
-- Implement `objective_service.dart` (tracks progress, fires completion events).
-- Implement `objective_hud_widget.dart` (bar or counter).
-
-**Files to Create:**
-- `lib/domain/objectives/objective_service.dart`
-- `lib/data/definitions/objective_catalog.dart`
-- `lib/presentation/battle/widgets/objective_hud_widget.dart`
-
-**Tests:** Assert that clearing 10 lines triggers completion on a `ClearLines(10)` objective via `dart test`.
-**Acceptance Criteria:** The HUD shows objective progress. Completing an objective triggers the Victory flow. (M5 Milestone Achieved)
-
----
-
-## Phase 10 — Relic System
-
-**Goal:** Persistent passive modifiers activate during combat.
-
-**Prerequisites:** Phase 9.
-
-**Tasks:**
-- Create `relic_catalog.dart` with 2 relics as Dart consts (`BaseDamageBoost` and `OnLineClearMultiplier`).
-- Implement `relic_service.dart` (evaluates trigger conditions, returns multipliers).
-- Implement `relic_selection_overlay.dart` (Flutter overlay Stack for relic choice).
-
-**Files to Create:**
-- `lib/domain/relics/relic_service.dart`
-- `lib/data/definitions/relic_catalog.dart`
-- `lib/presentation/battle/overlays/relic_selection_overlay.dart`
-
-**Tests:** Assert a `+50% Damage` Relic correctly modifies output via `dart test`.
-**Acceptance Criteria:** After beating an enemy, the player is offered 3 relics via Flutter overlay. The chosen relic activates in the next battle. (M4 Milestone Achieved)
-
----
-
-## Phase 11 — Run Structure
-
-**Goal:** Multiple battles chain together with in-memory Relic and Stardust progression across battles (file persistence is added in Phase 17).
-
-**Prerequisites:** Phase 10.
-
-**Tasks:**
-- Implement `run_model.dart` (pure Dart class: seed, floor index, stardust, active relics).
-- Implement `run_service.dart` (pure Dart orchestration for floor progression).
-- Implement `encounter_catalog.dart`.
-- Implement `run_state_notifier.dart` (Riverpod `StateNotifier`).
-- Wire: Enemy Defeated -> Show Relics -> Next Floor.
-
-**Files to Create:**
-- `lib/domain/run/run_model.dart`
-- `lib/application/run_service.dart`
-- `lib/data/definitions/encounter_catalog.dart`
-- `lib/application/providers/run_state_notifier.dart`
-
-**Acceptance Criteria:** The player defeats an enemy, selects a relic, and a new (slightly harder) enemy appears. After defeat, the Run ends. (M6 Milestone Achieved — full run loop is playable)
-
----
-
-## Phase 12 — Core UI Screens
-
-**Goal:** The game has a real Main Menu, HUD, Pause, and Run Defeat (Game Over) screen.
-
-**Prerequisites:** Phase 11.
-
-**Tasks:**
-- Build `home_screen.dart` (for route `/`) and `battle_screen.dart` (for route `/battle`).
-- Build Settings screen for route `/settings`.
-- Build overlays for Pause, Victory, Defeat, RelicSelection, and RunComplete. These are shown via Flutter Stack/conditional rendering in `BattleScreen`, driven by state via Riverpod, NOT separate routes.
-- Configure GoRouter routes (`/`, `/battle`, `/settings`) in `app_router.dart`.
-- Build scene transition logic through GoRouter.
-
-**Files to Create:**
-- `lib/presentation/home/home_screen.dart`
-- `lib/presentation/battle/battle_screen.dart`
-- `lib/presentation/battle/overlays/pause_overlay.dart`
-- `lib/presentation/battle/overlays/defeat_overlay.dart`
-- `lib/presentation/battle/overlays/victory_overlay.dart`
+**Files to Create / Modify:**
+- `lib/app/app.dart`
 - `lib/app/app_router.dart`
+- `lib/presentation/splash/splash_screen.dart`
+- `lib/presentation/home/home_screen.dart`
+- `lib/domain/goal_mode/goal_level_config.dart`
+- `lib/data/persistence/settings_service.dart`
+- `test/presentation/home/home_screen_test.dart`
 
-**Acceptance Criteria:** The full loop (Menu -> Start Run -> Battle -> Win/Lose -> Menu) functions with Flutter routing and overlays.
-
----
-
-## Phase 13 — Visual Implementation
-
-**Goal:** The game looks like the visual spec (`11`, `09`, `10`).
-
-**Prerequisites:** Phase 12.
-
-**Tasks:**
-- Replace placeholder Flame blocks with polished visuals (CustomPainter or Flame PositionComponent with canvas drawing).
-- Apply color palette tokens from `10` to all Cell states.
-- Configure Flame SpriteSheet / SpriteBatch for visual assets.
-- Apply background art from `09`.
-- Replace default fonts with custom typography via Flutter Text and `pubspec.yaml` fonts.
-- Apply color themes to Enemy HUD, HP bars.
-
-**Files to Create/Modify:** Image assets in `assets/images`, Flame component visual configurations.
-
-**Acceptance Criteria:** The game visually matches the style-guide. The block surface has depth and bevel. The board has the correct dark grid. (M7 Milestone Achieved — visually polished prototype)
+**Verification:**
+- Full app lifecycle: Tap app icon $\to$ Splash $\to$ Home $\to$ Play Classic $\to$ Game Over $\to$ Return Home.
+- Release APK builds cleanly, passes `flutter analyze` with 0 issues, and passes 100% of test suites.
 
 ---
 
-## Phase 14 — Animation & Game Feel
+# PART 2: THE 5 CRITICAL MILESTONES
 
-**Goal:** All defined motion from `12_ANIMATION_MOTION_AND_GAME_FEEL.md` is implemented.
-
-**Prerequisites:** Phase 13.
-
-**Tasks:**
-- Implement Flame Effect system (`MoveEffect`, `ScaleEffect`, etc.) and `SpriteAnimationComponent` for game-world logic.
-- Implement Flutter `AnimationController` + `Tween` for UI elements.
-- Piece pickup scale bounce, DragOffset lift.
-- Piece placement Thud + Grid Ripple.
-- Invalid placement Shake Rejection.
-- Line Clear Flash sequence.
-- Enemy Hit Shake and HP bar smooth lerp.
-
-**Files to Create:**
-- `lib/game/effects/` contents for Flame effects.
-- Use `AnimatedWidget` / `AnimatedBuilder` for UI elements in `lib/presentation/`.
-
-**Acceptance Criteria:** The game generates the "Tactile Snap" feeling. Placing pieces feels physical. Clearing a line feels satisfying.
+| Milestone | Phase | What Must Work | Playable State |
+|---|---|---|---|
+| **M1: Pure Engine Verified** | Phase 1 | 8×8 Board, 24 Shapes, RNG, 3-slot Tray, Solvability Protection. | Pure Dart Domain (All tests green). |
+| **M2: Tactile Surface Playable** | Phase 2 | Beveled materials, responsive canvas, drag lift, ghost preview, snap placement. | Playable placement toy on device. |
+| **M3: Explosive Clear Loop** | Phase 3 | Simultaneous line clear, white-hot flash, particle bursts, screen shake, audio chimes. | Satisfying arcade line clearing loop. |
+| **M4: Classic Endless Game** | Phase 4 | Full scoring, combo streaks, board lock game over, local high score, replay dialog. | Complete endless high-score game! |
+| **M5: Release-Ready App** | Phase 5 | Splash screen, minimalist home screen, settings, goal-mode hooks, release APK. | Release-ready, polished mobile product. |
 
 ---
 
-## Phase 15 — VFX
-
-**Goal:** Particle effects from `13_VFX_PARTICLE_AND_IMPACT_SPEC.md` are implemented.
-
-**Prerequisites:** Phase 14.
-
-**Tasks:**
-- Implement `vfx_manager.dart` using Flame component reuse patterns.
-- Create Flame particle components or custom rendering for dust, line clears, enemy hits.
-- Wire Flame effects to stream events.
-
-**Files to Create:**
-- `lib/game/effects/vfx_manager.dart`
-- `lib/game/effects/place_dust_effect.dart`
-- `lib/game/effects/line_clear_effect.dart`
-
-**Acceptance Criteria:** A line clear spawns a visible burst of colorful particles. Enemy HP reaching 0 triggers a shatter effect. No VFX causes major frame drops.
-
----
-
-## Phase 16 — Audio
-
-**Goal:** All SFX and Music from `14_AUDIO_SFX_MUSIC_AND_MIXING.md` are implemented.
-
-**Prerequisites:** Phase 15.
-
-**Tasks:**
-- Implement `audio_service.dart` using `FlameAudio`.
-- Setup `FlameAudio.play()` for SFX, `FlameAudio.playLongAudio()` for background music.
-- Wire domain events to SFX playback.
-- Implement placeholder audio assets in `assets/audio/`.
-- Setup `SharedPreferences`-backed volume control.
-
-**Files to Create:**
-- `lib/application/audio_service.dart`
-- `assets/audio/` files
-
-**Acceptance Criteria:** The game sounds cohesive and reactive. Muting volume in settings silences everything. Backgrounding the app pauses music.
-
----
-
-## Phase 17 — Persistence (Save/Load)
-
-**Goal:** Player progress survives app close and reopen.
-
-**Prerequisites:** Phase 11.
-
-**Tasks:**
-- Implement `save_repository.dart` using Hive CE.
-- Setup `runBox` and `profileBox`.
-- Implement `run_save_data.dart` and `player_profile_data.dart`.
-- Handle exact deterministic state restoration (RNG calls, tray, enemy action).
-- Hook Flutter app lifecycle events for emergency saving.
-
-**Tests:**
-- Mock Hive boxes in `dart test` for serialization roundtrip.
-- Save/Load determinism: Save state, load, and assert exactly matching RNG behavior.
-**Acceptance Criteria:** Closing the app mid-run and reopening restores the exact logical state (Seed + RNG state + board + tray + enemy telegraph + objective progress). Stardust survives a force-quit.
-
----
-
-## Phase 18 — Settings & Accessibility
-
-**Goal:** All settings from `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` are functional.
-
-**Prerequisites:** Phase 16, Phase 17.
-
-**Tasks:**
-- Implement `settings_repository.dart` using `SharedPreferences`.
-- Build `settings_screen.dart` with Volume sliders, Haptics toggle, Reduced Motion toggle.
-- Expose `ReducedMotion` via Riverpod, disabling Flame effects durations and Flutter animation durations when active.
-- Utilize Flutter `SafeArea` widget for edge padding.
-
-**Files to Create:**
-- `lib/data/persistence/settings_repository.dart`
-- `lib/presentation/settings/settings_screen.dart`
-
-**Tests:** Assert `ReducedMotion = true` suppresses duration of animations via `flutter test`.
-**Acceptance Criteria:** All settings persist. Reduced Motion eliminates all non-essential animations. Safe area is correctly padded on devices.
-
----
-
-## Phase 19 — Monetization
-
-**Goal:** Opt-in Rewarded Ads and Premium Unlock are functional.
-
-**Prerequisites:** Phase 18.
-
-**Tasks:**
-- Implement `monetization_service.dart`.
-- Integrate Google Play Billing via `in_app_purchase` package.
-- Integrate Google Mobile Ads via `google_mobile_ads` package.
-- Wire Rewarded Ad button in Defeat overlay.
-- Wire IAP "Remove Ads" to disable ad prompts.
-
-**Files to Create:**
-- `lib/application/monetization_service.dart`
-
-**Acceptance Criteria:** A Rewarded Ad can be watched for a Revive. The Premium Unlock removes all ad prompts. Ad SDKs use Test IDs in QA builds. (M8 Milestone Achieved — content-complete MVP)
-
----
-
-## Phase 20 — QA, Performance, and Polish
-
-**Goal:** The game meets all Release Gates from `27` and `26`.
-
-**Prerequisites:** All 19 phases complete.
-
-**Tasks:**
-- Execute `flutter run --profile` and analyze using Flutter DevTools timeline on minimum-spec device. Fix any frame time violations.
-- Run memory leak tests via DevTools.
-- Execute full test suite (`dart test` / `flutter test`) and achieve >90% Domain coverage.
-- Fix all S0 and S1 bugs.
-- Conduct external playtest session (5 people).
-
-**Acceptance Criteria:** All automated tests pass. Zero S0 bugs. Performance gates cleared via DevTools.
-
----
-
-## Phase 21 — Release Preparation
-
-**Goal:** Build is submitted to Google Play.
-
-**Prerequisites:** Phase 20.
-
-**Tasks:**
-- Generate Keystore (`28` Sec 11). Back it up securely.
-- Compile Release Build via `flutter build appbundle` with Production Ad Unit IDs.
-- Upload to Google Play Console.
-- Complete Store Listing (Screenshots, Description, Feature Graphic) per `28` Sec 18.
-- Set initial Staged Rollout to 10%.
-
-**Acceptance Criteria:** The game is live in Google Play Internal Testing and passes Google's automated pre-launch report. (M9 Milestone Achieved — Release Candidate)
-
----
-
-# PART 2: CRITICAL MILESTONES
-
-| Milestone | What Must Work | What Can Be Rough |
-|---|---|---|
-| **M0: Project Launches** | Project compiles. Boot scene runs. | Everything else. |
-| **M1: Playable Puzzle** | Drag-and-drop. Board placement. Tray refill. | Visuals placeholder. No combat. |
-| **M2: Puzzle Loop Complete** | Line clearing. Game over detection. | No combat. No enemy. |
-| **M3: Combat Playable** | Damage dealt. Enemy HP tracked. | No run structure. Hardcoded enemy. |
-| **M4: Relics Playable** | Relics modify damage. Relic selection after win. | Only 2 relics. No run persistence. |
-| **M5: Objectives Playable** | Objective types tracked. Win conditions trigger correctly. | Only 2 objective types. |
-| **M6: Full Run Playable** | Multiple floors. Run death. Persistent Relics. | Placeholder art/audio. No settings. |
-| **M7: Polished Prototype** | Art applied. Animations. VFX. Audio. | No Save. No Monetization. |
-| **M8: Content-Complete MVP** | Save/Load. Settings. Ads/IAP. All planned content. | Minor visual bugs. |
-| **M9: Release Candidate** | All gates passed. Store listing ready. Staged rollout set. | Post-launch content. |
-
----
-
-# PART 3: VERTICAL SLICE
-
-Before proceeding past Phase 10, build a Vertical Slice:
-- **1 Enemy:** Test Golem (100 HP, simple attack telegraph).
-- **4 Shapes:** 1x1, 1x3, 2x2, L-Shape.
-- **1 Relic:** +20% Damage on Line Clear.
-- **1 Objective:** Defeat the Enemy.
-- **Victory:** Enemy HP = 0.
-- **Defeat:** Board Lock.
-- **Restart:** "Play Again" button resets the board and enemy.
-
-**Purpose:** The vertical slice is a mini-playable demo used for internal testing to confirm the core puzzle-combat loop is fun BEFORE investing dozens of hours in content production.
-
----
-
-# PART 4: MVP SCOPE LOCK
-
-**Must Have (MVP cannot ship without this):**
-- 8x8 board with drag-and-drop placement.
-- Line clearing (rows and columns).
-- 24 canonical playable shape definitions (SHP_001–SHP_024, per `02_SHAPE_LIBRARY.md`).
-- Combat: L-Value damage multipliers.
-- 5 unique enemies with different HP values and at least 1 action.
-- 10 unique relics with varied trigger types.
-- 3 objective types (Defeat, Clear Lines, Survive Moves).
-- Save / Load system.
-- Settings (Volume, Haptics, Reduced Motion).
-- Core VFX and SFX.
-- Rewarded Ad (Revive) and Premium Unlock (Remove Ads).
-
-**Should Have (Ship with MVP if time permits):**
-- Post-MVP shape expansion: integrate SHP_025–SHP_034 (10 authored-but-deferred entries from `02_SHAPE_LIBRARY.md`) after balance testing.
-- 8+ enemies.
-- 20+ relics.
-- Boss enemy (Super-structured attacks).
-- Tutorial tooltips.
-- Stardust soft-currency with a basic unlock shop.
-
-**Nice to Have (Post-MVP):**
-- Cloud Save.
-- Achievement system.
-- Daily Challenges.
-- Seasonal content.
-
-**Never Block MVP:**
-- Leaderboards.
-- Social sharing.
-- Multiplayer.
-- Character skins.
-- A story mode.
-
----
-
-# PART 5: AI EXECUTION STRATEGY
-
-### 1. Work One Subsystem at a Time
-Never ask an AI to implement "the whole combat system and the enemy system and the relics." 
-Ask: "Implement `combat_engine.dart` based on `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 3."
-
-### 2. Provide Full Context
-When prompting, paste the relevant Markdown sections as context. Do not assume the AI remembers the correct values from previous sessions.
-
-### 3. Analyze After Structural Changes
-After any interface updates, file creation, or package modifications — run `flutter analyze` immediately before continuing. Structural errors cascade catastrophically. Ensure package imports from flutter/flame must not appear in `lib/domain/`.
-
-### 4. Test After Gameplay Changes
-After any Domain Layer modification (Board, Combat, Relics), run `dart test / flutter test` before proceeding.
-
-### 5. Visual Review After UI Changes
-After any Widget or UI modification, run `flutter run` on an Android device to check layout, safe areas, and font sizing.
-
-### 6. Commit After Stable Milestones
-Commit to Git at every Milestone (`M1` through `M9`). Tag the commit (`git tag -a M1 -m "Playable puzzle loop"`).
-
----
-
-# PART 6: QUALITY GATES
-
-| Gate | Threshold | Tool |
-|---|---|---|
-| Architecture Gate | Zero domain layer flutter/flame imports. | `dart analyze` |
-| Gameplay Gate | All 20+ domain dart tests pass. | `dart test` |
-| UX Gate | No modal blocks input unintentionally on any test device. | Manual device test. |
-| Visual Gate | Art matches `09`/`10`/`11` color tokens and material spec. | Screenshot review. |
-| Audio Gate | All core gameplay events trigger the correct SFX. | Ear test + Event stream log. |
-| Performance Gate | 60 FPS on minimum spec. | Flutter DevTools on device. |
-| QA Gate | All `27` Automated Tests pass. Zero S0/S1 bugs. | `flutter test` + Bug tracker. |
-| Release Gate | Complete `28` Sec 21 checklist item by item. | `flutter build appbundle` check. |
-
----
-
-# PART 7: PRODUCTION SCHEDULE MODEL
-
-Work units are expressed in "Sessions" (approximately 2-4 focused hours of solo development each).
-
-| Phase | Estimated Sessions | AI Acceleration Potential |
-|---|---|---|
-| Phase 0 (Setup) | 2 sessions | High (AI generates boilerplate/interfaces) |
-| Phase 1 (Board Model) | 2 sessions | High (Pure Dart math) |
-| Phase 2 (Shape System) | 2 sessions | High (Dart const catalog definitions + matrix logic) |
-| Phase 3 (Placement) | 4 sessions | Medium (Requires manual device feel-testing) |
-| Phase 4 (Tray) | 2 sessions | High |
-| Phase 5 (Line Clear) | 2 sessions | High (deterministic math) |
-| Phase 6 (Game Over) | 1 session | High |
-| Phase 7 (Combat) | 2 sessions | High (Pure math, heavily testable) |
-| Phase 8 (Enemy) | 3 sessions | Medium (requires portrait art) |
-| Phase 9 (Objectives) | 2 sessions | High |
-| Phase 10 (Relics) | 4 sessions | High (data-driven, many variations) |
-| Phase 11 (Run Structure) | 3 sessions | Medium |
-| Phase 12 (UI Screens) | 4 sessions | Medium (requires layout review) |
-| Phase 13 (Visual) | 5 sessions | Low (art judgment is human) |
-| Phase 14 (Animation) | 3 sessions | Medium (Flame effect timing values require feel-testing) |
-| Phase 15 (VFX) | 3 sessions | Medium |
-| Phase 16 (Audio) | 3 sessions | Low (audio mixing is subjective) |
-| Phase 17 (Persistence) | 3 sessions | High (pure Dart serialization) |
-| Phase 18 (Settings) | 2 sessions | High |
-| Phase 19 (Monetization) | 3 sessions | Medium (requires test account setup) |
-| Phase 20 (QA) | 5 sessions | Medium (profiling requires device + judgment) |
-| Phase 21 (Release) | 3 sessions | Low (store assets require human creative) |
-
-**Where AI excels:** Generating boilerplate classes, writing Dart/Flutter test suites, Generating Dart catalog constants, translating Markdown spec into Dart code.
-**Where human judgment is mandatory:** Game feel tuning (animation timings), visual art direction, audio mixing levels, UX decisions not covered by a spec.
-
----
-
-## Final Execution Statement
-
-> **Build the foundation before the walls. Build the walls before the roof.**
->
-> This roadmap ensures Block Battles is built with maximum confidence at every step. Every mechanic is proven before it is decorated. Every decoration is applied before it is polished. Every polish pass is verified before it is shipped.
->
-> The documents you have built define a game. This roadmap converts those documents into a game.
+# PART 3: QUALITY GATES
+
+1. **Architecture Gate:** Zero Flutter/Flame imports in `lib/domain/`.
+2. **Visual Gate:** No "AI slop" — all blocks have bevels, shadows, and materials.
+3. **Game Feel Gate:** Drag has finger-occlusion lift; line clears have flash and particle bursts.
+4. **Test Gate:** 100% of unit and integration tests pass on `flutter test`.
+5. **Static Analysis Gate:** `flutter analyze` passes with 0 warnings and 0 errors.
 
 ---
 
