@@ -154,9 +154,17 @@ test('ScoreService applies streak multiplier accurately', () {
   final result1 = scoreService.registerClear(linesCleared: 1, placedCellCount: 4);
   expect(result1.pointsAdded, 104); // 4 placement + 100 line clear
   
-  // Second consecutive clear (streak = 2, multiplier = 1.2x)
+  // Second consecutive clear (streak = 2, multiplier = 1.5x)
   final result2 = scoreService.registerClear(linesCleared: 1, placedCellCount: 4);
-  expect(result2.pointsAdded, 124); // 4 + (100 * 1.2) = 124
+  expect(result2.pointsAdded, 154); // 4 + (100 * 1.5) = 154
+  
+  // Third consecutive clear (streak = 3, multiplier = 2.0x)
+  final result3 = scoreService.registerClear(linesCleared: 1, placedCellCount: 4);
+  expect(result3.pointsAdded, 204); // 4 + (100 * 2.0) = 204
+  
+  // Fourth consecutive clear (streak = 4+, multiplier = 2.5x cap)
+  final result4 = scoreService.registerClear(linesCleared: 1, placedCellCount: 4);
+  expect(result4.pointsAdded, 254); // 4 + (100 * 2.5) = 254
 });
 ```
 

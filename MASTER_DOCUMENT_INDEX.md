@@ -145,7 +145,7 @@ LAYER D — PRODUCTION & EXECUTION (Delivery)
 | D-001 | Board size is 8×8, fixed geometry. | `01`, `03` | LOCKED |
 | D-002 | No piece rotation mechanic. | `01`, `02` | LOCKED |
 | D-003 | Tray holds exactly 3 pieces, batch replenishment. | `01`, `04` | LOCKED |
-| D-004 | Multi-line clear scoring scales $L=1\dots 4+$. | `05` | LOCKED |
+| D-004 | Multi-line scoring scales $L=1\dots 4+$; Streak multipliers scale $1.0\times, 1.5\times, 2.0\times, 2.5\times$ cap. | `05` | LOCKED |
 | D-005 | Android-first, offline, no server requirement. | `00`, `28` | LOCKED |
 | D-006 | Domain Layer has zero Flutter/Flame references. | `18` | LOCKED |
 | D-007 | Deterministic seeded RNG (`GameRNG`). | `04`, `18` | LOCKED |

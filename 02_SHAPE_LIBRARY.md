@@ -141,7 +141,7 @@ The shape metadata (`category`, `tags`, `block_count`, `width`, `height`) govern
 
 1. **Placement Points:** Every shape awards points equal to its `block_count` ($1\text{ pt/cell}$). A 3×3 square awards +9 points, while a Domino awards +2 points.
 2. **Multi-Line Clear Potential:** Shapes with `WIDE` or `TALL` tags provide high probability of intersecting both horizontal and vertical lines, triggering simultaneous $L \ge 2$ clears.
-3. **Streak Maintenance:** Small pieces (`SMALL` tag) provide high placement flexibility to sustain active streak multipliers ($1.2\times \to 2.5\times$) during tight board situations.
+3. **Streak Maintenance:** Small pieces (`SMALL` tag) provide high placement flexibility to sustain active streak multipliers ($1.5\times \to 2.5\times$) during tight board situations.
 
 ---
 

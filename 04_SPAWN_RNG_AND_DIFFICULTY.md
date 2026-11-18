@@ -159,7 +159,7 @@ A balanced design demonstrates:
 Key metrics tracked during testing:
 - **Average Session Length:** Placements and lines cleared per session.
 - **Board Lock Distribution:** Average board occupancy at the moment of game-over.
-- **Streak Frequency:** Percentage of turns maintaining active streak multipliers ($1.2\times \dots 2.5\times$).
+- **Streak Frequency:** Percentage of turns maintaining active streak multipliers ($1.5\times \dots 2.5\times$).
 - **Stage Completion Rate:** Percentage of attempts achieving 1, 2, or 3 stars per Stage.
 
 ---

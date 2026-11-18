@@ -71,7 +71,7 @@ For Block Battles, the testing effort is distributed as follows:
   - $L=2 \to 300$ points
   - $L=3 \to 600$ points
   - $L=4 \to 1000$ points
-- **Streak Multiplier:** Assert that consecutive placement moves resulting in line clears increment the streak multiplier ($1.0\times, 1.2\times, 1.4\times, \dots, 2.5\times$ cap).
+- **Streak Multiplier:** Assert that consecutive placement moves resulting in line clears increment the streak multiplier ($1.0\times, 1.5\times, 2.0\times, 2.5\times$ cap).
 - **Streak Reset:** Assert that a placement move resulting in zero cleared lines resets the streak multiplier back to $1.0\times$.
 
 ---

@@ -323,7 +323,11 @@ See Section 10 (Iconography) for full standards. Every icon lives inside a conta
 ### 6.4 Numbers — Special Treatment
 
 - **Tabular numerals mandatory** for any number that changes live (score, high score, moves remaining, objective counts).
-- **Floating Score numbers scale with line clear magnitude and streak:**\n  - L=1 line clear: Base text size\n  - L=2 lines cleared: 1.2x base size\n  - L=3 lines cleared: 1.5x base size\n  - L=4+ lines cleared (Full Clear): 2.0x base size + gold glow effect
+- **Floating Score numbers scale with line clear magnitude and streak:**
+  - $L=1$ line clear: Base text size
+  - $L=2$ lines cleared: 1.2x base size
+  - $L=3$ lines cleared: 1.5x base size
+  - $L=4+$ lines cleared (Full Clear): 2.0x base size + gold glow effect
 - **Score:** Small, Numeric-Large weight, top-zone corner.
 - **Objective progress:** Bold, inline. Format: current / target or remaining, depending on objective type.
 

@@ -54,7 +54,7 @@ Expanded into player-facing emotions:
 - **5–15s:** Tapping "Classic" presents the 8×8 board with 3 inviting pieces in the tray.
 - **15–30s:** Player drags a piece. It lifts smoothly above the touch point, previews a semi-transparent ghost over valid grid cells, and snaps down with a responsive tactile thud.
 - **30–45s:** Completing a row or column triggers a crisp particle dissolve, a harmonic chime, and a glowing score popup.
-- **45–60s:** Placing consecutive clears triggers the streak multiplier badge ($1.2\times, 1.4\times$), intensifying audio pitch and visual feedback.
+- **45–60s:** Placing consecutive clears triggers the streak multiplier badge ($1.5\times, 2.0\times$), intensifying audio pitch and visual feedback.
 - **End of session:** On board lock, a celebratory Game Over dialog presents the final score, compares it to the local High Score, and provides an instant one-tap "Play Again".
 
 ---

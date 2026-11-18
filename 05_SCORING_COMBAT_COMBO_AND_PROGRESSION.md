@@ -105,7 +105,7 @@ A streak is built by clearing at least one line on consecutive piece placement t
 3. High Score Comparison
    ├── If Score > HighScore:
    │   ├── HighScore = Score
-   │   └── Save locally (key: classic_all_time_high_score)
+   │   └── Save locally via SaveRepository (field: classicHighScore in progressionBox)
    │   └── Emit NewHighScoreEvent { newHighScore: Score }
 ```
 

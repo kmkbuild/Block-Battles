@@ -49,7 +49,7 @@ Block Battles is engineered from the ground up as a pure, premium block puzzle e
   $$\text{TurnScore} = \text{PlacementPoints} + \left( \text{BaseLineClearPoints}(L) \times \text{StreakMultiplier} \right)$$
   - *Placement Points:* $1 \text{ pt} \times \text{blockCount}$.
   - *Multi-Line Bonuses ($L$ simultaneous lines):* $L1 = 100$, $L2 = 300$, $L3 = 600$, $L4 = 1,000$.
-  - *Consecutive Streak Multipliers:* Streak 1 = $1.0\times$, Streak 2 = $1.2\times$, Streak 3 = $1.4\times$, $\dots$ up to $2.5\times$ cap.
+  - *Consecutive Streak Multipliers:* Turn 1 clear = $1.0\times$, Turn 2 consecutive clear = $1.5\times$, Turn 3 consecutive clear = $2.0\times$, Turn 4+ consecutive clear = $2.5\times$ (cap).
   - *Board Wipe:* Clearing all 64 cells awards a $+500$ flat jackpot with golden fanfare.
 - **Game Over:** Board Lock triggers the instant zero valid placements exist for all remaining tray pieces.
 
