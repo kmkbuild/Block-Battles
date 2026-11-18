@@ -15,4 +15,3 @@ Pure arcade block puzzle game with a premium, tactile, adult-focused aesthetic.
 
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
-| 001 | App Icon & Brand Visuals | What app icon treatment feels premium, clean, tactile, and instantly clickable on an Android/iOS home screen without being cluttered or over-saturated? | Pending | [icon, branding, launcher, mobile] |
