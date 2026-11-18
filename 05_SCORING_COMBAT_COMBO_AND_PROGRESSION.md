@@ -106,7 +106,7 @@ A streak is built by clearing at least one line on consecutive piece placement t
    ├── If Score > HighScore:
    │   ├── HighScore = Score
    │   └── Save locally via SaveRepository (field: classicHighScore in progressionBox)
-   │   └── Emit NewHighScoreEvent { newHighScore: Score }
+   │   └── Emit NewHighScoreAchieved { newHighScore: Score }
 ```
 
 ---

@@ -182,7 +182,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
 3. **Local High Score Persistence (`SaveRepository`):**
    - Offline storage (Hive CE for progression and session data; SharedPreferences for settings).
    - Stores `classicHighScore` in Hive CE on the local device.
-   - Emits `NewHighScoreEvent` when player exceeds prior record during active gameplay.
+   - Emits `NewHighScoreAchieved` when player exceeds prior record during active gameplay.
 4. **Classic Game HUD:**
    - Sleek in-game header: Current Score, Trophy icon with All-Time Best score, active Combo Streak badge, Pause / Audio toggle.
 5. **Game Over Modal & Instant Replay Loop:**
