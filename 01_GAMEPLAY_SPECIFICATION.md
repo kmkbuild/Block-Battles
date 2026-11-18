@@ -193,7 +193,7 @@ GAME OVER DIALOG
 
 ## 15. Backgrounding / App Lifecycle
 
-- When the application is paused or backgrounded, current game state (board occupancy, score, streak, tray pieces, and RNG seed state) is autosaved locally via `shared_preferences` / `hive_ce`.
+- When the application is paused or backgrounded, current game state (board occupancy, score, streak, tray pieces, and RNG seed state) is autosaved atomically to local storage via Hive CE (`SaveRepository`).
 - Resuming the app restores the exact state without penalty or lost progress.
 
 ---

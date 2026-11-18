@@ -69,7 +69,7 @@ A streak is built by clearing at least one line on consecutive piece placement t
 
 ## 6. Local High Score Persistence
 
-- **Storage Key:** `classic_all_time_high_score` stored locally via `shared_preferences` / `hive_ce`.
+- **Storage Key:** `classicHighScore` stored in Hive CE `progressionBox` via `SaveRepository` (Doc 24).
 - **Default value:** 0.
 - **In-Game Display:** The active in-game HUD displays:
   - `SCORE`: Current running game score (e.g., `1,420`).
@@ -136,8 +136,8 @@ If a line clear results in an entirely empty 8x8 board (0 filled cells remaining
 
 ## 10. Local Persistence Contract
 
-- **Technology:** `shared_preferences` / `hive_ce`.
-- **Key:** `'classic_all_time_high_score'`.
+- **Technology:** Hive CE (`hive_ce` via `SaveRepository`).
+- **Entity & Field:** `ProgressionData.classicHighScore` in `progressionBox` (Doc 24).
 - **Default:** `0`.
 - **Safety:** Updated immediately on new record and flushed on app backgrounding to prevent data loss.
 - **Offline:** Absolutely no network requests or external dependencies.

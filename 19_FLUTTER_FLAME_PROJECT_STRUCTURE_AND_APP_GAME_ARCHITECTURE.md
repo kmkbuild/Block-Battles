@@ -109,9 +109,9 @@ Gameplay UI such as Pause Menu, Game Over Modal, and Level Clear Modal are **Flu
 
 ## 5. Home Screen Architecture (`/`)
 
-- **Purpose:** Handles the Main Menu, run continuation, and meta-progression.
+- **Purpose:** Handles the Main Menu, mode selection (Classic Endless or Stage Challenges), session continuation, and settings.
 - **Widgets:** Standard Flutter UI (`Scaffold`, `Column`, `ElevatedButton`).
-- **Flow:** When the player taps "Start Run", a Riverpod controller generates the Run Seed, instantiates the `RunModel`, saves to Hive, and calls `context.go('/game')`.
+- **Flow:** When the player taps "Play Classic" or selects a Stage, a Riverpod controller initializes or restores the game session state in Hive CE, and calls `context.go('/game')`.
 
 ---
 

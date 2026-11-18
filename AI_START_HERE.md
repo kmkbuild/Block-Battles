@@ -106,7 +106,7 @@ The player should feel clever, not lucky. The board is a spatial playground. Pla
 - Pure puzzle scoring system (placement points + line clear points + multi-line bonuses + streak multipliers).
 - Mode 1 (Classic Endless): Board lock detection, local high score persistence (`hive_ce`), game over celebration.
 - Mode 2 (Stage Challenges): Move limits, target score goals, color block collection quotas, obstacle clearing (stone, ice).
-- Local persistence via Hive CE and SharedPreferences.
+- Local persistence: Hive CE for game progression and active sessions; SharedPreferences for audio/haptic settings.
 - Rich audiovisual juice: beveled block shaders, particle bursts, screen shake, audio chimes.
 - Offline-first: 100% playable without an internet connection.
 

@@ -138,7 +138,7 @@ Whenever you complete a coding step, you must explicitly log what was changed us
 You MUST stop and ask for human approval before:
 - Adding a new package to `pubspec.yaml`.
 - Deleting a Core Domain file.
-- Modifying the Hive schema (`RunSaveData`) in a way that breaks backwards compatibility without writing a Migration script.
+- Modifying Hive schemas (`ActiveSessionData` or `ProgressionData`) in a way that breaks backwards compatibility without writing a Migration script.
 - Changing the overall color palette or visual aesthetic.
 
 ---

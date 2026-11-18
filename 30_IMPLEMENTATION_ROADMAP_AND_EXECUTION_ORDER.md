@@ -179,9 +179,9 @@ Every single phase produces a verified, visually stunning, test-passing delivera
    - Runs at the end of each turn after tray consumption / refill.
    - Tests all remaining tray pieces across all 64 board origins using `boardModel.validatePlacement()`.
    - If zero legal placements exist across all tray pieces $\to$ fires `BoardLockDetected` event.
-3. **Local High Score Persistence (`SaveService`):**
-   - Offline storage (`shared_preferences` / `hive_ce`).
-   - Stores `allTimeHighScore` on the local device.
+3. **Local High Score Persistence (`SaveRepository`):**
+   - Offline storage (Hive CE for progression and session data; SharedPreferences for settings).
+   - Stores `classicHighScore` in Hive CE on the local device.
    - Emits `NewHighScoreEvent` when player exceeds prior record during active gameplay.
 4. **Classic Game HUD:**
    - Sleek in-game header: Current Score, Trophy icon with All-Time Best score, active Combo Streak badge, Pause / Audio toggle.

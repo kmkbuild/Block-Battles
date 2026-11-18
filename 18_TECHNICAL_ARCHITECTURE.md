@@ -27,7 +27,7 @@ The purpose of this architecture is to build a robust, deterministic, tactile, a
 
 ```text
 [ PLATFORM LAYER ]
-   └── Save/Load IO (Hive CE / SharedPreferences for Local High Score)
+   └── Save/Load IO (Hive CE for Game Progress & Sessions; SharedPreferences for Settings)
 
 [ FLUTTER UI LAYER (App Shell & Overlays) ]
    ├── Screens: SplashScreen, HomeScreen, GameView
@@ -96,7 +96,7 @@ The purpose of this architecture is to build a robust, deterministic, tactile, a
 
 ## 6. Runtime Lifecycle
 
-1. **Boot:** Initialize local storage (`SharedPreferences` / `Hive CE`). Load all-time High Score.
+1. **Boot:** Initialize local storage (Hive CE for game progression and active sessions; SharedPreferences for settings). Load all-time High Score from Hive CE.
 2. **Splash Screen:** Display 1.2s animated logo $\to$ Transition to Home.
 3. **Home Screen:** Display High Score trophy card $\to$ Player taps [ PLAY CLASSIC ].
 4. **Classic Game Session:**
@@ -145,7 +145,7 @@ The purpose of this architecture is to build a robust, deterministic, tactile, a
 | App Framework | Flutter |
 | Game Engine | Flame |
 | State Management | Riverpod |
-| Local Persistence | SharedPreferences / Hive CE |
+| Local Persistence | Hive CE (Game Progress & Sessions) + SharedPreferences (User Settings) |
 | Audio | Flame Audio |
 | Target Platform | Android |
 | Testing | dart test & flutter test |

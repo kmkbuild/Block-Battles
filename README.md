@@ -191,7 +191,7 @@ E:\Block Buster\
 | **Framework** | Flutter 3.x (Material 3, dark slate baseline) |
 | **Game Engine** | Flame 1.x (Component tree, drag callbacks, particle systems) |
 | **State Management** | Riverpod |
-| **Persistence** | Hive CE / SharedPreferences (100% offline, local high scores) |
+| **Persistence** | Hive CE (Game Progress & Sessions) + SharedPreferences (Settings) — 100% offline |
 | **Audio** | Flame Audio (Sound pool, pitch-shifting clear chimes) |
 | **Target Platform** | Android 8.0+ (API 26+) / iOS — Portrait orientation, 60fps locked |
 | **Primary Code Workspace** | `E:\BLOCK BATTLES DEV` |
