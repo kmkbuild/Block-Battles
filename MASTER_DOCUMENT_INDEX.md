@@ -155,7 +155,7 @@ LAYER D — PRODUCTION & EXECUTION (Delivery)
 | D-011 | Flutter strictly handles UI, Flame handles the board. | `23` | LOCKED |
 | D-012 | Atomic Save pattern with Hive CE. | `24` | LOCKED |
 | D-013 | Monetization: Rewarded Ad + Premium Unlock only. | `17` | LOCKED |
-| D-014 | 34 canonical shapes in 9 families from Day One. | `02`, `20`, `30` | LOCKED |
+| D-014 | 34 canonical shapes in 15 families (9 categories) from Day One. | `02`, `20`, `30` | LOCKED |
 | D-015 | Pure two-mode taxonomy (Classic Endless & Stage Challenge). | `00`, `07`, `20` | LOCKED |
 
 ---

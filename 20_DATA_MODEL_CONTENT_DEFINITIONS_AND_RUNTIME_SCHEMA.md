@@ -36,15 +36,44 @@ There is a strict boundary between what the designer authors and what the game e
 
 ## 4. Shape Schema (`shape_definition.dart`)
 
-Defines the geometry, bounding box, and metadata of a draggable block piece (34 canonical shapes across 9 families).
+Defines the geometry, bounding box, and metadata of a draggable block piece (34 canonical shapes across 15 families and 9 functional categories).
 
 ```dart
-enum ShapeFamily { dot, line, square, lShape, tShape, zShape, corner, plus, uShape }
+enum ShapeCategory {
+  single,
+  line,
+  corner,
+  square,
+  rectangle,
+  lFamily,
+  tFamily,
+  sZFamily,
+  cross,
+}
+
+enum ShapeFamily {
+  single,
+  domino,
+  trominoLine,
+  trominoCorner,
+  tetrominoLine,
+  tetrominoSquare,
+  tetrominoL,
+  tetrominoJ,
+  tetrominoT,
+  tetrominoS,
+  tetrominoZ,
+  pentominoLine,
+  pentominoPlus,
+  square3x3,
+  rectangle2x3,
+}
 
 class ShapeDefinition {
   final String shapeId; // e.g., "shape_square_2x2", "shape_line_1x4"
   final String displayName;
   final ShapeFamily family;
+  final ShapeCategory category;
   final int defaultColorIndex; // 0..7 matching Color Palette
   final int rarityWeight;      // RNG selection weight
   
@@ -56,6 +85,7 @@ class ShapeDefinition {
     required this.shapeId,
     required this.displayName,
     required this.family,
+    required this.category,
     required this.defaultColorIndex,
     required this.rarityWeight,
     required this.blockMatrix,

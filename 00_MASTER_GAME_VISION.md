@@ -66,7 +66,7 @@ Expanded into player-facing emotions:
 - Visual grammar (grid lines, block geometry, fill states, score counters) is self-explanatory.
 
 ### 5.2 Tactical Spatial Placement
-- Piece placement is a genuine spatial puzzle with deep replayability across 34 canonical shapes in 9 families.
+- Piece placement is a genuine spatial puzzle with deep replayability across 34 canonical shapes across 15 families (9 categories).
 - Skilled players achieve higher scores and longer runs through forward planning and pocket management.
 
 ### 5.3 Tactile Juice & Zero "AI Slop"
@@ -167,7 +167,7 @@ Launch scope is disciplined and focused:
 | Game Modes | 2 (Mode 1: Classic Endless, Mode 2: Goal-Driven Stages) |
 | Board Grid Size | $8 \times 8$ (64 cells) |
 | Tray Capacity | 3 simultaneous shape slots |
-| Shape Library | 34 canonical shapes across 9 families |
+| Shape Library | 34 canonical shapes across 15 families (9 categories) |
 | Color Themes | 8 vibrant palette themes |
 | Obstacle Types | 2 (Stone blocks, Multi-hit Ice blocks) |
 | Mode 2 Stages | 30 curated progression stages for MVP launch |

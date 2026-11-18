@@ -85,7 +85,7 @@ flutter:
 ## 6. Content Definition Files (Dart Catalogs)
 
 All static content data is authored as pure Dart constant files:
-- `shape_catalog.dart` (34 canonical shapes across 9 families)
+- `shape_catalog.dart` (34 canonical shapes across 15 families / 9 categories)
 - `stage_catalog.dart` (Mode 2 Stage definitions, goals, move limits, initial obstacles)
 
 ```dart

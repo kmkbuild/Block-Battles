@@ -49,7 +49,7 @@ For Block Battles, the testing effort is distributed as follows:
 
 ## 5. Shape Library Tests
 
-- **34 Canonical Shapes:** Assert that all 34 shapes are correctly registered in `ShapeCatalog` across the 9 canonical families.
+- **34 Canonical Shapes:** Assert that all 34 shapes are correctly registered in `ShapeCatalog` across the 15 families (9 categories).
 - **Matrix Dimension Invariant:** Assert that every shape definition has a block matrix of exactly 25 elements ($5 \times 5$).
 - **Anchor Offset:** Assert that the shape's logical anchor correctly maps local $5 \times 5$ coordinates onto the global $8 \times 8$ board coordinates.
 

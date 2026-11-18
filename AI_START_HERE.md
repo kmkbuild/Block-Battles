@@ -101,7 +101,7 @@ The player should feel clever, not lucky. The board is a spatial playground. Pla
 ### Included Systems
 - 8×8 grid board with responsive mobile auto-scaling.
 - 3-slot tray with deterministic `GameRNG` and solvability protection.
-- 34 canonical playable shape definitions across 9 families (`02_SHAPE_LIBRARY.md`).
+- 34 canonical playable shape definitions across 15 families / 9 categories (`02_SHAPE_LIBRARY.md`).
 - Simultaneous line clearing (rows + columns) with single-clear intersection union.
 - Pure puzzle scoring system (placement points + line clear points + multi-line bonuses + streak multipliers).
 - Mode 1 (Classic Endless): Board lock detection, local high score persistence (`hive_ce`), game over celebration.
