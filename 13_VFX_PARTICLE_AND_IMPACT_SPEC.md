@@ -17,7 +17,7 @@ If the board is a sentence and animation is the rhythm of speaking, VFX is the e
 **Core Tenets:**
 1. **Geometric over Organic:** We use crisp, geometric particles (squares, fragments, lines) that match the "Painted Acrylic" block art. No realistic smoke, no volumetric fire, no soft glowing lens flares.
 2. **Subtractive Polish:** A great effect in this game is one that communicates impact and then gets out of the way in under 400ms. Lingering particle trails obscure the board and are forbidden.
-3. **Causality over Spectacle:** VFX must always explain *why* something happened. If a relic modifies damage, a particle must bridge the relic to the damage number. 
+3. **Clarity over Spectacle:** VFX must always explain what happened on the board. When lines clear, debris bursts cleanly and immediately dissolves to keep the board legible. 
 4. **Performance is Aesthetic:** A dropped frame ruins game feel more than a missing spark. Effects are budgeted strictly for 60fps mobile execution.
 
 ---
@@ -29,10 +29,10 @@ Effects are classified by their necessary screen presence and particle budget.
 | Intensity | Particle Budget | Screen Space | Usage |
 |---|---|---|---|
 | **Subtle** | < 10 | Cell-local | UI hovers, Invalid placement rejections, minor HUD updates. |
-| **Normal** | 10 - 25 | 1-2 Grid Cells | Block placement impact, standard Enemy hit, L=1 Line Clear. |
-| **Elevated** | 30 - 50 | Affected Rows/Cols | L=2 and L=3 Line Clears, major Relic triggers, Objective completion. |
-| **Major** | 60 - 100 | Board-wide + HUD | L=4 Full Combo, Enemy Defeat, Run-ending Board Lock. |
-| **Boss** | 100 - 150 | Full Screen | Boss phase transition, Boss defeat. |
+| **Normal** | 10 - 25 | 1-2 Grid Cells | Block placement impact, L=1 Line Clear. |
+| **Elevated** | 30 - 50 | Affected Rows/Cols | L=2 and L=3 Line Clears, Streak increments, Objective completions. |
+| **Major** | 60 - 100 | Board-wide + HUD | L=4 Quad Clear, Full Board Wipe, Game Over Board Lock. |
+| **Milestone** | 100 - 150 | Full Screen | Full Board Clear fireworks, Mode 2 Stage Victory celebration. |
 
 ---
 
@@ -77,56 +77,41 @@ In Block Battles, a "Combo" is defined by the L-value (simultaneous lines cleare
 |---|---|---|---|
 | **Fragment Density** | 6-8 per cell | 8-12 per cell | 15+ per cell |
 | **Fragment Speed** | Normal | Fast (+30%) | Explosive (+60%), higher friction (stops faster) |
-| **Glow Underlay** | `CLR-CMB-DAMAGE-2` | `CLR-CMB-DAMAGE-3` | `CLR-CMB-DAMAGE-4` |
+| **Glow Underlay** | `CLR-SCR-POPUP-2` | `CLR-SCR-POPUP-3` | `CLR-SCR-POPUP-4` |
 | **Screen Edge** | None | `CLR-CMB-COMBO-GLOW` vignette flash (200ms) | `CLR-CMB-FULLCOMBO-GLOW` hard edge flash (250ms) |
 | **Connecting Arcs** | None | Subtle energy arcs jump between the intersecting clear lines | Heavy, bright arcs tracing the cross-sections of cleared lines |
 
 ---
 
-## 7. Damage Effects
+## 7. Floating Score & Streak VFX
 
-Occurs exactly as the Damage Number pops (Doc 12, Section 12).
+Occurs as floating score numbers pop from the cleared line:
 
-- **Normal Hit:** A directional burst of 8-10 fragments away from the center of the enemy portrait. Color: `CLR-CMB-ENEMY-HIT`.
-- **Critical Hit / High Damage:** (Triggered if damage exceeds 25% of Enemy Max HP in one blow, or modified by a crit relic). Adds a prominent "X" or starburst slash across the enemy portrait. Fragments are larger and travel further.
-- **Armor / Defense Hit:** If enemy defense mitigates >30% of incoming damage (Doc 05), the hit VFX changes. Fragments are dull gray (`CLR-TXT-SECONDARY`), speed is halved, and they bounce downward as if deflected. A sharp, metallic ring effect expands from the hit point.
-- **Special / Relic Damage:** If a relic adds flat/multiplier damage, a distinct colored trail (matching the Relic's primary color) flies from the Relic HUD chip to the enemy immediately prior to the hit spark.
+- **Score Sparks:** A crisp burst of 6-8 golden diamond sparks (`CLR-TXT-ACCENT`) radiating upward with the floating point number (+100, +300, etc.).
+- **Streak Multiplier Pulse:** When streak increments (STREAK x1.5!), the streak badge emits a brief 360-degree light ring (200ms) with amber sparks.
 
 ---
 
-## 8. Enemy Effects
+## 8. Mode 2 Obstacle Clearing VFX
 
-- **Enemy Hit:** See Section 7 above.
-- **Enemy Stagger:** (Triggered by specific stun/delay mechanics, if added). Portrait emits a dizzying ring of 3-4 orbiting dots that fade over 500ms.
-- **Enemy Defeat (Major):** Portrait freezes, turns pure white (`CLR-CMB-ENEMY-DEFEAT`), and shatters into 30-50 large geometric shards. Shards fly outward in 3D space (scaling up slightly to simulate flying toward the camera) and fade over 400ms. A screen-space shockwave distortion briefly ripples outward from the enemy center.
-- **Status Effect Application:** When an enemy freezes or blocks a board cell, a sharp, colored line connects the enemy portrait to the target cell (100ms), followed by a localized burst of particles at the cell (e.g., ice crystals for FROZEN, heavy dust for BLOCKED).
+In Goal-Driven stages:
+
+- **Ice Block Shatter:** When an adjacent line clear breaks a frozen cell, 8-12 translucent cyan-white crystalline shards (`CLR-PC-TID-LIGHT`) eject radially and dissolve over 200ms.
+- **Stone / Blocked Cell Crumble:** When an obstacle is cleared, 6-8 dark matte stone fragments collapse downward under simulated gravity into the board surface (250ms).
 
 ---
 
 ## 9. Objective Completion Effects
 
-- **Subtle Increment:** When progress is made but not completed (e.g., 2/5 lines cleared), a tiny spark `CLR-SEM-SUCCESS` traces the edge of the objective progress bar. (Intensity: Subtle).
-- **Major Completion:** When the objective reaches its target (5/5). A bright radial flare bursts from the center of the Objective UI chip. 15-20 small confetti-like squares (`CLR-SEM-SUCCESS` and `CLR-TXT-ACCENT`) shoot outward in screen-space and fall via gravity, fading before they cross the board zone. (Intensity: Elevated).
+- **Subtle Increment:** When progress is made but not completed (e.g., 2/5 lines or colors cleared), a tiny spark `CLR-SEM-SUCCESS` traces the edge of the objective progress bar. (Intensity: Subtle).
+- **Major Completion:** When an objective reaches its target (e.g., 15/15 Blue blocks cleared), a bright radial flare bursts from the center of the Objective UI chip. 15-20 small confetti-like squares (`CLR-SEM-SUCCESS` and `CLR-TXT-ACCENT`) shoot outward in screen-space and fall via gravity, fading before they cross the board zone. (Intensity: Elevated).
 
 ---
 
-## 10. Relic Effects (Causality)
+## 10. Full Board Clear & Milestone Celebration
 
-Relics are passive but must feel active when they contribute to a turn.
-
-- **Trigger Flash:** When a relic applies its modifier during the Damage Pipeline, its card/chip in the HUD flashes white briefly (100ms).
-- **Causality Trail:** A thin, fast-moving comet trail fires from the HUD chip to the point of impact (the enemy or the board). This makes invisible math visible. 
-- **Style:** Clean lines, no soft smoke. Uses the accent color associated with that specific relic's artwork.
-
----
-
-## 11. Boss Effects
-
-Bosses require grander feedback but must not obscure the board.
-
-- **Entrance:** Boss drops into the UI zone from above. A heavy screen shake (Doc 12) triggers, and dust particles eject horizontally from the UI dividing line into the board area, dissipating quickly.
-- **Phase Transition:** `CLR-BOSS-ACCENT-1` sweeps across the background layer. The boss portrait pulses aggressively. Ambient particles (small floating squares) drift upward in the background for 2-3 seconds to signal heightened tension.
-- **Boss Defeat:** Scales the Enemy Defeat effect up by 2x. Multiple secondary explosions trigger across the portrait area before the final shatter. The full screen flashes white.
+- **Full Board Clear (Wipe):** All 64 cells emit a synchronized golden flash. 40-50 golden particle fireworks burst radially from the center of the board to the perimeter, holding for 400ms before dissolving into sparkling dust.
+- **Stage Victory Celebration (Mode 2):** When the final stage requirement is met, unused moves burst into star sparks that fly toward the score counter, followed by a celebratory star badge stamp on the victory modal.
 
 ---
 
@@ -168,7 +153,7 @@ VFX rendering must use Flame custom renders or unlit Sprite components drawing e
 | Space | Usage | Why |
 |---|---|---|
 | **World-Space (Board Layer)** | Block fragments, placement dust, cell highlights, invalid placement sparks. | These effects are physical interactions with the board and must obey board masking and scaling. |
-| **Screen-Space (UI Layer)** | Combo screen-edge flashes, Damage numbers, Objective bursts, Relic causality trails. | These are meta-feedback mechanisms communicating with the player directly, unconstrained by the board grid. |
+| **Screen-Space (UI Layer)** | Multi-line screen-edge flashes, Floating score numbers, Objective bursts, Board Clear banners. | These are meta-feedback mechanisms communicating with the player directly, unconstrained by the board grid. |
 
 ---
 
@@ -186,7 +171,6 @@ VFX rendering must use Flame custom renders or unlit Sprite components drawing e
 If the device profiles as low-end (e.g., < 3GB RAM, older SoC):
 - Disable the additive glow underlays entirely.
 - Cap particle burst counts at 30% of normal values (e.g., a 15-particle burst becomes a 5-particle burst).
-- Disable Boss ambient drifting particles.
 
 ---
 
@@ -194,10 +178,10 @@ If the device profiles as low-end (e.g., < 3GB RAM, older SoC):
 
 When the OS or in-game "Reduced Motion / Reduced Flashes" setting is enabled:
 
-1. **Disable all Additive Flashes:** Screen-edge flashes (`CLR-CMB-FULLCOMBO-GLOW`), full-screen defeat flashes, and cell clear flashes are disabled. Replaced with simple opacity fades.
+1. **Disable all Additive Flashes:** Screen-edge flashes (`CLR-CMB-FULLCOMBO-GLOW`), full-screen celebration flashes, and cell clear flashes are disabled. Replaced with simple opacity fades.
 2. **Remove Screen Shake:** All camera trauma is clamped to 0.
 3. **Minimize Debris:** Burst counts are reduced to 1-2 particles purely for confirmation, removing the chaotic visual noise of shattering blocks.
-4. **Disable Distortion:** Screen-space shockwaves (Enemy Defeat) are disabled to prevent nausea.
+4. **Disable Distortion:** Screen-space shockwaves are disabled to prevent nausea.
 
 ---
 
@@ -211,12 +195,12 @@ Canonical list of Flame particle components required for production:
 | `vfx_invalid_spark` | Sharp red rejection spark | Subtle | World |
 | `vfx_clear_burst_base` | The scalable line clear debris burst | Normal - Major | World |
 | `vfx_clear_glow` | The additive underlay for line clears | Normal | World |
-| `vfx_enemy_hit_standard`| Standard damage spark | Normal | Screen |
-| `vfx_enemy_hit_armor` | Deflected armor spark (gray) | Normal | Screen |
-| `vfx_enemy_defeat` | Shard explosion + distortion | Major | Screen |
+| `vfx_score_spark` | Floating score spark burst | Normal | Screen |
+| `vfx_streak_pulse` | Streak multiplier light ring | Normal | Screen |
+| `vfx_board_clear` | Golden fireworks for full board clear | Major | World |
+| `vfx_ice_shatter` | Crystalline ice break shards | Normal | World |
 | `vfx_objective_complete`| Confetti burst for UI chips | Elevated | Screen |
-| `vfx_relic_trail` | Fast causality line from UI to board | Normal | Screen |
-| `vfx_screen_edge_flash` | Full Combo intensity overlay | Major | Screen |
+| `vfx_screen_edge_flash` | Quad clear edge glow overlay | Major | Screen |
 
 ---
 

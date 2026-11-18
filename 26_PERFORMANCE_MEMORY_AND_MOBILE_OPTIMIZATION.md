@@ -14,7 +14,7 @@
 
 Block Battles relies on "Tactile Snap" (`12_ANIMATION_MOTION_AND_GAME_FEEL.md`). If the game drops a frame precisely when a block snaps to the grid, the physical illusion shatters. 
 - **Rule 1:** Optimize what happens 100 times a minute (Placement, Flame rendering, UI rebuilds). Do not obsess over what happens once per run (Menu loading).
-- **Rule 2:** Avoid the Dart garbage collector like the plague during tight gameplay loops (combat resolution). 
+- **Rule 2:** Avoid the Dart garbage collector like the plague during tight gameplay loops (clear resolution). 
 - **Rule 3:** Overdraw is the silent killer of mobile GPUs, and unnecessary Flutter widget rebuilds are the silent killer of CPU frame budgets.
 
 ---
@@ -59,9 +59,9 @@ Flutter separates execution into UI and Raster threads.
 
 ## 6. CPU and Dart GC Considerations (Zero Allocation Rule)
 
-- **The Zero Allocation Rule:** GC spikes cause frame hitches. They are forbidden during combat resolution. Do not allocate large numbers of new objects, lists, or strings inside tight `update()` loops or during the instantaneous pure Dart board evaluation.
+- **The Zero Allocation Rule:** GC spikes cause frame hitches. They are forbidden during clear resolution. Do not allocate large numbers of new objects, lists, or strings inside tight `update()` loops or during the instantaneous pure Dart board evaluation.
 - **Dart AOT:** Release builds use Dart AOT compilation, making them exceptionally fast. However, memory allocation still triggers GC.
-- **Iterations:** Iterating through the 8x8 Board array should avoid creating intermediate lists. Use standard `for` loops rather than chained `.where().toList()` when raw speed and zero allocation matter in combat math.
+- **Iterations:** Iterating through the 8x8 Board array should avoid creating intermediate lists. Use standard `for` loops rather than chained `.where().toList()` when raw speed and zero allocation matter in grid evaluation math.
 
 ---
 
@@ -77,7 +77,7 @@ Flutter separates execution into UI and Raster threads.
 
 As mandated in `23_UI_IMPLEMENTATION_ARCHITECTURE.md`:
 1. **const Widgets:** Use `const` on all stateless widgets and constructors. This prevents Flutter from rebuilding them when their parents rebuild.
-2. **Selective Watches:** Riverpod `ref.watch()` must be aggressively scoped. Do NOT watch the entire `battleProvider` at the top of the UI tree. Use `ref.watch(battleProvider.select((state) => state.enemyHp))` to ensure only the HP bar widget rebuilds when HP changes.
+2. **Selective Watches:** Riverpod `ref.watch()` must be aggressively scoped. Do NOT watch the entire `gameSessionProvider` at the top of the UI tree. Use `ref.watch(gameSessionProvider.select((state) => state.currentScore))` to ensure only the score widget rebuilds when score changes.
 3. **Avoid Opacity:** Animating the `Opacity` widget is expensive. Prefer animating colors or using `FadeTransition`.
 
 ---
@@ -85,7 +85,7 @@ As mandated in `23_UI_IMPLEMENTATION_ARCHITECTURE.md`:
 ## 9. VFX and Object Pooling
 
 - **Max Particles:** Capped at 300 active particles globally.
-- **Flame Component Pooling:** Creating and destroying Flame components frequently (e.g., damage numbers, clear burst fragments) causes GC pressure.
+- **Flame Component Pooling:** Creating and destroying Flame components frequently (e.g., score popups, clear burst fragments) causes GC pressure.
 - **Manual Pool:** Implement a manual or package-based object pool for `DamageNumberComponent` and `ParticleComponent`. When an effect is done, disable it and return it to the pool instead of removing it from the component tree.
 
 ---
@@ -138,7 +138,7 @@ If the device reports poor performance (e.g., dropping below 45 FPS consistently
 ## 15. Performance Test Scenarios
 
 ### "The Cascade Test"
-- **Setup:** A full 8x8 board. The player drops an I-Piece that clears 4 lines simultaneously (L=4). The player has 3 Relics active that trigger on line clear. 
+- **Setup:** A full 8x8 board. The player drops an I-Piece that clears 4 lines simultaneously (L=4). Consecutive streak multiplier is active at 2.5x. 
 - **Requirement:** The Pure Dart Domain must resolve the cascade instantly. Flame must render the 4-line clear burst, and Flutter must update the score/combo UI, WITHOUT the Raster thread dropping below 16ms.
 
 ---
@@ -146,7 +146,7 @@ If the device reports poor performance (e.g., dropping below 45 FPS consistently
 ## 16. Release Performance Gate
 
 A build cannot be submitted to the App Store / Google Play unless it passes:
-1. **The Leak Test:** Play 10 consecutive battles. Memory usage in DevTools must plateau and not grow linearly from Battle 1 to Battle 10.
+1. **The Leak Test:** Play 10 consecutive game sessions. Memory usage in DevTools must plateau and not grow linearly from Session 1 to Session 10.
 2. **The Allocation Test:** Playing a standard turn (Drag, Drop, Clear 1 Line) must avoid massive GC pauses in the DevTools timeline.
 3. **The Size Test:** Final compiled `.aab` / `.apk` is under 100 MB.
 
@@ -158,7 +158,7 @@ A build cannot be submitted to the App Store / Google Play unless it passes:
 >
 > Dropped frames, device overheating, and massive download sizes are forms of disrespect to the player. As a solo developer, we cannot fix performance by rewriting the rendering pipeline—we fix performance by being disciplined. 
 > 
-> We pool our Flame components. We use `const` Flutter widgets. We selectively watch Riverpod state. We do not trigger Dart GC in the combat loop. We build a mathematically pure simulation, and we render it as cheaply and beautifully as possible.
+> We pool our Flame components. We use `const` Flutter widgets. We selectively watch Riverpod state. We do not trigger Dart GC in the placement loop. We build a mathematically pure simulation, and we render it as cheaply and beautifully as possible.
 
 ---
 

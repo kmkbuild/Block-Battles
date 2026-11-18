@@ -88,7 +88,7 @@ GAME OVER DIALOG (Final Score, New Best Celebration, Instant Replay / Home)
 ## 6. Tray Rules
 
 - The Tray holds up to **3 Pieces** at any time.
-- **Generation:** At Battle start (`PREPARING`), the Tray is fully generated (3 Pieces) per rules owned by the RNG doc (Section 25).
+- **Generation:** At session start (`PREPARING`), the Tray is fully generated (3 Pieces) per rules owned by the RNG doc (Section 25).
 - **Consumption:** When a Piece is placed, its Tray slot is marked consumed and removed from the visible Tray.
 - **Replacement timing — DESIGN DECISION:** New Pieces are generated **only when all 3 Tray slots have been consumed**, and all 3 are generated together as a new batch. Pieces are not replaced one at a time as they are used. This keeps piece-availability planning legible (Master Vision Section 5.1, Instant Clarity) and gives the RNG/solvability system (Section 25) a single well-defined batch boundary to validate against.
 - **Order independence:** The player may place the 3 Tray Pieces in any order they choose; no slot has positional priority.

@@ -3,7 +3,7 @@
 
 **Governing documents:** `00_MASTER_GAME_VISION.md`, `01_GAMEPLAY_SPECIFICATION.md`, `03_BOARD_ENGINE_AND_RULES.md`, `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`  
 **Document status:** Architecture Contract for Mode 2 (Goal-Driven Play)  
-**Core Directive:** Clean isolation between Mode 1 (Classic Endless) and Mode 2 (Goal-Driven Hurdles). Zero enemy combat, zero relics, pure spatial puzzle challenges.
+**Core Directive:** Clean isolation between Mode 1 (Classic Endless) and Mode 2 (Goal-Driven Hurdles). Pure spatial puzzle challenges.
 
 ---
 

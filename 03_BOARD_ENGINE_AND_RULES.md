@@ -14,8 +14,8 @@ The Board is the single logical grid the Gameplay Specification's `PLACEMENT_RES
 
 **DESIGN DECISION:** The Board is modeled as a fixed-size 2D array of Cells, `board[row][col]`, `8×8` (Gameplay Spec Section 23), never resized at runtime. Board size is a Constant owned by the Gameplay Spec; this document consumes it, it does not define it.
 
-- The Board is the single source of truth for occupancy. No other system (Combat, Objectives, Relics) maintains a parallel occupancy record — they query the Board Engine (Section 11).
-- The Board Engine has no knowledge of Enemies, Damage, Relics, or Objectives. It exposes state and events (Section 12); everything above the Board reacts to those events. This satisfies Master Vision Section 20 (Modular Systems).
+- The Board is the single source of truth for occupancy. No other system (Scoring, Level Objectives, Progression) maintains a parallel occupancy record — they query the Board Engine (Section 11).
+- The Board Engine has no knowledge of Scoring, Level Goals, or Presentation. It exposes state and events (Section 12); everything above the Board reacts to those events. This satisfies Master Vision Section 20 (Modular Systems).
 - The Board owns exactly one turn's worth of mutation at a time: one Placement, its resulting Clears, in that fixed order. It does not queue or batch across Turns (Gameplay Spec Section 7).
 
 ---
@@ -51,7 +51,7 @@ Each Board cell has a state that combines two distinct logical properties: **Occ
 - **EMPTY + BLOCKED:** Unavailable for placement.
 - **FILLED + FROZEN:** Contains a placed block but is protected from line-clear destruction.
 
-*Note: Enemy mechanics may request board-state changes (applying BLOCKED or FROZEN) through the Board Engine, but enemy logic must not directly mutate raw board storage.*
+*Note: Mode 2 Goal-Driven stages may specify initial board hurdles (applying BLOCKED or FROZEN obstacle cells) through the Board Engine setup, but stage logic must not directly mutate raw board storage.*
 
 ### 3.2 Extensible Deferred States / Mechanics
 
@@ -62,7 +62,7 @@ The following mechanics are explicitly **deferred** (post-MVP) and must not be t
 - `SPECIAL`: Any generalized rule-altering cell system.
 - General hazard/special-cell framework.
 
-**MASTER DESIGN RULE (inherited from Gameplay Spec Section 11):** Do not implement a generalized hazard/special-cell framework during MVP. Deferred states must not become MVP requirements. No enemy may invent generalized rule-altering mechanics beyond applying `BLOCKED` or `FROZEN` to cells.
+**MASTER DESIGN RULE:** Mode 1 Endless maintains a clean 8×8 grid with no obstructive hazards. Mode 2 Goal-Driven stages may introduce pre-set obstacle cells (`BLOCKED` or `FROZEN`) as puzzle objectives.
 
 ---
 
@@ -126,7 +126,7 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 
 | Combination | Example | Handling |
 |---|---|---|
-| Zero lines | No row/col fully filled | `filledRows = filledCols = ∅`; `LINE_CLEAR_RESOLUTION` produces no `LinesCleared` event (Section 12); Combat Resolution still runs but the Damage Pipeline receives 0 lines (Gameplay Spec Section 9 begins at "Detect Clear"). |
+| Zero lines | No row/col fully filled | `filledRows = filledCols = ∅`; `LINE_CLEAR_RESOLUTION` produces no `LinesCleared` event (Section 12); Scoring Resolution runs with 0 lines cleared (Placement points awarded, Streak counter resets). |
 | Single row only | 1 row, 0 columns | Standard single-line clear. |
 | Single column only | 0 rows, 1 column | Standard single-line clear. |
 | Multiple rows, no columns | e.g. 2 rows | Both rows clear together in one mutation pass (Section 8). |
@@ -134,7 +134,7 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 | Rows and columns together | 1 row + 1 column | Both clear together; their intersection cell is cleared once (Section 8). |
 | Maximum case | Up to 8 rows and 8 columns (a Placement that completes the entire remaining Board) | Every row and column clears in the same pass; Board returns to fully `EMPTY` (matches Shape Library/Gameplay Spec Section 21 edge case). |
 
-**DESIGN DECISION:** The Board Engine emits the full `filledRows`/`filledCols` sets as one event (Section 12); it is the Combat layer's responsibility to derive Combo count from `|filledRows| + |filledCols|` (Gameplay Spec Section 8) — the Board Engine does not itself compute or expose a "Combo" concept, staying within its owned domain (Master Vision Section 20).
+**DESIGN DECISION:** The Board Engine emits the full `filledRows`/`filledCols` sets as one event (Section 12); it is the Scoring layer's responsibility to derive Multi-Line and Streak multipliers from `|filledRows| + |filledCols|` (05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md) — the Board Engine does not itself compute points or streaks, staying within its owned domain (Master Vision Section 20).
 
 ---
 
@@ -162,7 +162,7 @@ Given `(filledRows, filledCols)` from Section 6, every combination is covered by
 
 ## 9. Extension Seams
 
-The Board Engine implements `FROZEN` and `BLOCKED` for MVP (Gameplay Spec Section 11 assigns their triggering behaviors to Enemy Mechanics). It exposes exactly three extension points so deferred mechanics (like Hazards) can be added without touching Sections 4-8's core algorithms:
+The Board Engine implements `FROZEN` and `BLOCKED` obstacle states for Mode 2 Goal-Driven levels (Gameplay Spec Section 11 defines puzzle hurdle mechanics). It exposes exactly three extension points so deferred mechanics (like Hazards) can be added without touching Sections 4-8's core algorithms:
 
 1. **Placement predicate (used by Section 4):** `CanReceiveBlock(cell)` — MVP implementation is `cell.occupancy == EMPTY && cell.modifier == NORMAL`.
 2. **Line-completeness predicate (used by Section 6):** `CountsTowardLineClear(cell)` — MVP implementation is `cell.occupancy == FILLED && cell.modifier == NORMAL`. A `FROZEN` state overrides this predicate to return `false` while `cell.occupancy` still reports `FILLED` for rendering/query purposes (Section 11), stalling a clear without a second occupancy flag.
@@ -197,7 +197,7 @@ return false   // no shape, at no origin, has any legal placement
 
 ## 11. Board Queries
 
-Read-only functions exposed to Combat, Objectives, Relics, and rendering layers. None of these mutate Board state.
+Read-only functions exposed to Scoring, Level Objectives, and rendering layers. None of these mutate Board state.
 
 | Query | Signature (conceptual) | Returns |
 |---|---|---|
@@ -207,13 +207,13 @@ Read-only functions exposed to Combat, Objectives, Relics, and rendering layers.
 | Any legal placement for a Tray | `hasAnyLegalPlacement(tray)` | Boolean (Section 10). |
 | Current filled-cell count | `getFilledCellCount()` | Integer, for debugging/telemetry (Section 17). |
 | Row/column fill state | `getRowFillCount(row)` / `getColFillCount(col)` | Integer 0–8, for UI "almost full" affordances (Master Vision Section 5.4). |
-| Cumulative lines cleared this Battle | Not owned here — Objectives doc tracks cumulative counters (Gameplay Spec Section 12) by subscribing to `LinesCleared` events (Section 12 below); the Board Engine itself is stateless across Turns beyond the live grid. |
+| Cumulative lines cleared this session | Not owned here — Objectives doc tracks cumulative counters (Gameplay Spec Section 12) by subscribing to `LinesCleared` events (Section 12 below); the Board Engine itself is stateless across Turns beyond the live grid. |
 
 ---
 
 ## 12. Event Outputs
 
-The Board Engine is the sole emitter of these logical events, consumed by Combat Resolution, Objective Evaluation, and rendering (Gameplay Spec Section 4). Events are emitted in the fixed order below for a single Turn, matching Section 8's mutation order:
+The Board Engine is the sole emitter of these logical events, consumed by Scoring Resolution, Level Objective Evaluation, and rendering. Events are emitted in the fixed order below for a single Turn, matching Section 8's mutation order:
 
 | Event | Emitted when | Payload (conceptual) |
 |---|---|---|
@@ -223,7 +223,7 @@ The Board Engine is the sole emitter of these logical events, consumed by Combat
 | `BoardChanged` | Once per Turn, after all mutation for that Turn is complete (fires regardless of whether any line cleared). | `snapshot` (post-Turn board state) |
 | `BoardLockDetected` | When `hasAnyLegalPlacement` (Section 10) returns `false` at the Section 10 query point. | none (trigger only) |
 
-**DESIGN DECISION:** `LinesCleared` and `CellsCleared` are only emitted when at least one line cleared — a zero-line Turn emits `PlacementCommitted` and `BoardChanged` only, matching Gameplay Spec Section 8 ("Damage Events... at most one... aggregating all lines cleared") which requires Combat to distinguish a real clear from a no-op cleanly.
+**DESIGN DECISION:** `LinesCleared` and `CellsCleared` are only emitted when at least one line cleared — a zero-line Turn emits `PlacementCommitted` and `BoardChanged` only, allowing the Scoring layer and Objective Evaluator to cleanly distinguish a line-clearing turn from a pure placement turn.
 
 ---
 
@@ -231,10 +231,10 @@ The Board Engine is the sole emitter of these logical events, consumed by Combat
 
 **DESIGN DECISION:** Given an identical starting Board state, an identical Shape, and an identical target origin, `commitPlacement` and `detectLines` produce byte-identical resulting Board state and identical event payloads, every time, with no hidden randomness or wall-clock dependency anywhere in Sections 4–9.
 
-- The Board Engine consumes no RNG. All randomness (Tray generation, Relic offers) is owned upstream (Gameplay Spec Section 25) and enters the Board Engine only as a fully-resolved `shape` + `origin` pair.
-- `placementId` (Section 5) is a monotonically increasing counter seeded from the Battle's turn counter (Gameplay Spec Section 7) — reproducible from the same Battle log, not from system time.
+- The Board Engine consumes no RNG. All randomness (Tray generation) is owned upstream (Gameplay Spec Section 25) and enters the Board Engine only as a fully-resolved `shape` + `origin` pair.
+- `placementId` (Section 5) is a monotonically increasing counter seeded from the session's turn counter (Gameplay Spec Section 7) — reproducible from the same game log, not from system time.
 - A single Turn's Board Engine calls (`validatePlacement` → `commitPlacement` → `detectLines` → `clearLines`) execute as one uninterruptible logical sequence; no other Board Engine call may interleave mid-Turn. This is what makes the Gameplay Spec Section 20 autosave/resume guarantee ("no partially-resolved Turn ever exposed") possible at the Board layer.
-- Determinism holds only for Sections 4–8 (the MVP core). The Extensible states in Section 3.2 must preserve this property when implemented — any future randomness (e.g., which cell a "Block 1 random Empty cell" Enemy action targets) is resolved by the caller *before* it reaches the Board Engine as a concrete cell coordinate, never inside it.
+- Determinism holds only for Sections 4–8 (the MVP core). The Extensible states in Section 3.2 must preserve this property when implemented — any future randomness (e.g., which cell a level obstacle setup targets) is resolved by the caller *before* it reaches the Board Engine as a concrete cell coordinate, never inside it.
 
 ---
 
@@ -279,7 +279,7 @@ Placing a 1-cell Shape at `(0,7)` must trigger `filledRows = {0}`, `filledCols =
 | Placement would complete a line, but validation is checked before commit | Irrelevant to validation — `validatePlacement` only checks current board state (via `CanReceiveBlock`), never look-ahead to post-Placement state; line completion is only ever evaluated after commit (Section 6). |
 | A Shape has zero legal origins but the Board is not locked (other Tray Shapes have legal placements) | Not a Board Lock (Section 10; matches Gameplay Spec Section 21). |
 | Two different rows/columns share a clearing cell | Cleared exactly once via set union (Section 8). |
-| `detectLines` called on a Board with zero Placements yet made (Battle `PREPARING`) | Returns `(∅, ∅)` — an empty Board can never contain a filled line by construction. |
+| `detectLines` called on a Board with zero Placements yet made (session `PREPARING`) | Returns `(∅, ∅)` — an empty Board can never contain a filled line by construction. |
 | A `FROZEN` cell exists mid-line at clear time | The `CountsTowardLineClear` predicate evaluates to false. The line does not clear. |
 | `validatePlacement` called with an origin fully outside `[0,7]×[0,7]` even for the shape's single origin cell | First local cell fails the bounds check immediately; returns `INVALID: OUT_OF_BOUNDS` without evaluating remaining cells. |
 | Rapid repeated `hasAnyLegalPlacement` queries mid-`ACTIVE` (e.g., re-triggered by UI) | Idempotent and side-effect-free — it is a pure read query (Section 11); may be called any number of times with identical results given an unchanged Board/Tray. |
@@ -335,11 +335,11 @@ Properties that must hold for **any** randomly generated valid Shape/origin/Boar
 
 ## 20. Cross-Document Contracts
 
-- **Consumes from `01_GAMEPLAY_SPECIFICATION.md`:** Board size (Section 23), the two-state MVP model and simultaneous-clear rule (Section 5), Turn definition (Section 7), Board Lock as the default failure trigger (Section 15), and the Enemy Mechanic categories this document reserves extension points for (Section 11).
+- **Consumes from `01_GAMEPLAY_SPECIFICATION.md`:** Board size (Section 23), the two-state MVP model and simultaneous-clear rule (Section 5), Turn definition (Section 7), Board Lock as the default failure trigger (Section 15), and obstacle cell states (BLOCKED / FROZEN) for Mode 2 Goal-Driven stages.
 - **Consumes from `02_SHAPE_LIBRARY.md`:** the coordinate/normalization contract (Section 2), the Canonical Shape Schema fields this engine reads — `local_coordinates`, `block_count`, `width`, `height` (Section 3, also named explicitly in Shape Library Section 14 as consumed by "Board Engine doc") — and the Section 11 test-case behaviors this document's Section 14/18 fixtures are built to match.
-- **Exposes to Combat/Scoring doc:** `LinesCleared`/`CellsCleared` events (Section 12) as the sole input to Damage Pipeline stage "Detect Clear" (Gameplay Spec Section 9); the Board Engine does not compute damage or Combo values itself.
+- **Exposes to Scoring doc (05):** `LinesCleared`/`CellsCleared` events (Section 12) as the input to the Scoring Engine and Streak Evaluator; the Board Engine does not compute points or streaks itself.
 - **Exposes to Objectives doc:** Board Queries (Section 11) and the full event stream (Section 12) as the only legal data sources for line/cumulative-count Objective predicates (Gameplay Spec Section 12); Objectives may not read Board internals outside these seams.
-- **Exposes to Enemy Content doc (future):** the three Section 9 extension seams (`CanReceiveBlock`, `CountsTowardLineClear`, post-clear hook) as the only sanctioned integration points for Block/Freeze/Hazard mechanics (Gameplay Spec Section 11).
+- **Exposes to Level Design doc (07):** the three Section 9 extension seams (`CanReceiveBlock`, `CountsTowardLineClear`, post-clear hook) as the integration points for Goal-Driven obstacle mechanics (Block/Freeze).
 - **Exposes to autosave/backgrounding (Gameplay Spec Section 20):** `getBoardSnapshot()` (Section 11) as the serializable Board state; Section 13's determinism guarantee is what makes resuming a Turn mid-resolution safe to reconstruct.
 - This document does not embed content owned by the above; it references them structurally only, per the pattern established in `01_GAMEPLAY_SPECIFICATION.md` Section 25 and `02_SHAPE_LIBRARY.md` Section 14.
 
@@ -371,12 +371,12 @@ Input: shape, origin, board (current state)
    → carries final post-Turn board snapshot
 
 6. return control to Gameplay Spec COMBAT_RESOLUTION
-   → Combat layer consumes LinesCleared (if any) as Damage Pipeline "Detect Clear" input (Gameplay Spec Section 9)
+   → Scoring Engine consumes LinesCleared (if any) to calculate line points and streak escalation (05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md)
    → Objectives layer consumes the same events for cumulative-count Objectives (Gameplay Spec Section 12)
 
 7. (later, at next ACTIVE entry, Gameplay Spec Section 4)
    hasAnyLegalPlacement(tray, board)                [Section 10]
-     if false: emit BoardLockDetected; caller converts to Battle Failure -> Run Defeat
+     if false: emit BoardLockDetected; caller converts to Game Over
    → if true: caller proceeds normally
 ```
 

@@ -9,7 +9,7 @@
 
 ## 1. UX Vision & Guiding Principles
 
-1. **Instant Clarity & Zen Focus:** No cluttered side-menus, no forced tutorials, no hero portraits or enemy health bars. The player opens the app and plays.
+1. **Instant Clarity & Zen Focus:** No cluttered side-menus, no forced tutorials, no distracting non-puzzle overlays. The player opens the app and plays.
 2. **Tactile Feedback & Juice:** Every interaction (touch, drag, hover, drop, line clear) provides crisp haptic, audio, and visual feedback.
 3. **Ergonomic Finger-Lift Offset:** Pieces lifted from the tray appear with a 48dp vertical offset above the finger so the player's thumb never obstructs the placement target.
 4. **Local Competition:** The player always sees their all-time High Score on the Home screen and In-Game HUD, fostering satisfying self-improvement.
@@ -119,7 +119,7 @@ MINIMALIST HOME SCREEN
 - In-Game HUD displays Score and Best Score with real-time updates.
 - Ghost preview snaps accurately under drag with finger offset.
 - Game Over modal opens promptly on Board Lock with clear Play Again and Home actions.
-- Zero clutter: No combat cards, no enemy portraits, no relic drafts.
+- Zero clutter: No non-puzzle banners, no complex sub-menus, no distracting overlays.
 
 ---
 

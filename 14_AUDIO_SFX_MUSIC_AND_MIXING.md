@@ -11,11 +11,11 @@
 ## 1. Audio Identity
 
 ### 1.1 Personality
-The audio identity of Block Battles is **"Premium Tactile Synth."** It combines the physical, satisfying thuds and clacks of a high-end physical board game with clean, harmonic synthesized tones for magical and combat elements. It is modern, uncluttered, and rhythmic.
+The audio identity of Block Battles is **"Premium Tactile Synth."** It combines the physical, satisfying thuds and clacks of a high-end physical board game with clean, harmonic synthesized tones for puzzle and scoring elements. It is modern, uncluttered, and rhythmic.
 
 ### 1.2 Texture
 - **Physical elements (Blocks, Placements):** Wooden blocks, acrylic tiles, heavy stones, deep percussion. 
-- **Magical elements (Clears, Damage, Relics):** FM synthesis, sine wave plucks, glass marimbas, pure musical tones.
+- **Harmonic elements (Clears, Scores, Streaks):** FM synthesis, sine wave plucks, glass marimbas, pure musical tones.
 - **UI:** Crisp, dry clicks and soft pops.
 
 ### 1.3 Emotional Tone
@@ -35,7 +35,7 @@ Target: Modern premium puzzle titles (e.g., *Monument Valley*, *Threes*, *Tetris
 Audio events are prioritized by their importance to gameplay. If the FlameAudio maxes out its voice count, lower-priority sounds are culled first.
 
 1. **Critical Gameplay Feedback:** Invalid placement warnings, Board Lock triggers, Move Limit warnings. (Must always be heard).
-2. **Combat/Clear Events:** Line clears, Combos (L=1 to L=4), Enemy damage, Defeat/Victory.
+2. **Line Clear & Score Events:** Line clears, Multi-line chords (L=1 to L=4), Streak escalation, Board Clear, Record fanfare.
 3. **Interaction (Board):** Piece pickup, drag grid-ticks, piece placement.
 4. **Interaction (UI):** Button clicks, menu transitions.
 5. **Music:** Background gameplay loop.
@@ -52,14 +52,12 @@ The complete taxonomy of sound effects required for the game:
 3. **Placement:** Drop/Lock, Return to tray.
 4. **Invalid:** Rejection buzz, Out-of-bounds warning.
 5. **Clear:** L=1 line collapse, Flash anticipation.
-6. **Combo:** L=2, L=3, L=4 escalation chords.
-7. **Damage:** Impact, Crit impact, Armor deflection, Hit point ticker.
-8. **Enemy:** Attack telegraph, Hit reaction, Defeat shatter.
-9. **Objective:** Progress tick, Goal complete, Bonus complete.
-10. **Relic:** Card deal, Card select, Combat trigger/proc.
-11. **Victory:** Success sting, Reward reveal.
-12. **Defeat:** Board lock sequence, Game Over sting.
-13. **Boss:** Entrance, Phase shift, Boss defeat.
+6. **Multi-Line:** L=2, L=3, L=4 harmonic escalation chords.
+7. **Score:** Floating point pop, Streak escalation semitone pitch up.
+8. **Obstacle (Mode 2):** Ice crack, Stone blocker crumble.
+9. **Objective:** Progress tick, Goal complete, Star reveal.
+10. **Milestone:** Full Board Wipe fanfare, New Record celebration.
+11. **Game Over:** Board lock sweep, Final vault lock.
 
 ---
 
@@ -105,34 +103,33 @@ Because players will clear L=1 and L=2 frequently, they share the musical key of
 
 ---
 
-## 7. Damage Audio
+## 7. Floating Score & Multiplier Audio
 
-Damage audio plays concurrently with the Clear audio. They occupy different frequency bands (Clears are high/mid-high; Damage is mid/low).
+Score audio plays concurrently with the Clear audio:
 
-- **Normal Hit:** A punchy, energetic "zap" or "thwack".
-- **Critical Hit / High Damage:** (Damage > 25% enemy HP). A sharper, crackling impact with a prominent high-frequency transient (like lightning or shattering glass).
-- **Armor / Mitigation Hit:** A dull, metallic "thud." The high frequencies are explicitly rolled off (low-pass filter) to communicate that the attack was muffled or absorbed.
-- **Damage Number Ticker:** A rapid, quiet mechanical ticking sound (`sfx_ui_tick_fast`) plays as the enemy HP bar drains.
-
----
-
-## 8. Enemy Audio
-
-Enemies do not have complex voice acting. They use synthesized or highly processed abstract sounds.
-
-- **Telegraph / Action Prep:** A rising, ominous synth swell that plays when the enemy locks in a dangerous telegraph.
-- **Hit Reaction:** A short, glitched vocalization or digital "grunt" mixed with the damage impact.
-- **Enemy Defeat:** A massive, reverberant "shatter" followed by a satisfying downward electronic sweep, clearing the auditory space for the Victory sting.
+- **Score Pop (`sfx_score_pop`):** A bright, light marimba chirp that accompanies the floating point popup (+100, +300).
+- **Streak Pitch Escalation (`sfx_streak_up`):** Clearing lines on consecutive turns shifts the line clear audio chime upward by +2 semitones per streak tier:
+  - Streak 0 (1.0x): Natural root pitch.
+  - Streak 1 (1.5x): +2 semitones.
+  - Streak 2 (2.0x): +4 semitones.
+  - Streak 3+ (2.5x cap): Plays a sparkling, triumphant major arpeggio flourish.
+- **Score Ticker (`sfx_score_ticker`):** A soft, rapid mechanical tick as the total score rolls up on the HUD.
 
 ---
 
-## 9. Relic Audio
+## 8. Mode 2 Obstacle Audio
 
-Relics represent passive modifiers, but the player must *hear* them working.
+In Goal-Driven stages:
 
-- **Relic Trigger (`sfx_relic_proc`):** When a relic applies its math to a hit, a distinct, ethereal "ping" (like a tuning fork or triangle) plays. 
-- **Frequency:** This sound sits in the 2kHz - 5kHz range to easily cut through the heavier bass of block placements and damage.
-- **Restraint:** If a relic triggers on *every single placement*, the sound is reduced in volume by -6dB to prevent it from becoming the dominant sound of the game.
+- **Ice Crack (`sfx_obstacle_ice`):** A crisp, brittle crystalline snap when an adjacent line clear breaks a frozen obstacle cell.
+- **Stone Shatter (`sfx_obstacle_stone`):** A deep, dry ceramic crack when a blocker cell is cleared.
+
+---
+
+## 9. Full Board Clear & Record Audio
+
+- **Full Board Clear (`sfx_board_clear`):** A rich, resonant major triad chord followed by cascading celestial wind chimes celebrating the complete 64-cell clear (+500 points).
+- **New High Score Record (`sfx_new_record`):** A bright brass/synth fanfare string when the current score surpasses the all-time device record.
 
 ---
 
@@ -155,18 +152,16 @@ UI sounds must be instantaneous (0ms latency).
 - **Secondary Click:** Lighter, higher-pitched "tap".
 - **Modal Open/Close:** A soft "whoosh" or "paper slide" accompanying the visual animation.
 - **Cancel/Error:** A muted, dull "boop" (not a harsh buzzer).
-- **Relic Card Select:** A crisp, heavy paper flick.
-- **Relic Confirm:** A solid, locking "kachunk."
 
 ---
 
 ## 12. Victory / Defeat Audio
 
-### 12.1 Victory Flow
-1. **Enemy Defeat shatter** clears the audio space.
-2. **Silence** for 400ms (dramatic pause).
-3. **Victory Sting:** A 3-4 second uplifting musical phrase that resolves on a major chord.
-4. **Music Transition:** The gameplay music fades out, transitioning to the calmer Menu/Relic Selection ambient track.
+### 12.1 Level Victory Flow (Mode 2)
+1. **Final goal clear chime** rings out.
+2. **Silence** for 200ms.
+3. **Victory Sting:** A 2-3 second uplifting musical phrase that resolves on a major chord.
+4. **Star Reveal:** 1, 2, or 3 distinct musical bells ring as stars are awarded.
 
 ### 12.2 Defeat Flow (Board Lock)
 1. **The Sweep:** A descending, resonant synth tone that plays over 800ms, matching the visual red sweep across the board. 
@@ -180,10 +175,9 @@ UI sounds must be instantaneous (0ms latency).
 The music must establish a flow state. It should not be a repetitive 30-second loop with an annoying melody. 
 
 - **Genre:** "Focus Groove." Low-fi hip-hop beats, ambient synthwave, or rhythmic IDM. 
-- **Frequency Management:** The music is explicitly composed to have a "hole" in the mid-range frequencies. The bass and drums carry the rhythm, and high airy pads carry the chord progression. The mid-range is left empty so the SFX (placements, damage, clears) can be heard clearly.
+- **Frequency Management:** The music is explicitly composed to have a "hole" in the mid-range frequencies. The bass and drums carry the rhythm, and high airy pads carry the chord progression. The mid-range is left empty so the SFX (placements, clears, score chimes) can be heard clearly.
 - **Menu Music:** Ambient, beatless, calming. 
 - **Gameplay Music:** Introduces the beat. Forward momentum.
-- **Boss Music:** Faster tempo, heavier bass, more aggressive synth textures.
 
 ---
 
@@ -210,7 +204,7 @@ The gameplay music consists of 3 synchronized stereo stems:
 Any sound played more than 5 times per minute MUST have variation.
 - **Block Placements:** 4 variations + pitch shifting (Section 4).
 - **UI Clicks:** 3 variations.
-- **Damage Impacts:** 3 variations. 
+- **Line Clears:** Multi-tier chord harmonies (Section 6). 
 
 Failure to include these will result in "machine-gunning" (the exact same waveform repeating rapidly), which is highly abrasive to the human ear.
 
@@ -222,7 +216,7 @@ The game audio is routed through the following bus structure:
 
 1. **Master Bus** (0.0 dB limit, with a soft-knee limiter to prevent clipping during L=4 combos).
    ├── **SFX Bus** (-3.0 dB)
-   │   ├── Combat/Clear
+   │   ├── Line Clear / Score
    │   ├── Board Interaction
    │   └── UI
    ├── **Music Bus** (-12.0 dB)
@@ -237,7 +231,7 @@ The game audio is routed through the following bus structure:
 To ensure critical sounds are heard, the AudioService will use software ducking:
 
 - **When a Tier 4 (Full Combo) clear plays:** The Music Bus is ducked (reduced) by -6dB for 500ms, recovering smoothly over 1 second.
-- **When an Enemy Defeated sound plays:** The Music Bus is ducked by -10dB.
+- **When a Full Board Clear plays:** The Music Bus is ducked by -6dB for 800ms.
 - **When Modal UI opens (Pause Menu, Settings):** The Music Bus is low-pass filtered (muffled) and reduced by -4dB to shift focus to the UI layer.
 
 ---
@@ -297,33 +291,31 @@ Canonical list of required audio events for MVP.
 - `evt_piece_return`
 - `evt_placement_invalid`
 
-**Combat / Clear:**
+**Clear & Score:**
 - `evt_clear_flash`
 - `evt_clear_L1`
 - `evt_clear_L2`
 - `evt_clear_L3`
 - `evt_clear_L4`
-- `evt_damage_normal`
-- `evt_damage_crit`
-- `evt_damage_armor`
+- `evt_score_pop`
+- `evt_streak_up`
+- `evt_board_clear`
 
-**System / Enemy:**
-- `evt_enemy_hit`
-- `evt_enemy_telegraph`
-- `evt_enemy_defeat`
+**System & Objectives:**
+- `evt_obstacle_ice`
+- `evt_obstacle_stone`
 - `evt_obj_progress`
 - `evt_obj_complete`
-- `evt_relic_proc`
+- `evt_new_record`
 - `evt_board_lock`
 
 **Music:**
 - `mus_menu_loop`
-- `mus_battle_loop_base`
-- `mus_battle_loop_drums`
-- `mus_battle_loop_tension`
-- `mus_boss_loop`
+- `mus_gameplay_base`
+- `mus_gameplay_drums`
+- `mus_gameplay_tension`
 - `mus_victory_sting`
-- `mus_defeat_sting`
+- `mus_game_over_sting`
 
 ---
 
@@ -333,7 +325,7 @@ All raw audio files delivered by the sound designer must follow:
 `[type]_[category]_[name]_[variant].wav`
 
 - `type`: `sfx`, `mus`, `amb`
-- `category`: `ui`, `board`, `cmb` (combat), `enm` (enemy), `sys` (system)
+- `category`: `ui`, `board`, `scr` (scoring), `sys` (system)
 - `name`: descriptive event name
 - `variant`: `01`, `02`, `03` (for round-robin pools)
 
@@ -353,9 +345,9 @@ Example: `sfx_board_place_01.wav`
 ## 24. Audio QA Checklist
 
 - [ ] **Fatigue Test:** Place 50 blocks rapidly. Does the sound become annoying or "machine-gun"? (If yes, adjust pitch randomization and round-robin).
-- [ ] **Mix Clarity:** During an L=3 combo with damage numbers and enemy hit sounds all playing at once, can you hear every distinct element without the audio distorting/clipping?
+- [ ] **Mix Clarity:** During an L=3 multi-line clear with floating score chimes all playing at once, can you hear every distinct element without the audio distorting/clipping?
 - [ ] **Mobile Speaker Test:** Does the placement "thud" still sound satisfying on a raw phone speaker without headphones?
-- [ ] **Ducking:** Does the music noticeably (but smoothly) lower in volume when an Enemy Defeated sound plays?
+- [ ] **Ducking:** Does the music noticeably (but smoothly) lower in volume when a Full Board Clear sound plays?
 - [ ] **Latency:** Is the delay between touching a piece and hearing `sfx_piece_pickup` less than 40ms?
 - [ ] **Settings:** Do the Master, Music, and SFX sliders scale logarithmically (not linearly) to ensure a natural volume curve?
 
@@ -367,7 +359,7 @@ Example: `sfx_board_place_01.wav`
 >
 > We do not rely on aggressive, noisy sound effects. We rely on musical harmony, punchy transients, and distinct frequencies to communicate board state. 
 >
-> The sound of a block snapping into the grid must be as satisfying on day 100 as it is on day 1. If a sound demands too much attention, it belongs to a Tier 4 combo or a Boss defeat; everything else must serve the flow state.
+> The sound of a block snapping into the grid must be as satisfying on day 100 as it is on day 1. If a sound demands too much attention, it belongs to a Tier 4 Quad Clear or a Full Board Wipe; everything else must serve the flow state.
 
 ---
 

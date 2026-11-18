@@ -3,7 +3,7 @@
 
 **Governing documents:** All Layer A (`01`-`07`) and Layer B (`08`-`17`) documents.  
 **Document status:** Layer C — Engineering Authority (Primary)  
-**Core Directive:** Decoupled, deterministic, pure-Dart puzzle domain; tactile, high-performance Flame game loop; clean Flutter app shell. Zero combat baggage, zero relics, zero enemy state.
+**Core Directive:** Decoupled, deterministic, pure-Dart puzzle domain; tactile, high-performance Flame game loop; clean Flutter app shell. Pure spatial puzzle architecture.
 
 ---
 

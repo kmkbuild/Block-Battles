@@ -69,7 +69,7 @@ The shipping configuration.
 
 - **App Version (String):** Semantic versioning in `pubspec.yaml` (e.g., `1.0.0`). 
   - Major: Core gameplay overhauls.
-  - Minor: Content updates (New Enemies, Relics).
+  - Minor: Content updates (New Stages, Themes).
   - Patch: Bug fixes.
 - **Build Number / Version Code (Integer):** The `+1` part of `1.0.0+1`. Increments linearly on every single CI/CD build or manual export.
 
@@ -170,7 +170,7 @@ Use Dart environment defines to isolate features safely (`--dart-define`).
 Before hitting "Publish", ensure the store listing contains:
 - [ ] **Hi-Res Icon:** 512x512 PNG.
 - [ ] **Feature Graphic:** 1024x500 PNG.
-- [ ] **Screenshots:** Minimum 4. Must include actual gameplay (Board), the Shop, and Relic mechanics. Portrait orientation.
+- [ ] **Screenshots:** Minimum 4. Must include actual gameplay (Classic Mode Board), Stage Mode, and High Score display. Portrait orientation.
 - [ ] **Short Description:** 80-character hook.
 - [ ] **Long Description:** Formatted description of features.
 - [ ] **Content Rating Questionnaire:** Completed and verified.

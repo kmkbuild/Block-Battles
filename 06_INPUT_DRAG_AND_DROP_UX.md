@@ -4,7 +4,7 @@
 **Governing documents:** `00_MASTER_GAME_VISION.md`, `01_GAMEPLAY_SPECIFICATION.md`, `02_SHAPE_LIBRARY.md`, `03_BOARD_ENGINE_AND_RULES.md`, `04_SPAWN_RNG_AND_DIFFICULTY.md`, `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`
 **Document status:** Implementation-level interaction design
 
-**Inheritance confirmation:** This document does not contradict `00_MASTER_GAME_VISION.md` Sections 5, 12, 13, or 23. It is the **Input & Controls doc** referenced by `01_GAMEPLAY_SPECIFICATION.md` Section 25 — it fills in the exact gesture/drag handling beneath the `PIECE_SELECTED`/`DRAGGING` states that Gameplay Spec Section 4 already names, without altering that state machine's transitions. It consumes `03_BOARD_ENGINE_AND_RULES.md`'s `validatePlacement`/coordinate contract as its sole legality authority and treats `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`'s Damage Pipeline as something to be *triggered*, never *previewed*, during a drag (Section 9).
+**Inheritance confirmation:** This document does not contradict `00_MASTER_GAME_VISION.md` Sections 5, 12, 13, or 23. It is the **Input & Controls doc** referenced by `01_GAMEPLAY_SPECIFICATION.md` Section 25 — it fills in the exact gesture/drag handling beneath the `PIECE_SELECTED`/`DRAGGING` states that Gameplay Spec Section 4 already names, without altering that state machine's transitions. It consumes `03_BOARD_ENGINE_AND_RULES.md`'s `validatePlacement`/coordinate contract as its sole legality authority and treats `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`'s Scoring & Streak calculations as something to be *triggered*, never *previewed*, during a drag (Section 9).
 
 ---
 
@@ -14,7 +14,7 @@
 
 Five binding philosophy rules, each traced to a Master Vision pillar and enforced by name throughout this document:
 
-1. **Placement clarity outranks everything else on screen.** Directly restates `00_MASTER_GAME_VISION.md` Section 23, rule 1 ("Puzzle clarity always outranks visual effects") at the input layer — no Combat, Enemy, or Objective visual may compete with the dragged piece for attention (Section 9).
+1. **Placement clarity outranks everything else on screen.** Directly restates `00_MASTER_GAME_VISION.md` Section 23, rule 1 ("Puzzle clarity always outranks visual effects") at the input layer — no HUD element, score popup, or secondary visual may compete with the dragged piece for attention (Section 9).
 2. **Input is never blocked by feedback.** Restates Master Vision Section 23, rule 2 ("Player input must remain responsive at all times; no feedback effect may block or delay the next input") — every animation in this document is interruptible or non-blocking (Section 17).
 3. **The board is read, not memorized.** The player should never need to remember where a piece "actually" is versus where it visually appears — Section 6's visual/logical distinction exists precisely to prevent this gap from ever being felt by the player, even though it exists in implementation.
 4. **Forgiveness over precision-demand.** Master Vision Section 19's "Touch forgiveness: generous hit/drop targets and placement-snapping tolerant of imprecise mobile touch input" is treated as load-bearing, not aspirational — every threshold in this document (Sections 4, 7, 14) defaults toward generosity.
@@ -35,9 +35,9 @@ Five binding philosophy rules, each traced to a Master Vision pillar and enforce
 
 ## 3. Pointer Lifecycle
 
-The complete lifecycle a single touch/pointer passes through, mapped directly onto `01_GAMEPLAY_SPECIFICATION.md` Section 4's Battle State Machine (`ACTIVE → PIECE_SELECTED → DRAGGING → PLACEMENT_RESOLUTION`) without introducing any new Battle-level state — this document only elaborates the *pointer-level* sub-states beneath those.
+The complete lifecycle a single touch/pointer passes through, mapped directly onto `01_GAMEPLAY_SPECIFICATION.md` Section 4's Gameplay State Machine (`ACTIVE → PIECE_SELECTED → DRAGGING → PLACEMENT_RESOLUTION`) without introducing any new Gameplay-level state — this document only elaborates the *pointer-level* sub-states beneath those.
 
-| Pointer stage | Trigger | Battle state entered/confirmed | What happens |
+| Pointer stage | Trigger | Gameplay state entered/confirmed | What happens |
 |---|---|---|---|
 | **Down** | Finger contacts a Tray Piece's touch target (Section 2). | Remains `ACTIVE` until pickup threshold met (Section 4). | Piece is marked as the candidate for pickup; no visual change yet beyond an immediate micro-feedback (Section 4). |
 | **Selection** | Down is registered on a valid Tray Piece and the pointer has not yet moved past the pickup threshold. | `ACTIVE → PIECE_SELECTED` (Gameplay Spec Section 4). | The Piece is visually "picked up" in place (Section 4) — lifted, scaled, ready to follow the finger, but not yet moved from its Tray slot's screen position. |
@@ -47,7 +47,7 @@ The complete lifecycle a single touch/pointer passes through, mapped directly on
 | **Release** | Finger lifts while in `DRAGGING`. | `DRAGGING → PLACEMENT_RESOLUTION` (valid) or `DRAGGING → PIECE_SELECTED/ACTIVE` (invalid), per Gameplay Spec Section 4. | Section 10 defines the exact branching logic. |
 | **Cancel** | Finger lifts while still in `PIECE_SELECTED` (never crossed the pickup threshold into `DRAGGING`), OR an explicit cancel gesture during `DRAGGING` (Section 10). | `PIECE_SELECTED → ACTIVE` (deselect) or `DRAGGING → ACTIVE` (drag cancel). | The Piece visually returns to its Tray slot (Section 11's return behavior, applied identically whether the cause was cancel or invalid release). |
 
-**DESIGN DECISION:** This document treats "Selection" and "Drag start" as two distinct pointer sub-stages specifically because Gameplay Spec Section 4 already names `PIECE_SELECTED` and `DRAGGING` as two distinct Battle states with their own legal-transition table — this document's pointer lifecycle is deliberately isomorphic to that table, not a competing model.
+**DESIGN DECISION:** This document treats "Selection" and "Drag start" as two distinct pointer sub-stages specifically because Gameplay Spec Section 4 already names `PIECE_SELECTED` and `DRAGGING` as two distinct Gameplay states with their own legal-transition table — this document's pointer lifecycle is deliberately isomorphic to that table, not a competing model.
 
 ---
 
@@ -112,22 +112,22 @@ The Ghost Preview is the **sole real-time placement-legality signal** the player
 
 ---
 
-## 9. Combat Feedback During Placement
+## 9. Secondary UI & Feedback Freeze During Placement
 
 **DESIGN DECISION — explicit SHOULD / SHOULD NOT list, binding on every system this document depends on:**
 
 **SHOULD remain active/visible, unchanged, during `DRAGGING`:**
-- The current Enemy HP bar/value, Enemy sprite, and any already-shown Telegraph (`01_GAMEPLAY_SPECIFICATION.md` Section 10) — visible but **static**; nothing about them animates or changes state while a drag is in progress.
+- The Score display, High Score indicator, and Goal Objective counters — visible but **static**; nothing about them animates or flashes while a drag is in progress.
 - The Board itself, including any already-placed Blocked/Frozen/Hazard cells (`03_BOARD_ENGINE_AND_RULES.md` Section 3.2, once implemented) — these are part of the puzzle surface the Ghost Preview must be evaluated against, so they must remain visible and legible throughout.
 - Score/Combo-related HUD elements, in their pre-Turn resting state — visible, but not yet updating (there is nothing to update until Release/Commit, Section 12).
 
 **SHOULD NOT trigger, animate, or otherwise draw attention during `DRAGGING`:**
-- **No Enemy idle animation escalation, attack wind-up, or reactive animation** may play in response to drag movement, hover position, or Ghost Preview state — the Enemy is inert from the player's input perspective until `COMBAT_RESOLUTION`/`ENEMY_ACTION` actually occurs (Gameplay Spec Section 4), which never happens mid-drag.
-- **No Damage Pipeline preview number** (projected `FinalDamage`, `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 9) is computed or shown during `DRAGGING` — Damage is only ever computed after a real `LinesCleared` event post-Release (Section 12); showing a "you would deal X damage" preview would require running the full pipeline speculatively against a hypothetical commit, adding both technical complexity and a second competing signal to the Ghost Preview, violating Section 1's single-source-of-truth rule for placement feedback.
-- **No sound effect or haptic pulse tied to Enemy state** may fire during `DRAGGING` — the only sounds/haptics permitted mid-drag are the Section 4 pickup acknowledgment (one-time, on Down) and continuous drag-following audio, if any, which must be Piece-sourced, never Enemy-sourced.
-- **No screen-wide flash, shake, or color-grade shift** referencing Enemy/Combat state may occur mid-drag — these are reserved exclusively for post-Release Combat Feedback (Section 12), where they are contextually earned and cannot be mistaken for placement guidance.
+- **No premature score text or streak badge** may pop or preview in response to drag movement, hover position, or Ghost Preview state — scoring is inert until placement is committed.
+- **No speculative score preview number** (projected TurnScore) is computed or shown during `DRAGGING` — points and streak multipliers are only ever computed and awarded after a real `LinesCleared` / `PlacementCommitted` event post-Release (Section 12); showing a speculative 'you would score X points' preview would violate the single-source-of-truth rule for placement feedback.
+- **No celebratory sound effect or haptic pulse** may fire during `DRAGGING` — the only sounds/haptics permitted mid-drag are the Section 4 pickup acknowledgment (one-time, on Down) and grid-snap ticks, which must be Piece-sourced.
+- **No screen-wide flash, shake, or color-grade shift** may occur mid-drag — these are reserved exclusively for post-Release Clear/Streak Feedback (Section 12), where they are contextually earned and cannot be mistaken for placement guidance.
 
-**Rationale, restated from the Master Prompt's own instruction:** "Combat and objectives must NEVER compromise the clarity of placement" and "Do not make the enemy distract the player" are treated as hard constraints, not tuning preferences — this section's SHOULD NOT list is exhaustive of every plausible Combat-layer feedback surface this document's dependencies define (Enemy HP/Telegraph from Gameplay Spec Section 10–11, Damage Pipeline from Scoring doc Section 9), specifically so no future document can introduce a violation by adding a new Combat surface without also amending this list.
+**Rationale:** Puzzle clarity outranks everything else on screen. Non-essential UI must never compromise the clarity of placement. The player's focus belongs exclusively on the board grid and piece fit.
 
 ---
 
@@ -135,7 +135,7 @@ The Ghost Preview is the **sole real-time placement-legality signal** the player
 
 Exact behavior for every release condition, branching directly off Gameplay Spec Section 4's `DRAGGING → {PLACEMENT_RESOLUTION | PIECE_SELECTED/ACTIVE}` transition:
 
-| Release condition | Candidate origin's `validatePlacement` result | Resulting Battle state | Behavior |
+| Release condition | Candidate origin's `validatePlacement` result | Resulting Gameplay state | Behavior |
 |---|---|---|---|
 | **Valid release** | `VALID` | `DRAGGING → PLACEMENT_RESOLUTION` | Section 12's full feedback flow triggers; the Piece is consumed from the Tray. |
 | **Invalid release — Occupied** | `INVALID: CELL_OCCUPIED` | `DRAGGING → PIECE_SELECTED` (or `ACTIVE` if released off the Tray-return zone entirely, Section 11) | Section 11's return behavior triggers; Piece is not consumed. |
@@ -167,7 +167,7 @@ Release
                    "are you sure" step exists — release itself is the confirming action, since
                    the Ghost Preview already showed the exact outcome before release (Section 1, rule 5)
  → Commit        — commitPlacement(shape, origin, board) executes (03_BOARD_ENGINE_AND_RULES.md
-                    Section 5); Battle state PLACEMENT_RESOLUTION → LINE_CLEAR_RESOLUTION
+                    Section 5); Gameplay state PLACEMENT_RESOLUTION → LINE_CLEAR_RESOLUTION
                     (Gameplay Spec Section 4); this document's Piece visually "locks" into place
                     at the exact Ghost Preview position with zero positional snap/jump, since the
                     Ghost Preview and the committed position are, by construction (Section 7),
@@ -178,26 +178,25 @@ Release
                      this feedback begins immediately after Commit with no input-blocking delay
                      (Section 1, rule 2) — the player may begin their next pickup (Section 4) while
                      this animation is still playing
- → Combat Feedback — 05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md Section 9's DamageEvent (if L≥1)
-                      drives Enemy HP bar movement / Damage number popup (owned by a future Juice/VFX
-                      doc); this is the FIRST point in the entire flow where any Combat-layer visual
-                      is permitted to react (directly enforcing Section 9's SHOULD NOT list — nothing
-                      Combat-related reacts before this stage)
- → Objective Evaluation — 01_GAMEPLAY_SPECIFICATION.md OBJECTIVE_EVALUATION state runs; if it
-                           produces a victory/defeat transition, that transition's own feedback
-                           (owned by Gameplay Spec Section 4 / a future UI doc) begins only after
-                           this flow's Combat Feedback stage has begun, never interrupting it
+ → Score & Juice Feedback — 05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md score resolution (if L≥1)
+                      drives floating score popups (+100, STREAK x1.5!) and harmonic audio chimes
+                      (owned by Audio/VFX docs); this is the FIRST point in the entire flow where
+                      score numbers and juice effects display
+ → Objective Evaluation — If in Mode 2 Goal Mode, objective progress updates; if the goal is
+                           reached (victory) or moves exhaust (fail), that transition's dialog
+                           begins only after
+                           this flow's Score & Juice stage has begun, never interrupting it
 ```
 
 - **Sound concept (Valid):** a distinctly positive, higher-clarity confirmation tone than the Invalid sound (Section 11) — conceptually brighter/more resolved, with its intensity/layering scalable by `L` (more lines = fuller sound, matching `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 6/8's escalating value structure) so Master Vision Section 5.4's "players can distinguish clear magnitude by feedback alone" is true at the audio layer specifically, not just visually.
 - **Haptic concept (Valid):** a firmer, single confirming pulse distinct from Invalid's lighter tap; for `L≥3` ("Full Combo," `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 8) a distinct escalated haptic pattern (e.g., a short double-pulse) is used rather than simply a longer single pulse, so combo-tier haptics remain a recognizable *pattern*, not just "more of the same," in line with Section 16's non-intensity-dependent accessibility stance.
-- **DESIGN DECISION:** every stage in this flow is strictly sequential in *trigger order* but not necessarily in *animation completion* — Board Feedback and Combat Feedback may visually overlap/run concurrently once both have started (their triggers are sequential; their animations are not required to be), keeping the whole flow feeling fast rather than a rigid waterfall, per Section 1 rule 2.
+- **DESIGN DECISION:** every stage in this flow is strictly sequential in *trigger order* but not necessarily in *animation completion* — Board Feedback and Score Feedback may visually overlap/run concurrently once both have started (their triggers are sequential; their animations are not required to be), keeping the whole flow feeling fast rather than a rigid waterfall, per Section 1 rule 2.
 
 ---
 
 ## 13. Rapid Interaction
 
-**DESIGN DECISION:** the player may pick up a new Tray Piece the instant the previous Turn's `PLACEMENT_RESOLUTION → ... → OBJECTIVE_EVALUATION → ENEMY_ACTION → ACTIVE` loop (Gameplay Spec Section 4) re-enters `ACTIVE`, even if Section 12's Board/Combat Feedback animations are still visually resolving — animation completion is never a gate on the next pointer Down (Section 1, rule 2).
+**DESIGN DECISION:** the player may pick up a new Tray Piece the instant the previous Turn's `PLACEMENT_RESOLUTION → LINE_CLEAR_RESOLUTION → SCORING_AND_STREAK → TRAY_EVALUATION → ACTIVE` loop re-enters `ACTIVE`, even if Section 12's Board/Score Feedback animations are still visually resolving — animation completion is never a gate on the next pointer Down (Section 1, rule 2).
 
 - **Queued input is not buffered/replayed** — if a Down occurs before `ACTIVE` is re-entered (e.g., during `ENEMY_ACTION`'s brief resolution), that Down is simply ignored (not queued for later execution); the player must re-touch once `ACTIVE` is live. This avoids surprising "delayed" input execution, which would itself violate predictability (Section 1, rule 5) more than a dropped early touch would.
 - **Back-to-back Placements** (all 3 Tray Pieces placed in rapid succession) are fully supported — each Placement independently runs the full Section 12 flow; there is no artificial pacing/cooldown inserted between Turns beyond whatever `ENEMY_ACTION`'s own resolution requires (owned by Gameplay Spec Section 10, not this document).
@@ -228,10 +227,10 @@ Directly implements `01_GAMEPLAY_SPECIFICATION.md` Section 19 (Pause/Resume) and
 ## 16. Accessibility
 
 - **Touch target sizing:** every Tray Piece's touch target (Section 2) meets or exceeds standard mobile platform minimum touch-target guidance regardless of the Piece's rendered visual size — a `SHP_001` Single Block's touch target is padded well beyond its 1-cell visual footprint so it remains as easy to pick up as any larger Piece (directly serving Master Vision Section 19's "generous hit... targets").
-- **Reduced motion:** every non-essential animation defined in this document (pickup lift/scale — Section 4; return-to-tray tween — Section 11; Board/Combat Feedback flourish — Section 12) has a reduced-motion variant that shortens or removes easing/scale/travel distance while preserving the *state change itself* (a Piece still visibly moves from A to B, just with less embellishment) — no animation in this document is ever the sole carrier of essential information (Ghost Preview state, Section 8, is always also communicated via the non-color pattern cues already specified there), so reduced motion never causes information loss.
+- **Reduced motion:** every non-essential animation defined in this document (pickup lift/scale — Section 4; return-to-tray tween — Section 11; Board & Score Feedback flourish — Section 12) has a reduced-motion variant that shortens or removes easing/scale/travel distance while preserving the *state change itself* (a Piece still visibly moves from A to B, just with less embellishment) — no animation in this document is ever the sole carrier of essential information (Ghost Preview state, Section 8, is always also communicated via the non-color pattern cues already specified there), so reduced motion never causes information loss.
 - **Haptics:** every haptic cue in this document (Sections 4, 11, 12) is an **enhancement, never a sole information channel** — every haptic-paired event also has a simultaneous visual and/or audio cue, so a player with haptics disabled (platform-level setting) loses zero placement-relevant information, only the tactile flourish.
 - **Color dependence:** explicitly ruled out already in Section 8's Ghost Preview table — Valid/Occupied/Out-of-Bounds states are each defined with a non-color pattern/glyph cue in addition to any color treatment, satisfying the Master Prompt's explicit accessibility requirement directly at the point where color-only signaling would otherwise be most tempting (a simple green/red Ghost Preview).
-- **Motion sensitivity:** the continuous, high-frequency Ghost Preview/Piece-following updates (Sections 6–7) are visually smooth but deliberately **non-parallax and non-camera-based** — nothing in this document's interaction model moves the camera, zooms the Board, or introduces screen-shake during normal placement (screen-shake, if any, is reserved for a post-Commit Combat Feedback flourish, Section 12, owned by a future Juice/VFX doc, and even there must respect a platform/in-app reduced-motion setting) — this keeps the core drag loop safe for motion-sensitive players by construction, not by opt-out.
+- **Motion sensitivity:** the continuous, high-frequency Ghost Preview/Piece-following updates (Sections 6–7) are visually smooth but deliberately **non-parallax and non-camera-based** — nothing in this document's interaction model moves the camera, zooms the Board, or introduces screen-shake during normal placement (screen-shake, if any, is reserved for high-tier line clears (L>=3 or Board Clear) post-Commit, and even there must respect a platform/in-app reduced-motion setting) — this keeps the core drag loop safe for motion-sensitive players by construction, not by opt-out.
 
 ---
 
@@ -259,7 +258,7 @@ Practical, testable targets — not aspirational language — for every time-sen
 
 ## 18. Input State Machine
 
-The pointer-level state machine, nested inside Gameplay Spec Section 4's Battle State Machine exactly as Section 3 (Pointer Lifecycle) described — presented here as a single canonical diagram for implementation reference:
+The pointer-level state machine, nested inside Gameplay Spec Section 4's Gameplay State Machine exactly as Section 3 (Pointer Lifecycle) described — presented here as a single canonical diagram for implementation reference:
 
 ```text
 [ACTIVE] (no pointer active)
@@ -293,7 +292,7 @@ The pointer-level state machine, nested inside Gameplay Spec Section 4's Battle 
                                                 (implicit cancel, Section 10/11 return-to-tray behavior)
 ```
 
-**DESIGN DECISION:** this diagram introduces zero Battle-level states beyond what `01_GAMEPLAY_SPECIFICATION.md` Section 4 already defines — `PIECE_SELECTED` and `DRAGGING` are that document's own states; every arrow in this diagram terminates in a state that document's own transition table already permits (Gameplay Spec Section 4's Legal Next States column), confirming this document's full compliance with that authority.
+**DESIGN DECISION:** this diagram introduces zero Gameplay-level states beyond what `01_GAMEPLAY_SPECIFICATION.md` Section 4 already defines — `PIECE_SELECTED` and `DRAGGING` are that document's own states; every arrow in this diagram terminates in a state that document's own transition table already permits (Gameplay Spec Section 4's Legal Next States column), confirming this document's full compliance with that authority.
 
 ---
 
@@ -303,7 +302,7 @@ The pointer-level state machine, nested inside Gameplay Spec Section 4's Battle 
 |---|---|
 | Player drags a Piece over the Board, then back into the Tray area, then back onto the Board, without releasing | Ghost Preview simply follows Section 7–8's continuous re-evaluation the whole time; re-entering the Board area re-shows the Ghost Preview exactly as if the drag had started there — no state is "remembered" from the earlier Board visit. |
 | Player releases exactly on a Board cell boundary (ambiguous nearest-cell) | Section 7's candidate-coordinate mapping resolves ties deterministically (e.g., consistent rounding direction) so the same release point always produces the same candidate origin — this document does not leave boundary ties undefined, since undefined behavior here would directly violate Section 1 rule 5. |
-| A Piece's Ghost Preview is Valid, but between the last preview update and the actual Release event, the Board changes (theoretically impossible at Absolute MVP since only the dragging player's own future commit can change the Board mid-Turn, per `03_BOARD_ENGINE_AND_RULES.md` Section 13's determinism/no-interleaving guarantee) | Not reachable at Absolute MVP — no Enemy action or other system can mutate Board state mid-`DRAGGING` (Section 9's SHOULD NOT list already forbids Enemy reaction during drag); this row is recorded to confirm the case is structurally excluded, not silently unhandled. |
+| A Piece's Ghost Preview is Valid, but between the last preview update and the actual Release event, the Board changes (theoretically impossible at Absolute MVP since only the dragging player's own future commit can change the Board mid-Turn, per `03_BOARD_ENGINE_AND_RULES.md` Section 13's determinism/no-interleaving guarantee) | Not reachable at Absolute MVP — no outside system can mutate Board state mid-`DRAGGING`; this row is recorded to confirm the case is structurally excluded, not silently unhandled. |
 | Player attempts to drag a Piece that has zero legal placements anywhere on the current Board (a "dead" Piece, Gameplay Spec Section 21) | Fully draggable as normal; Ghost Preview will show Invalid at every candidate origin the player tries; Release anywhere returns the Piece to Tray (Section 11) — no special dead-Piece messaging (Section 13). |
 | Very fast "flick" gesture where the pointer moves a large screen distance between two consecutive frames | Section 7's candidate coordinate is computed fresh from the latest visual position each frame — a large single-frame jump simply produces a large single-frame jump in candidate origin; there is no interpolation/tunneling-prevention logic required, since Ghost Preview evaluation has no concept of "passing through" cells, only "currently over." |
 | Screen rotation or resize mid-drag (if the platform permits it) | Treated identically to backgrounding mid-drag (Section 15) — implicit cancel, Piece returns to Tray, rather than attempting to re-project a stale drag position into a new layout. |
@@ -321,7 +320,7 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 - [ ] Ghost Preview state (Valid/Occupied/Out-of-Bounds/None) always matches what `validatePlacement` would return for the current candidate origin, with zero observed mismatches across a manual test pass.
 - [ ] Every invalid release returns the Piece to its exact original Tray slot, every time.
 - [ ] Every valid release results in the Piece committed at exactly the last-shown Ghost Preview position, with no positional discrepancy.
-- [ ] No Combat-layer visual/audio/haptic cue fires before a Commit event, across a manual test pass covering all Section 9 SHOULD NOT items.
+- [ ] No score popup, streak badge, or clear audio cue fires before a Commit event, across a manual test pass covering all Section 9 rules.
 - [ ] Backgrounding mid-drag always results in a clean Tray-return on resume, never a stuck/ghost Piece.
 
 ### 20.2 "Does This Actually Feel Good?" (subjective, requires human playtesting, not just code review)
@@ -331,7 +330,7 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 - [ ] Does the finger-occlusion offset (Section 5) feel natural, or does the Piece feel like it's "floating away" from the touch point?
 - [ ] When sweeping the Piece quickly across many cells, does the Ghost Preview feel like it's keeping up, or does it feel like it's chasing the finger?
 - [ ] Does an invalid-placement attempt feel like a shrug ("okay, not there") rather than a rebuke ("you did something wrong")?
-- [ ] Does a valid placement — especially a multi-line Combo placement — feel *rewarding* the instant it lands, before any Combat Feedback even plays?
+- [ ] Does a valid placement — especially a multi-line clear — feel *rewarding* the instant it lands, before score popups even display?
 - [ ] Does the overall interaction feel "premium" — i.e., does it feel like a crafted, considered touch experience, or does it feel like a generic/default drag-and-drop implementation? (This is intentionally the least specifiable checklist item and is meant to be evaluated holistically, not decomposed further — per the Primary Objective's explicit "premium" requirement.)
 - [ ] Does playing one-handed (thumb-only reach) on a large phone still feel comfortable, given the Tray's on-screen position?
 - [ ] After 10+ consecutive placements, does any part of the interaction start to feel repetitive/fatiguing in a way that suggests an animation is overstaying its welcome (a candidate for trimming even if it "tested fine" in isolation)?
@@ -340,13 +339,13 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 
 ## 21. Acceptance Criteria
 
-- Every pointer lifecycle stage (Section 3) maps onto a Gameplay Spec Section 4 Battle state transition with no invented intermediate Battle state.
+- Every pointer lifecycle stage (Section 3) maps onto a Gameplay Spec Section 4 Gameplay state transition with no invented intermediate Gameplay state.
 - The Ghost Preview's displayed legality state is always literally backed by a live `validatePlacement` call against the current candidate origin — never a cached, approximated, or client-predicted value that could diverge from the Board Engine's own answer.
-- No Combat-layer visual, audio, or haptic feedback of any kind fires between Drag start and Commit (Section 9), verified against every item in that section's SHOULD NOT list.
+- No score, streak, or juice feedback of any kind fires between Drag start and Commit (Section 9).
 - Every non-valid release path (Occupied, Out-of-Bounds, No Board contact, Cancel, Backgrounding) converges on the identical Tray-return visual/audio/haptic treatment (Section 10–11), with no path producing a harsher or different penalty than another.
 - Reduced-motion and haptics-disabled configurations both preserve full placement-relevant information with zero loss (Section 16).
 - Ghost Preview legality is communicated through at least one non-color signal in every state (Section 8, Section 16).
-- No animation defined in this document blocks or delays the next pointer Down from being accepted once the relevant Battle state (`ACTIVE`) is live (Section 1 rule 2, Section 13).
+- No animation defined in this document blocks or delays the next pointer Down from being accepted once the relevant Gameplay state (`ACTIVE`) is live (Section 1 rule 2, Section 13).
 - A drag interrupted by backgrounding always resolves to a clean Tray-return on resume, with no observable stuck or duplicated Piece state (Section 15).
 - All Section 20.1 functional checklist items pass in automated/manual QA before this document is considered implemented; all Section 20.2 items are evaluated via human playtesting as a separate, non-blocking-for-function but required-for-ship quality gate.
 
@@ -354,12 +353,12 @@ Separated per the Master Prompt's explicit instruction — functional correctnes
 
 ## 22. Cross-Document Contract
 
-- **Consumes from `01_GAMEPLAY_SPECIFICATION.md`:** the `PIECE_SELECTED`/`DRAGGING` Battle states and their legal-transition table (Section 4) as the exact skeleton this document's Pointer Lifecycle (Section 3) and Input State Machine (Section 18) must nest inside without modification; the Pause/Resume and Backgrounding rules (Sections 19–20) that Section 15 of this document implements at the pointer layer; and this document fulfills Gameplay Spec Section 25's explicit delegation ("Input doc: Owns gesture/drag handling detail beneath the `PIECE_SELECTED`/`DRAGGING` states").
+- **Consumes from `01_GAMEPLAY_SPECIFICATION.md`:** the `PIECE_SELECTED`/`DRAGGING` Gameplay states and their legal-transition table (Section 4) as the exact skeleton this document's Pointer Lifecycle (Section 3) and Input State Machine (Section 18) must nest inside without modification; the Pause/Resume and Backgrounding rules (Sections 19–20) that Section 15 of this document implements at the pointer layer; and this document fulfills Gameplay Spec Section 25's explicit delegation ("Input doc: Owns gesture/drag handling detail beneath the `PIECE_SELECTED`/`DRAGGING` states").
 - **Consumes from `02_SHAPE_LIBRARY.md`:** the normalized `local_coordinates` origin convention (Section 2) as the exact definition of a Piece's "anchor cell" used in Section 7's snap-to-grid candidate mapping.
 - **Consumes from `03_BOARD_ENGINE_AND_RULES.md`:** `validatePlacement` (Section 4) as the sole, authoritative, read-only legality check driving every Ghost Preview state (Section 8) and every Release branch (Section 10) — this document calls it, never reimplements or approximates its logic; `commitPlacement` (Section 5) as the sole Commit-stage action (Section 12); the coordinate system (Section 2) as the shared logical-position language between the two documents (Section 6).
 - **Consumes from `04_SPAWN_RNG_AND_DIFFICULTY.md`:** indirectly — the Tray's contents (whatever Shapes were generated) are simply what this document's Piece Pickup (Section 4) operates on; this document has no direct dependency on generation logic itself, only on the Tray as a already-resolved input.
-- **Consumes from `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`:** the `DamageEvent` (Section 9 of that document) as the sole trigger for Section 12's Combat Feedback stage, and that document's Section 9 pipeline as the explicit thing Section 9 of this document forbids previewing or anticipating during `DRAGGING`.
-- **Exposes to a future Art Direction / Juice-VFX doc:** the exact trigger points (pickup, drag-follow, Ghost Preview states, return-to-tray, Commit, Board Feedback, Combat Feedback — Sections 4–5, 8, 11–12) as the complete set of moments that document must supply concrete visual/audio treatment for; this document defines *when* and *what kind* of feedback occurs, never the exact art/sound assets themselves.
+- **Consumes from `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md`:** `ScoreUpdated` and `StreakUpdated` events post-commit, and honors the rule that no points are previewed during `DRAGGING`.
+- **Exposes to a future Art Direction / Juice-VFX doc:** the exact trigger points (pickup, drag-follow, Ghost Preview states, return-to-tray, Commit, Board Feedback, Score Feedback — Sections 4–5, 8, 11–12) as the complete set of moments that document must supply concrete visual/audio treatment for; this document defines *when* and *what kind* of feedback occurs, never the exact art/sound assets themselves.
 - **Exposes to a future Flutter/Flame implementation layer:** Section 17's relationship-based latency targets as the constraints any concrete millisecond/pixel tuning must satisfy.
 - This document must not be edited to embed content owned by the above; it references them structurally only, per the pattern established across `01`–`05`.
 

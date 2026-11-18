@@ -4,7 +4,7 @@
 **Governing documents:** `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md`, `17_MONETIZATION_REWARD_AND_AD_UX.md`, `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md`
 **Document status:** Layer C — Engineering Authority
 
-**Inheritance confirmation:** This document defines the precise mechanisms for writing and retrieving player data to disk. It adheres strictly to the offline-first, solo-developer constraints (Doc 00) and explicitly avoids backend server databases (BaaS/mBaaS).
+**Inheritance confirmation:** This document defines the precise mechanisms for writing and retrieving player data to disk. It adheres strictly to the offline-first, solo-developer constraints (Doc 00) and explicitly avoids backend server databases (BaaS/mBaaS) for both **Mode 1 (Classic Endless)** and **Mode 2 (Goal-Driven Stage Challenge)**.
 
 ---
 
@@ -12,93 +12,145 @@
 
 **"Trust the Client, Protect the File."**
 
-For a single-player, offline puzzle game, attempting to build server-authoritative anti-cheat is a massive waste of solo-dev resources. If a player hacks their local Hive database to give themselves 1,000,000 Stardust, they are only ruining their own experience. 
+For a single-player, offline puzzle game, attempting to build server-authoritative anti-cheat is an unnecessary burden for solo development. If a player tampers with their local database, they only alter their personal scores.
 
-However, we MUST aggressively protect the save file against **accidental corruption** (e.g., the phone battery dying mid-write). Data loss is the #1 cause of 1-star reviews.
+However, we MUST aggressively protect the save file against **accidental corruption** (e.g., the phone battery dying mid-write or the OS terminating the app in the background). Data loss is the primary cause of negative mobile game reviews.
 
 ---
 
 ## 2. What Must Be Saved
 
-### A. Meta-Progression
-- **Stardust:** Current balance of the soft currency.
-- **Relic Compendium:** List of String IDs representing unlocked Relics.
-- **Onboarding State:** `hasCompletedTutorial` boolean.
-- **IAP Status:** `hasPurchasedPremiumUnlock` boolean.
+### A. Mode 1: Classic Endless Meta-Progression
+- **`classicHighScore`:** All-time best score achieved in Classic Endless mode.
+- **`totalClassicGamesPlayed`:** Lifetime count of Classic games started.
+- **`bestStreakCount`:** Highest consecutive line clear streak achieved.
 
-### B. Current Run State (Resumability)
-- **Run Metadata:** Seed, current floor/battle index, current active Relics, and **RNG State calls consumed**. (The original seed alone does NOT guarantee exact mid-run restoration; the exact number of times the RNG was polled must be saved to advance the RNG back to its exact mid-run state).
-- **Battle State:** Current enemy ID, Enemy HP, remaining moves, turn counter, enemy action counter, telegraphed enemy action ID, current combo, objective progress.
-- **Board State:** 64-element integer array representing the 8x8 grid contents (both Occupancy and Modifier).
-- **Tray State:** The IDs of the currently available shapes in the 3 tray slots.
+### B. Mode 2: Goal-Driven Stage Progression
+- **`highestUnlockedStage`:** Integer identifying the highest unlocked stage (e.g., Stage 1..100).
+- **`stageStarsMap`:** Map of `{stageNumber: starsEarned}` storing 1 to 3 stars earned per stage.
+- **`stageHighScoresMap`:** Map of `{stageNumber: bestScore}` storing the player's best score per stage.
 
-### C. Settings & Preferences
-- All values defined in `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` (Volumes, Haptics, Drag Offset, Language, Reduced Motion).
+### C. Active Mid-Game Session State (Resumability)
+- **`activeMode`:** Enum indicating `classicEndless` or `goalStage`.
+- **`boardGrid`:** 64-element integer array representing the 8×8 grid state (occupancy and cell color/modifier).
+- **`trayShapeIds`:** List of 3 nullable shape IDs currently present in the tray slots.
+- **`currentScore`:** Score accumulated in the active session.
+- **`currentStreak`:** Active consecutive streak multiplier state.
+- **`remainingMoves`:** (Mode 2 only) Number of remaining placement turns allowed.
+- **`goalProgressMap`:** (Mode 2 only) Progress counters toward active stage objectives.
+- **`rngSeed` & `rngCallsConsumed`:** Deterministic RNG state counters for exact piece roll restoration.
+
+### D. Settings & Preferences
+- All values defined in `16_SETTINGS_ACCESSIBILITY_AND_PRESENTATION_OPTIONS.md` (Master Volume, SFX, Music, Haptics, Drag Offset, Reduced Motion, Language) persisted via `SharedPreferences`.
 
 ---
 
 ## 3. What Must NOT Be Saved
 
-- **Mid-Animation States:** Because the Pure Dart Domain resolves the entire turn's math instantly and immediately saves the result (`Section 8`), the game never "saves during an animation". If the game crashes while a piece is visually exploding in Flame, it reloads to the state *after* the turn resolved (the animation is simply skipped). This prevents save-scumming.
-- **Ghost Preview Data:** Position of a dragged piece is discarded.
-- **Particle System Data:** Do not serialize VFX components.
+- **Mid-Animation States:** The pure Dart domain resolves the full placement and clear logic instantly before saving. Visual particle effects and falling block animations are never saved.
+- **Ghost Preview Coordinates:** Transient drag pointer coordinates are discarded.
+- **Particle System Objects:** Flame VFX and render objects are strictly ephemeral.
 
 ---
 
 ## 4. Save Schema and Box Structure
 
-The game utilizes **Hive CE** (`hive_ce`, `hive_ce_flutter`) as its primary local database. The database is partitioned into three distinct boxes:
+The game utilizes **Hive CE** (`hive_ce`, `hive_ce_flutter`) as its primary local database, partitioned into two distinct boxes:
 
-1. **`progressionBox`**: Stores `PlayerProgressionData` (Stardust, unlocked relics, tutorial status).
-2. **`runBox`**: Stores `RunSaveData` (Active run state).
-3. **`settingsBox`** (Optional via Hive, but implemented via `SharedPreferences` as detailed below).
+1. **`progressionBox`**: Stores persistent player records (`PlayerProgressionData`).
+2. **`sessionBox`**: Stores active mid-game session data (`ActiveSessionData`) for seamless resumption.
 
 ```dart
 @HiveType(typeId: 1)
 class PlayerProgressionData {
   @HiveField(0)
   int schemaVersion = 1;
-  
+
   @HiveField(1)
-  int stardust = 0;
-  
+  int classicHighScore = 0;
+
   @HiveField(2)
-  bool hasCompletedTutorial = false;
-  
+  int totalClassicGamesPlayed = 0;
+
   @HiveField(3)
-  bool isPremiumUnlocked = false;
-  
+  int highestUnlockedStage = 1;
+
   @HiveField(4)
-  List<String> unlockedRelicIds = [];
+  Map<int, int> stageStars = {}; // stageNumber -> stars (1..3)
+
+  @HiveField(5)
+  Map<int, int> stageHighScores = {}; // stageNumber -> score
+
+  @HiveField(6)
+  bool hasCompletedOnboarding = false;
+}
+
+@HiveType(typeId: 2)
+class ActiveSessionData {
+  @HiveField(0)
+  int schemaVersion = 1;
+
+  @HiveField(1)
+  int gameModeIndex = 0; // 0 = classicEndless, 1 = goalStage
+
+  @HiveField(2)
+  int activeStageNumber = 1;
+
+  @HiveField(3)
+  List<int> gridCells = []; // 64 integers
+
+  @HiveField(4)
+  List<String?> trayShapeIds = []; // 3 shape IDs
+
+  @HiveField(5)
+  int currentScore = 0;
+
+  @HiveField(6)
+  int streakCount = 0;
+
+  @HiveField(7)
+  int remainingMoves = 0;
+
+  @HiveField(8)
+  Map<int, int> goalCurrentValues = {};
+
+  @HiveField(9)
+  String rngSeed = '';
+
+  @HiveField(10)
+  int rngCallsConsumed = 0;
 }
 ```
-*(RunSaveData defined previously in Doc 20).*
 
 ---
 
 ## 5. Storage Strategy
 
-- **Primary Database (Progression & Run):** Hive CE.
-- **Why:** Hive CE is extremely fast, fully synchronous after opening, and handles generic collections natively. Hive CE's type adapters (`@HiveType`, `@HiveField`) ensure robust schema enforcement.
+- **Primary Database (Progression & Session):** Hive CE.
+  - **Why:** Hive CE is extremely fast, fully synchronous after opening, and handles strongly typed schemas natively via `@HiveType` adapters.
 - **Preferences / Settings:** `SharedPreferences`.
-- **Why:** Simple key-value flags (like `hasAgreedToTos`, `masterVolume`, `hapticsEnabled`, `reducedMotionEnabled`) are best kept in `SharedPreferences`. It avoids unnecessary Hive box overhead for global app properties.
-- **Location:** Hive CE automatically manages its storage location via `Hive.initFlutter()`.
-- **Cloud Sync:** Relies entirely on the native OS auto-backup mechanisms (Google Play Cloud Save / Apple iCloud Device Backup). No custom backend code required.
+  - **Why:** Simple key-value primitives (`masterVolume`, `hapticsEnabled`, `reducedMotionEnabled`) avoid Hive box overhead for standard OS preferences.
+- **Storage Location:** Handled automatically by `Hive.initFlutter()`.
+- **Cloud Backup:** Relies on native OS auto-backup mechanisms (Google Play Cloud Backup / Apple iCloud Backup).
 
 ---
 
-## 6. Atomic Save (Corruption Prevention)
+## 6. Atomic Save Architecture (`SaveRepository`)
 
-Hive CE natively handles robust file writing and prevents corruption through its internal append-only storage and compaction strategies. Our responsibility is to wrap reads and writes within a `SaveRepository` abstract class, which the rest of the application interacts with. This repository safely handles initialization and read/write operations.
+Access to disk persistence is abstracted through a clean repository interface:
 
 ```dart
 abstract class SaveRepository {
   Future<void> init();
+  
+  // Progression
   Future<void> saveProgression(PlayerProgressionData data);
   Future<PlayerProgressionData> loadProgression();
-  Future<void> saveRun(RunSaveData data);
-  Future<RunSaveData?> loadRun();
-  Future<void> deleteRun();
+  
+  // Active Session
+  Future<void> saveActiveSession(ActiveSessionData data);
+  Future<ActiveSessionData?> loadActiveSession();
+  Future<void> clearActiveSession();
 }
 ```
 
@@ -106,48 +158,39 @@ abstract class SaveRepository {
 
 ## 7. Save Boundaries (Frequency)
 
-The save system must explicitly checkpoint at the following times to prevent save-scumming and guarantee exact mid-run restoration:
+The save system checkpoints at specific boundaries to guarantee zero progress loss:
 
-1. **At Run Start:** Immediately after generating the Run Seed and initializing the Domain models.
-2. **At Battle Start:** Immediately after the enemy is spawned and the first tray is generated.
-3. **After Every Successful Placement (Turn End):** The Domain resolves the ENTIRE turn instantly (piece placed, lines cleared, damage calculated, enemy action executed) and transitions back to `active` (or `battle_idle`). The game MUST save immediately at this exact moment, *before* Flame animations finish. This prevents save-scumming line clears. If the app is closed during Presentation animations, reopening it produces the exact logical state that existed *after* that placement resolved.
-4. **After Every Battle (Pre-Reward):** When an enemy is defeated, before the Relic reward screen is shown.
-5. **After Relic Selection:** Immediately after the player chooses a Relic and it is added to the active set.
-6. **At Run End:** Immediately upon `run_defeat` or `run_victory` to serialize stardust payouts and wipe the active run save.
-7. **On Settings/Meta-Transaction:** Immediately on slider release (to `SharedPreferences`) or IAP.
+1. **On Session Initialization:** Immediately upon starting a new Classic game or Stage.
+2. **After Every Successful Placement:** The domain resolves piece placement, line clears, and scoring instantly. The game saves the `ActiveSessionData` immediately at this moment, *before* Flame animations finish. If the app is force-closed during particle animations, reopening loads the exact logical state *after* that placement.
+3. **On Session Completion:** When Classic mode triggers game-over or a Stage is cleared/failed, update `PlayerProgressionData` (high scores, stage stars) and delete `ActiveSessionData`.
+4. **On Settings Modification:** Immediately write preference changes to `SharedPreferences`.
 
 ---
 
-## 8. Restore Order (Exact Restoration)
+## 8. Exact Restoration Sequence
 
-When restoring a mid-run save, the system must execute the following sequence to guarantee exact restoration without triggering new piece generation or unwanted events:
+When resuming an interrupted session, the system executes this sequence:
 
-1. **Load save:** Read and deserialize via `SaveRepository.loadRun()`.
-2. **Validate schema:** Ensure schema version matches or run migrations (Section 10).
-3. **Restore Run State:** Set seed, floor, active relics.
-4. **Restore RNG State:** Re-seed the Domain RNG and advance its state by `rngCallCount` to reach the exact mid-run state (`04` Section 13).
-5. **Load Encounter:** Load the correct Enemy and Objective based on floor.
-6. **Restore Board:** Apply the saved `List<int>` (64 elements) to the `BoardEngine`.
-7. **Restore Enemy:** Set current HP, action counter, and telegraphed action.
-8. **Restore Objective:** Set current progress.
-9. **Restore Tray:** Explicitly load the saved `currentTrayShapeIds` without asking RNG to spawn new ones.
-10. **Restore Combo/Turn State:** Apply remaining moves, combo count, turn counter.
-11. **Enter Gameplay:** Transition `BattleOrchestrator` directly into `battle_idle` (or `active` per `01` Section 4). *Do not emit "Game Started" or "Piece Spawned" events that might inadvertently progress counters.*
+1. **Load Data:** Deserialize `ActiveSessionData` via `SaveRepository.loadActiveSession()`.
+2. **Validate Schema:** Ensure `schemaVersion` matches or execute migration.
+3. **Restore Board Grid:** Apply the 64-element cell array to the `BoardEngine`.
+4. **Restore Tray:** Reconstruct the 3 tray slots directly from saved `trayShapeIds` without re-rolling RNG.
+5. **Restore Score & Multipliers:** Set current score, streak count, and remaining moves.
+6. **Restore RNG State:** Seed `GameRNG` and advance its state counter by `rngCallsConsumed`.
+7. **Enter Active Play:** Transition UI directly to active gameplay without firing initial piece spawn animations.
 
 ---
 
-## 9. Background / Crash Handling
+## 9. Background / Lifecycle Handling
 
-Mobile OS environments aggressively kill background apps to free RAM.
-The app should listen to `AppLifecycleState` via `WidgetsBindingObserver`:
+The mobile OS may terminate background apps at any time. The game registers an `AppLifecycleListener` / `WidgetsBindingObserver`:
 
 ```dart
 @override
 void didChangeAppLifecycleState(AppLifecycleState state) {
   if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-    // If a turn is mid-resolution, the Domain should have already saved.
-    // We can explicitly flush Hive to disk here.
-    Hive.close(); // Forces an immediate sync to disk
+    // Flush pending Hive writes to disk immediately
+    Hive.close();
   }
 }
 ```
@@ -156,54 +199,66 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 
 ## 10. Schema Versioning and Migration
 
-Every Hive class must contain a `schemaVersion` integer field (e.g., `@HiveField(0)`).
-
-- **MVP Launch:** `schemaVersion = 1`.
-- If an update radically changes how the Board State array is formatted, the new app will increment this field and utilize a migration strategy upon database initialization.
-
-```dart
-Future<void> migrateProgressionBox(Box<PlayerProgressionData> box) async {
-  // Read raw data and migrate if necessary
-  // e.g. Box data from v1 requires renaming 'gold' to 'stardust'
-}
-```
-*Why:* This ensures players who skip 3 updates and log in a year later do not lose their Relics due to Hive deserialization failures.
+Every Hive model carries a `schemaVersion` integer field (starting at `1`). If a future update introduces new fields or alters data formatting:
+1. Increment `schemaVersion`.
+2. Run a migration routine during repository initialization to map old fields to new schemas without data loss.
 
 ---
 
-## 11. Reset Data
+## 11. Resetting Data
 
-As mandated by `16` (Settings), the game must offer a "Delete Save Data" button.
-- **Disk:** This calls `Hive.deleteBoxFromDisk()` and clears `SharedPreferences`.
-- **Memory:** It must also invalidate the active Riverpod providers in memory (`ref.invalidate()`) and force a soft-reboot of the application state via GoRouter (routing the user back to the `/boot` sequence).
+The game provides a "Reset All Progress" button in Settings:
+- Wipes `progressionBox` and `sessionBox` using `Hive.deleteBoxFromDisk()`.
+- Resets `SharedPreferences`.
+- Reinitializes clean default state and routes the player back to the main menu.
 
 ---
 
-## 12. Security (Simple Checksum)
+## 12. Security and Data Integrity
 
-To prevent casual tampering by users altering their save data (which often results in broken types and app crashes):
-- **Checksum / Obfuscation:** The Hive CE data for `progressionBox` (stardust/unlocks) can optionally utilize a simple checksum or Hive's built-in AES encryption with a hardcoded local key. 
-- *Note:* This is not military-grade encryption; it is simply obfuscation to stop casual tampering that results in syntax errors or trivial save-file editing on rooted Android devices.
+- Hive CE binary storage prevents trivial plain-text file editing.
+- Optional simple checksum validation protects against corrupted manual edits on rooted devices.
 
 ---
 
 ## 13. Testing with Mock Repositories
 
-The persistence layer must have robust Dart unit tests.
-- **MockRepository:** Create a `MockSaveRepository` that implements `SaveRepository` using purely in-memory maps.
-- **Test 1:** Generate a dummy V1 save. Run it through the V2 Migrator. Assert that specific variables were transformed correctly.
-- **Test 2:** Place a piece, simulate an app pause (force `SaveRepository.saveRun()`), re-initialize the Domain using the mock data. Assert that the board array still contains the piece.
+Unit tests verify persistence logic without touching physical disk I/O:
+```dart
+class MockSaveRepository implements SaveRepository {
+  PlayerProgressionData? progressionData;
+  ActiveSessionData? sessionData;
+
+  @override
+  Future<void> saveProgression(PlayerProgressionData data) async => progressionData = data;
+  
+  @override
+  Future<PlayerProgressionData> loadProgression() async =>
+      progressionData ?? PlayerProgressionData();
+
+  @override
+  Future<void> saveActiveSession(ActiveSessionData data) async => sessionData = data;
+
+  @override
+  Future<ActiveSessionData?> loadActiveSession() async => sessionData;
+
+  @override
+  Future<void> clearActiveSession() async => sessionData = null;
+  
+  @override
+  Future<void> init() async {}
+}
+```
 
 ---
 
-## 14. Failure Recovery (The "Nuke" Option)
+## 14. Failure Recovery
 
-If the game encounters an unrecoverable exception during mid-run deserialization (e.g., an Enemy ID exists in the save file but was deleted from the game's catalogs):
-- Do NOT crash to desktop.
-- Catch the exception.
-- Silently delete the `RunSaveData` via `SaveRepository.deleteRun()` (Abandon the run).
-- Keep the `PlayerProgressionData` (Stardust/Relics intact).
-- Load the Main Menu with a generic error dialog: "Your run could not be resumed due to a version update."
+If deserializing an active session throws an unexpected error (e.g., corrupted file after an abnormal device shutdown):
+1. Catch the exception safely.
+2. Delete the corrupted `ActiveSessionData` via `clearActiveSession()`.
+3. Preserve `PlayerProgressionData` (all-time high scores and stage stars remain safe).
+4. Launch the main menu smoothly with an informative toast message.
 
 ---
 
@@ -211,9 +266,7 @@ If the game encounters an unrecoverable exception during mid-run deserialization
 
 > **No player should ever lose progress to a dead battery.**
 >
-> We write data often, we write it safely, and we always keep a backup. We accept that players might cheat locally, but we vigorously defend them against accidental data loss. 
-> 
-> By standardizing on Hive CE, `SaveRepository` abstractions, and strict turn-based save boundaries, we guarantee a flexible, upgradeable, and robust persistence layer.
+> We write data often, we write it safely, and we maintain clear separation between persistent progress and transient session state. By standardizing on Hive CE, `SaveRepository` abstractions, and turn-based save checkpoints, we guarantee a robust, zero-loss persistence system for both Classic Endless and Goal-Driven Stage modes.
 
 ---
 

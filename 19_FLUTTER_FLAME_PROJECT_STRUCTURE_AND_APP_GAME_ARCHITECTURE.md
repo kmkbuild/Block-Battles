@@ -29,7 +29,7 @@ block_battles/
 │   ├── sprites/
 │   │   ├── board/
 │   │   ├── ui/
-│   │   └── enemies/
+│   │   └── goals/
 │   ├── audio/
 │   │   ├── music/
 │   │   └── sfx/
@@ -46,11 +46,10 @@ block_battles/
 │   ├── domain/
 │   │   ├── board/
 │   │   ├── shapes/
-│   │   ├── combat/
-│   │   ├── enemies/
+│   │   ├── tray/
+│   │   ├── scoring/
 │   │   ├── objectives/
-│   │   ├── relics/
-│   │   ├── run/
+│   │   ├── game_loop/
 │   │   └── rng/
 │   ├── data/
 │   │   ├── definitions/
@@ -58,7 +57,7 @@ block_battles/
 │   ├── application/
 │   ├── presentation/
 │   │   ├── home/
-│   │   ├── battle/
+│   │   ├── game/
 │   │   ├── settings/
 │   │   └── widgets/
 │   └── game/
@@ -100,11 +99,11 @@ The application boot sequence ensures all persistent services are ready before a
 The app uses `GoRouter` for strictly defined, deep-linkable paths. The MVP requires these core routes:
 
 1. `/` — Home Screen (Main Menu)
-2. `/battle` — Core Gameplay Screen (Hosts `GameWidget`)
+2. `/game` — Core Gameplay Screen (Hosts `GameWidget`)
 3. `/settings` — App Settings Menu
 
-**Battle-local Overlays (NOT GoRouter routes):**
-Battle specific UI such as Pause Menu, Relic Selection, Victory, and Defeat screens are **Flutter Overlays** stacked on top of the `GameWidget` within the `/battle` route, NOT separate GoRouter routes.
+**Game-local Overlays (NOT GoRouter routes):**
+Gameplay UI such as Pause Menu, Game Over Modal, and Level Clear Modal are **Flutter Overlays** stacked on top of the `GameWidget` within the `/game` route, NOT separate GoRouter routes.
 
 ---
 
@@ -112,18 +111,18 @@ Battle specific UI such as Pause Menu, Relic Selection, Victory, and Defeat scre
 
 - **Purpose:** Handles the Main Menu, run continuation, and meta-progression.
 - **Widgets:** Standard Flutter UI (`Scaffold`, `Column`, `ElevatedButton`).
-- **Flow:** When the player taps "Start Run", a Riverpod controller generates the Run Seed, instantiates the `RunModel`, saves to Hive, and calls `context.go('/battle')`.
+- **Flow:** When the player taps "Start Run", a Riverpod controller generates the Run Seed, instantiates the `RunModel`, saves to Hive, and calls `context.go('/game')`.
 
 ---
 
-## 6. Battle Screen Architecture (`/battle`)
+## 6. Game Screen Architecture (`/game`)
 
 - **Purpose:** The core game loop container. 
 - **Widgets:** 
   - A `Scaffold` containing a `Stack`.
   - The bottom layer of the Stack is `GameWidget<BlockBattlesGame>`.
-  - The top layers are reactive Flutter overlays (HUD, Score, Pause button) listening to Riverpod providers.
-- **Flow:** `BlockBattlesGame` (the Flame game engine) is instantiated and mounted. It runs the battle logic. When the battle ends, it communicates back to Riverpod, which triggers the Flutter Relic Selection overlay.
+  - The top layers are reactive Flutter overlays (Score HUD, High Score Trophy, Streak Badge, Pause button) listening to Riverpod providers.
+- **Flow:** `BlockBattlesGame` (the Flame game engine) is instantiated and mounted. It runs the pure puzzle logic. When a round ends (Board Lock or Level Clear), it communicates via the Event Bus / Riverpod, triggering the celebratory Game Over or Level Clear modal.
 
 ---
 
@@ -141,8 +140,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
-        path: '/battle',
-        builder: (context, state) => const BattleScreen(),
+        path: '/game',
+        builder: (context, state) => const GameScreen(),
       ),
       GoRoute(
         path: '/settings',
@@ -174,14 +173,14 @@ BlockBattlesGame
 
 ## 9. Flutter Widget Hierarchy (HUD)
 
-In `battle_screen.dart`, the overlay ensures UI is easy to build with standard Flutter widgets:
+In `game_screen.dart`, the overlay ensures UI is easy to build with standard Flutter widgets:
 
 ```text
 Stack
 ├── GameWidget(game: BlockBattlesGame())
-├── Positioned(top) -> HUDWidget (Score, HP, Enemy Telegraph)
-├── Positioned(bottom) -> ActionButtons (Pause, Powerups)
-└── RiverpodConsumer -> Conditional Overlays (PauseMenu, RelicSelection, GameOver)
+├── Positioned(top) -> HUDWidget (Score, High Score, Streak Badge, Goal Chips)
+├── Positioned(topRight) -> ActionButtons (Pause)
+└── RiverpodConsumer -> Conditional Overlays (PauseModal, GameOverModal, LevelClearModal)
 ```
 
 ---
@@ -260,7 +259,7 @@ Before a commit or build, these commands must pass:
 
 > **Organized storage yields organized thought.**
 >
-> This project structure ensures that when a bug occurs in the relic system, the developer knows exactly which folder to open. When the UI needs a tweak, the core game loop is entirely insulated from accidental breakage. 
+> This project structure ensures that when a bug occurs in the scoring or tray system, the developer knows exactly which folder to open. When the UI needs a tweak, the core game loop is entirely insulated from accidental breakage. 
 >
 > By enforcing pure Dart domain boundaries and banning Flame physics for grid logic, we guarantee that AI assistants can write clean, testable logic without needing to manipulate a visual inspector.
 

@@ -21,7 +21,7 @@
 
 ## 2. Settings Screen Architecture
 
-The Settings screen is a single scrolling modal panel accessible from the Home Screen and the Battle Pause Menu. 
+The Settings screen is a single scrolling modal panel accessible from the Home Screen and the In-Game Pause Menu. 
 
 **Categorization Order:**
 1.  **Audio** (Most frequently adjusted)
@@ -41,7 +41,7 @@ As specified in `14_AUDIO_SFX_MUSIC_AND_MIXING.md` Section 19.
 |---|---|---|---|---|
 | **Master Volume** | Slider | 0 - 100% | 100% | Scales all audio buses logarithmically. |
 | **Music Volume** | Slider | 0 - 100% | 80% | Controls the background music bus. |
-| **SFX Volume** | Slider | 0 - 100% | 100% | Controls combat, placement, and UI buses. |
+| **SFX Volume** | Slider | 0 - 100% | 100% | Controls placement, line clear, and UI sound buses. |
 
 **Exclusions:** UI sounds do not get their own slider. The MVP scope does not justify separating UI clicks from piece placements; both are grouped under SFX.
 **Mute Behavior:** Dragging a slider to 0% acts as a hard mute, suspending the audio processing for that bus to save CPU.
@@ -70,9 +70,9 @@ As specified in `12_ANIMATION_MOTION_AND_GAME_FEEL.md` Section 19 and `13_VFX_PA
 
 **When "Reduced Motion" is ON, the game executes the following overrides:**
 - **Screen Shake:** Clamped to 0 (disabled entirely).
-- **Flashes:** Full-screen combat flashes and additive line-clear glows are disabled; replaced with simple linear opacity fades.
+- **Flashes:** Full-screen flashes and additive line-clear glows are disabled; replaced with simple linear opacity fades.
 - **Scale Blooms:** Block scale pulses (1.05x, 1.08x) during placement and clears are disabled.
-- **Particles:** VFX particle emission counts are reduced by 80%. Boss ambient particles disabled.
+- **Particles:** VFX particle emission counts are reduced by 80%.
 
 *Why a single toggle?* Splitting this into "Disable Shake", "Disable Flash", and "Disable Bloom" bloats the UI. A player sensitive to one is highly likely to be sensitive to the others. 
 
@@ -84,7 +84,7 @@ These are **not settings**. They are non-negotiable design standards enforced by
 
 - **Color Independence:** Valid ghost preview uses a solid outline; Invalid-Occupied uses a cross-hatch pattern + dashed outline; Invalid-Out-of-Bounds uses edge clipping. No state relies on color alone.
 - **Contrast:** All primary text meets WCAG 2.1 AA (4.5:1) against its background.
-- **Semantic Indicators:** Danger states (Move Limit, HP) are always paired with an icon (warning triangle/cross) and an animation (pulsing), never just a red color shift.
+- **Semantic Indicators:** Danger states (Move Limit, Board Lock) are always paired with an icon (warning triangle/cross) and an animation (pulsing), never just a red color shift.
 
 Because these are baked into the core design, the settings menu does not need a "Colorblind Mode" or "High Contrast Mode" toggle. The base game is already compliant.
 
@@ -131,7 +131,7 @@ As established in `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md`.
 
 **BINDING DECISION:** As per the solo-developer constraint in `00_MASTER_GAME_VISION.md`, there is **NO** custom account system, NO email login, and NO cross-platform backend server at Absolute MVP.
 
-- All save data (Run progress, Relic unlocks, Settings) is stored locally on the device.
+- All save data (High score records, Stage progress, Settings) is stored locally on the device.
 - If cloud save is supported, it relies entirely and exclusively on native OS solutions (Apple iCloud Key-Value storage / Google Play Games Cloud Save) with zero custom UI. The game simply syncs silently in the background.
 
 ---
@@ -140,7 +140,7 @@ As established in `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md`.
 
 | Setting | Type | Behavior |
 |---|---|---|
-| **Restore Defaults** | Button | Resets all Audio, Motion, Haptic, and Gameplay settings to their default values. Does *not* delete run progress or relic unlocks. |
+| **Restore Defaults** | Button | Resets all Audio, Motion, Haptic, and Gameplay settings to their default values. Does *not* delete high scores or stage progress. |
 
 ---
 
@@ -171,10 +171,10 @@ Run this test suite before any release candidate is approved.
 
 | Test Case | Condition | Expected Result |
 |---|---|---|
-| **Colorblind Readability** | Apply Protanopia/Deuteranopia filter to screen. | Valid/Invalid ghost states are still clearly distinguishable. The enemy HP bar danger state is obvious via pulsing/icons. |
+| **Colorblind Readability** | Apply Protanopia/Deuteranopia filter to screen. | Valid/Invalid ghost states are still clearly distinguishable. Move limit warnings and board lock states are obvious via pulsing/icons. |
 | **Low Contrast Readability**| Lower device brightness to 10%. | Primary text and board cells are still legible against the background. |
-| **Reduced Motion: Shake** | Toggle Reduced Motion ON. Trigger a Full Combo. | The screen does not shake. |
-| **Reduced Motion: Flash** | Toggle Reduced Motion ON. Trigger Enemy Defeat. | The screen does not flash white; it fades out smoothly. |
+| **Reduced Motion: Shake** | Toggle Reduced Motion ON. Trigger a Quad Clear. | The screen does not shake. |
+| **Reduced Motion: Flash** | Toggle Reduced Motion ON. Trigger Full Board Wipe. | The screen does not flash white; it fades out smoothly. |
 | **Volume Scaling** | Move Master Volume to 50%. | Both Music and SFX drop by 50% relative to their individual slider positions. |
 | **Haptic Silence** | Toggle Haptics OFF. Place a piece. | The device does not vibrate. |
 | **Data Deletion** | Press Delete Save Data -> Confirm. | The game immediately resets to the tutorial state. |

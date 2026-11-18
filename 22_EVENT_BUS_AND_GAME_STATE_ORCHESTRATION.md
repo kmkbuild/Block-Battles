@@ -94,7 +94,7 @@ class EventDispatcher {
 - All events are immutable with strongly-typed properties.
 - Flame presentation reacts to streams without holding references to internal application controllers.
 - No event is emitted during silent state restoration from save files.
-- Zero references to combat, damage, enemies, or relics.
+- Strict scope discipline: events represent pure puzzle grid actions, scoring, and stage progression.
 
 ---
 

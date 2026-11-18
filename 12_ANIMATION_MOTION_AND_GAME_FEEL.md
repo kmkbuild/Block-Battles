@@ -22,7 +22,7 @@ Motion in Block Battles exists to serve four specific goals, in priority order:
 ### 1.2 What Motion Must Never Do
 
 - **Block input unnecessarily:** Gameplay input (`ACTIVE` state) must never be locked while waiting for a purely decorative animation to finish.
-- **Obscure the board:** The board is Priority 1 (`08` Section 3). Screen-covering sweeps, blinding flashes, or opaque overlays that hide the board state during combat resolution are prohibited.
+- **Obscure the board:** The board is Priority 1 (`08` Section 3). Screen-covering sweeps, blinding flashes, or opaque overlays that hide the board state during line clear resolution are prohibited.
 - **Induce motion sickness:** Rapid full-screen shaking, repetitive high-contrast flashing, or disorienting camera movements must be avoided or clamped.
 - **Make the game feel slow:** A 200ms animation that looks beautiful but makes placing three pieces take 3 seconds of waiting is a failed animation. Snappy always beats smooth.
 
@@ -44,8 +44,8 @@ All animations in the game use one of these standardized timing classes. **Never
 | **Instant** | 0ms (1 frame) | UI state toggles, valid grid snapping, invalid cross-hatch appearance. | Unconscious, immediate. |
 | **Micro** | 50 - 80ms | Button press states, pickup scale-up, micro-haptics. | Snappy, tactile response. |
 | **Short** | 120 - 150ms | Piece return to tray, valid placement settle, minor UI panel slide. | Fast but perceptible motion. |
-| **Medium** | 250 - 350ms | Standard line clear flash, enemy hit reaction, menu transitions. | The standard "event" duration. |
-| **Long** | 500 - 800ms | Enemy defeat animation, Boss phase transition, Relic card reveal. | Dramatic, requires attention. |
+| **Medium** | 250 - 350ms | Standard line clear flash, floating score popups, menu transitions. | The standard "event" duration. |
+| **Long** | 500 - 800ms | Full board wipe animation, level clear fanfare, game over sweep. | Dramatic, requires attention. |
 | **Epic** | 1200 - 2000ms | Game Over sequence, Victory sequence, Run Start sequence. | Full context shift, gameplay is paused. |
 
 ---
@@ -56,7 +56,7 @@ The game relies on three primary easing curves. Linear easing is prohibited for 
 
 ### 3.1 Snap-Out (Cubic Out / Quart Out)
 The default workhorse ease. Starts at maximum velocity immediately upon trigger, then decelerates smoothly into the target value.
-- **Use for:** UI entrances, piece return to tray, damage number pops.
+- **Use for:** UI entrances, piece return to tray, floating score popups.
 - **Why:** Feels responsive because the initial movement covers the most distance instantly.
 
 ### 3.2 Spring (Damped Harmonic Oscillator)
@@ -67,7 +67,7 @@ A physics-based spring function simulating mass, stiffness, and damping.
 
 ### 3.3 Anticipation-Overshoot (Back In-Out)
 Pulls back slightly before firing forward, overshoots the target, then settles back.
-- **Use for:** Major event triggers, Relic selection confirmation, Tier 4 combo numbers.
+- **Use for:** Major event triggers, Quad Clear text banners, Full Board Wipe celebration.
 - **Why:** Draws the eye and adds massive emphasis to a singular event.
 
 ---
@@ -157,7 +157,7 @@ Triggered when a placement results in L=1 (single clear). This is the Tier 3 int
 1. **Placement Settle:** The piece performs its standard Placement Animation (Section 9).
 2. **Clear Anticipation (The Flash):** Immediately upon placement, the cleared cells wash out to `CLR-CMB-CLEAR-FLASH` and bloom in scale to 1.08x.
 3. **Collapse (The Vanish):** The cells rapidly shrink to 0 scale and opacity 0.
-4. **Damage Number:** The damage number pops out of the cleared row/col simultaneously with the collapse.
+4. **Floating Score Popup:** The floating score text pops out of the cleared row/col simultaneously with the collapse (+100, STREAK x1.5!).
 
 ### 10.2 Timings
 
@@ -165,8 +165,8 @@ Triggered when a placement results in L=1 (single clear). This is the Tier 3 int
 |---|---|---|---|
 | **Flash/Bloom** | Color replacement and scale to 1.08x. | Micro (60ms) | Snap-Out |
 | **Collapse** | Scale from 1.08x to 0, opacity to 0. | Short (150ms) | Back-In (anticipates slightly before shrinking) |
-| **Damage Pop** | Number scales from 0.5x to 1.0x, moves upward 20dp. | Medium (300ms) | Spring (heavy bounce) |
-| **Damage Fade** | Number holds, then fades to 0 opacity. | 400ms hold, 200ms fade | Linear |
+| **Score Pop** | Points scale from 0.5x to 1.0x, float upward 25dp. | Medium (300ms) | Spring (heavy bounce) |
+| **Score Fade** | Points hold, then fade smoothly to 0 opacity. | 400ms hold, 200ms fade | Linear |
 
 ### 10.3 Simultaneous Behavior
 If a line clears, all 8 cells in that line execute the Flash and Collapse **at the exact same time**. There is no cascading or wave effect across a single line. The block feels like a rigid structure that detonates simultaneously.
@@ -185,9 +185,9 @@ The base sequence is identical to the L=1 clear, but parameters scale dramatical
 |---|---|---|---|
 | **Flash Bloom Scale** | 1.10x | 1.15x | 1.25x |
 | **Collapse Duration** | 150ms | 180ms | 250ms (slight slow-mo emphasis) |
-| **Damage Number Scale**| 1.2x base | 1.5x base | 2.0x base |
-| **Damage Number Color**| `CLR-CMB-DAMAGE-2` | `CLR-CMB-DAMAGE-3` | `CLR-CMB-DAMAGE-4` (Red-hot) |
-| **Damage Pop Easing** | Spring (heavy bounce) | Anticipation-Overshoot | Massive Anticipation-Overshoot, holds at peak |
+| **Score Popup Scale**| 1.2x base | 1.5x base | 2.0x base |
+| **Score Popup Color**| `CLR-SCR-POPUP-2` | `CLR-SCR-POPUP-3` | `CLR-SCR-POPUP-4` (Radiant Red-Gold) |
+| **Score Pop Easing** | Spring (heavy bounce) | Anticipation-Overshoot | Massive Anticipation-Overshoot, holds at peak |
 
 ### 11.2 Screen-Level Effects
 
@@ -198,40 +198,33 @@ The base sequence is identical to the L=1 clear, but parameters scale dramatical
 
 ---
 
-## 12. Damage and Combat Animation
+## 12. Floating Score and Streak Animations
 
-### 12.1 Enemy Hit Reaction
-Triggered when the damage pipeline outputs final damage > 0.
+### 12.1 Floating Score Popup
+Triggered when placement commits and score updates (`ScoreUpdated` event):
 
 | Element | Action | Duration | Easing |
 |---|---|---|---|
-| **Portrait Shift** | Enemy sprite translates horizontally (random direction) by 5-10dp, then returns to center. | 150ms | Spring (stiff) |
-| **Color Wash** | `CLR-CMB-ENEMY-HIT` flash overlay. | 100ms | Snap-Out (instant on, fade out) |
-| **HP Bar Depletion**| Fill track drains to new value. | 300ms | Cubic-Out (fast start, smooth end) |
-| **HP Value Ticker** | Numeric value counts down to target. | Sync with bar | Linear interval |
-
-### 12.2 Player Damage?
-**Reminder:** The player has no HP. The enemy does not attack the player directly; they affect the board. There is no "player taking damage" screen flash or flinch animation.
+| **Score Popup** | Floating score text (+100, +300, etc.) pops out from cleared line, scaling 0.5x -> 1.0x and moving upward 25dp. | 300ms | Spring (heavy bounce) |
+| **Streak Multiplier** | Accompanying badge (STREAK x1.5!) pulses into view beneath the score text. | 250ms | Spring (stiff) |
+| **Score Ticker** | HUD total score interpolates smoothly to new total. | 250ms | Cubic-Out |
+| **Score Fade** | Floating points hold, then fade out smoothly. | 400ms hold, 200ms fade | Linear |
 
 ---
 
-## 13. Enemy Action Animations
+## 13. Full Board Clear & Milestone Animations
 
-### 13.1 Board Modification (e.g., Freezing a cell)
-When the enemy executes a board action (on their turn, per `01` state machine):
+### 13.1 Full Board Clear (Wipe)
+When a placement clears all 64 cells on the board:
+- **Board Radiant Pulse:** The empty grid cells flash with a synchronized warm gold shimmer (`CLR-TXT-ACCENT`).
+- **Radial Spark Ejection:** 40-50 golden particle sparks burst radially from board center to the perimeter.
+- **Banner Cascade:** A large "+500 BOARD CLEAR!" banner drops into center screen with massive Anticipation-Overshoot, holds for 600ms, then dissolves upward.
+- **Duration:** 1000ms total celebration before next tray piece pickup.
 
-- **Telegraph clear:** The telegraph indicator pulses and disappears (100ms).
-- **Targeting:** A fast, thin projectile or beam connects the enemy portrait to the target cell (150ms).
-- **Cell impact:** The target cell applies its state change (e.g., transitioning to FROZEN). The cell performs a heavy, downward-settling scale (1.0x to 0.95x and back) accompanied by the specific special-block color transition (`11` Section 12).
-- **Duration:** The entire enemy action phase must not exceed 600ms total before control returns to the player.
-
-### 13.2 Enemy Defeat
-Triggered when enemy HP reaches 0. (Tier 5 interaction).
-
-1. **Impact Hold (Freeze Frame):** Game logic pauses. Enemy sprite locks in the hit-reaction shifted position. Color wash goes pure white. (150ms).
-2. **Shatter/Dissolve:** Enemy sprite breaks into geometric shards or dissolves rapidly outward. (400ms, Snap-Out).
-3. **Screen Flash:** Full-screen warm white flash at 70% opacity. (Fades over 300ms).
-4. **Victory Transition:** The Victory UI (Run Results or Relic Selection) begins its entrance sequence.
+### 13.2 Stage Victory (Mode 2 Goal Mode)
+When all level objectives are met:
+- **Move Bonus Conversion:** Any unused moves cascade into floating bonus points (+50 pts each) with rapid ping SFX.
+- **Level Clear Modal:** The Victory dialog slides in smoothly with 1, 2, or 3 star animations stamping into place sequentially.
 
 ---
 
@@ -248,23 +241,15 @@ Triggered when objective progress increments.
 
 ## 15. UI and System Motion
 
-### 15.1 Relic Selection Entrance
-When the Relic Selection modal appears:
+### 15.1 Celebration and Dialog Entrance
+When the Game Over or Level Clear modal appears:
 
-1. **Scrim fade:** Background dims (200ms).
-2. **Card deal:** The 3 Relic cards slide in from the bottom of the screen, staggered by 80ms each.
-3. **Easing:** Anticipation-Overshoot (cards fly up slightly past center, then settle down).
-4. **Duration:** 400ms total for all cards to settle.
+1. **Scrim fade:** Background dims with smooth 60% black scrim (200ms).
+2. **Modal card scale:** The summary card scales up from 0.9x to 1.0x with subtle overshoot (250ms, Cubic-Out).
+3. **Stat reveal:** Final Score, High Score comparison, and Lines Cleared count roll up smoothly over 400ms.
+4. **Action buttons:** "Play Again" and "Home" buttons pop into view with spring bounce (150ms).
 
-### 15.2 Relic Confirmation
-When a player selects a card:
-
-1. **Elevation:** Card scales to 1.05x, shadow increases to Active/4. (Micro, 80ms).
-2. **Selection:** A bright border traces the card edge.
-3. **Confirm tap:** Card scales to 1.1x, then collapses into a point of light that flies into the HUD's Relic Strip. (Medium, 350ms).
-4. **Unselected cards:** Fade out and drop downward. (Medium, 300ms).
-
-### 15.3 Modal Toggles (Pause Menu)
+### 15.2 Modal Toggles (Pause Menu)
 - **Entrance:** Scale up from 0.9x to 1.0x, opacity 0 to 100. (Short, 150ms, Cubic-Out).
 - **Exit:** Scale down to 0.9x, opacity to 0. (Short, 120ms, Cubic-In).
 - **Why:** Fast, unobtrusive. Pause menus should not make you wait.
@@ -287,13 +272,13 @@ Triggered when the Board Engine detects no valid placements exist for the curren
 
 ## 17. Screen Shake
 
-Screen shake is used **only** for the most intense combat events. It is applied to the board and UI layer, not the background.
+Screen shake is used **only** for the most intense puzzle events (L=4 Quad Clear or Full Board Wipe). It is applied to the board and UI layer, not the background.
 
 | Event | Intensity | Duration | Description |
 |---|---|---|---|
 | L=1, L=2, L=3 Clear | None | 0ms | Do not shake the screen for standard play. |
 | **L=4 (Full Combo)** | Medium | 150ms | Tight, rapid, high-frequency vibration (±4dp on X/Y). |
-| **Boss Phase Change** | Low | 300ms | Slow, rumbling horizontal shake (±2dp on X). |
+| **Full Board Clear** | Low | 200ms | Crisp, celebratory low rumble (±2dp on X/Y). |
 
 **Maximum Sensible Intensity:** Never exceed ±6dp translation. Never apply rotation (camera roll) during a shake — it causes immediate motion sickness on mobile displays.
 
@@ -321,8 +306,7 @@ Accessibility requirement (`00` Section 19.1). When Reduced Motion is enabled at
 
 1. **Screen Shake:** Completely disabled (0 intensity).
 2. **Line Clear Flash:** The scale bloom (1.08x to 1.25x) is disabled. The color wash remains (required for feedback), but the cells simply disappear without expanding first.
-3. **Enemy Hit Reaction:** The positional shift is disabled. Only the color wash flashes.
-4. **Relic/Menu Entrances:** Replaced with simple 100ms opacity fades. No sliding or spring scaling.
+3. **Menu & Dialog Entrances:** Replaced with simple 100ms opacity fades. No sliding or spring scaling.
 5. **Ghost Preview:** The ghost still snaps (instant movement is accessible), but invalid rejection shakes are replaced with a simple color flash.
 
 ---
@@ -332,17 +316,16 @@ Accessibility requirement (`00` Section 19.1). When Reduced Motion is enabled at
 The game is turn-based, but animations must overlap to prevent the game from feeling sluggish (`06` Section 12, Concurrent Feedback Pipeline).
 
 ### 20.1 Allowed Overlaps
-- **Board Clear + Combat:** The Line Clear animation (board cells flashing and collapsing) and the Combat animation (damage number moving, enemy HP bar draining) **must play at the same time**. The board does not wait for the enemy to take damage.
-- **Combat + Next Turn Input:** The player is granted `ACTIVE` input state (can pick up the next piece) the moment the Combat resolution logic completes, **even if the enemy HP bar is still animating its depletion**. The animation is visual only; the state is already resolved.
+- **Board Clear + Score Feedback:** The Line Clear animation (board cells flashing and collapsing) and Score Feedback (floating points rising, score ticker rolling) **must play at the same time**. The board does not wait for score animations to complete.
+- **Score + Next Turn Input:** The player is granted `ACTIVE` input state (can pick up the next piece) the moment placement resolution completes, **even if the floating score text is still fading**. The animation is visual only; the logical state is already resolved.
 
 ### 20.2 Interruptions
 - **Piece Return:** If a piece is animating its return to the tray (Invalid placement), the player **can** immediately tap/drag another piece in the tray. The return animation continues independently.
 - **UI Animations:** Menu sliding/fading can be interrupted by a closing tap, which reverses the animation from its current interpolation point.
 
 ### 20.3 Non-Interruptible (Blocking)
-- **Enemy Action:** While the enemy is executing a board modification, player input is blocked. This animation must therefore be fast (Section 13.1).
-- **Boss Phase Transition:** Gameplay is paused to ensure the player sees the state change.
-- **Relic Reveal:** The initial deal of the 3 cards cannot be bypassed, ensuring the player registers their options.
+- **Board Lock Sweep:** The final resignation sweep across unplaceable cells runs to completion before the Game Over dialog appears (800ms).
+- **Full Board Clear Banner:** The "+500 BOARD CLEAR!" banner holds for 600ms to ensure the player feels the achievement.
 
 ---
 
@@ -368,9 +351,8 @@ Animation complexity directly impacts the 60fps target.
 | **Place (L=0)** | Placed Piece | Scale (0.98x -> 1.0) | 120ms | Spring | `sfx_place` | Dust puff | `Impact` |
 | **Clear Flash** | Cleared Cells | Opacity wash, Scale up | 60ms | Snap-Out | `sfx_charge` | Glow | `Clear` |
 | **Clear Poof** | Cleared Cells | Scale to 0 | 150ms | Back-In | `sfx_clear` | Particles | None |
-| **Dmg Number** | UI Text Layer | Scale, Pos Y | 300ms | Spring | None | None | None |
-| **Enemy Hit** | Enemy Sprite | Pos X shift | 150ms | Spring | `sfx_hit` | None | None |
-| **Enemy Die** | Enemy Sprite | Scale/Dissolve | 400ms | Snap-Out | `sfx_defeat` | Shards | `Impact` |
+| **Score Pop** | UI Text Layer | Scale, Pos Y | 300ms | Spring | `sfx_score_pop` | None | None |
+| **Board Clear** | Board Grid | Radial glow, particles | 500ms | Elastic | `sfx_board_clear` | Fireworks | `FullCombo` |
 | **Board Lock** | Board Cells | Color wave | 800ms | Linear | `sfx_loss` | None | `Error` (long) |
 | **Modal Open** | UI Panel | Scale, Opacity | 150ms | Cubic-Out | `sfx_ui_in` | None | `MicroTick` |
 
@@ -384,7 +366,7 @@ Run this checklist at every milestone build:
 - [ ] **Ghost snap:** Does the ghost preview jump instantly between grid cells without smooth interpolation?
 - [ ] **Placement settle:** Does placing a piece feel heavy? (Verify the 0.98x scale compression occurs).
 - [ ] **Clear synchronicity:** Do all cells in a cleared line flash and disappear on the exact same frame?
-- [ ] **Pipeline overlap:** Can the player pick up the next piece while the enemy HP bar is still draining from the previous turn?
+- [ ] **Pipeline overlap:** Can the player pick up the next piece while floating score text is still fading from the previous turn?
 - [ ] **Combo scaling:** Is a 4-line combo visually, audibly, and haptically more intense than a 1-line clear?
 - [ ] **No frame drops:** Does a 4-line combo clear trigger any frame drops below 60fps on the minimum spec test device?
 - [ ] **Accessibility:** Does turning on Reduced Motion disable screen shake and scale-blooms?

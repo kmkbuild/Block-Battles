@@ -72,7 +72,7 @@ A streak is built by clearing at least one line on consecutive piece placement t
 - **Storage Key:** `classic_all_time_high_score` stored locally via `shared_preferences` / `hive_ce`.
 - **Default value:** 0.
 - **In-Game Display:** The active in-game HUD displays:
-  - `SCORE`: Current running battle score (e.g., `1,420`).
+  - `SCORE`: Current running game score (e.g., `1,420`).
   - `BEST`: Device all-time high score with a golden trophy icon (e.g., `8,650`).
 - **New High Score Event:**
   - The moment `CurrentScore > BestScore`, the HUD highlights the BEST score with a golden glow pulse.

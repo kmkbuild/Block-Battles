@@ -12,13 +12,13 @@
 
 ### 1.1 Core Mandate
 
-Color in Block Battles has **one primary job**: make the board state instantly readable. Every other use of color — enemy identity, feedback intensity, relic presentation, UI chrome — is secondary to that job and must never compromise it.
+Color in Block Battles has **one primary job**: make the board state instantly readable. Every other use of color — mode objectives, feedback intensity, UI chrome — is secondary to that job and must never compromise it.
 
 Three principles govern every color decision in this document:
 
 1. **Color serves function, not aesthetics.** A color is justified when it makes a gameplay-critical distinction clearer. It is unjustified when it merely makes something look more visually interesting. Both can coexist, but when they conflict, function wins.
 
-2. **Color is never the only signal.** This is a hard constraint inherited from `09_VISUAL_DESIGN_SYSTEM.md` Section 16 (Visual Do/Don't, color rules) and `00_MASTER_GAME_VISION.md` Section 19 (accessibility). Every color cue that carries gameplay-critical information must be accompanied by at least one non-color cue (shape, icon, pattern, position, text). The system is designed so that a player with total color blindness can still distinguish: valid vs. invalid placement, enemy HP status, objective progress state, and board lock warning.
+2. **Color is never the only signal.** This is a hard constraint inherited from `09_VISUAL_DESIGN_SYSTEM.md` Section 16 (Visual Do/Don't, color rules) and `00_MASTER_GAME_VISION.md` Section 19 (accessibility). Every color cue that carries gameplay-critical information must be accompanied by at least one non-color cue (shape, icon, pattern, position, text). The system is designed so that a player with total color blindness can still distinguish: valid vs. invalid placement, move limit status, objective progress state, and board lock warning.
 
 3. **Color has a semantic hierarchy.** Each color register (danger, warning, success, neutral, accent) has a defined meaning and that meaning is consistent across the entire game. A color used for "danger" in one context must not be used decoratively in another context. Semantic drift is the primary failure mode this document is designed to prevent.
 
@@ -36,7 +36,7 @@ The palette is built around a **warm-neutral base** with **purposeful accent sat
 - **Not neon.** No fully-saturated electric colors (HSL saturation >= 95%) outside of the specific feedback-flash colors defined in Section 8.
 - **Not pastel.** No washed-out, low-saturation piece colors that fail to distinguish from the board surface at a glance.
 - **Not monochromatic.** Piece colors must be distinct enough that, even allowing for color-vision deficiency mitigations, a player can tell different pieces apart.
-- **Not rainbow-per-turn.** Colors are stable and consistent. A piece that is red is always red, in every tray, in every battle, in every run.
+- **Not rainbow-per-turn.** Colors are stable and consistent. A piece that is red is always red, in every tray, in every session, in every mode.
 
 ---
 
@@ -62,15 +62,15 @@ The piece color family. Seven distinct color identities for the seven active pie
 
 ### Group 5 — Semantic Interactive
 
-Colors that carry consistent gameplay meaning: success (green register), warning (amber register), danger (red register). Used for HP states, objective progress, move-limit pressure, board lock warning.
+Colors that carry consistent gameplay meaning: success (green register), warning (amber register), danger (red register). Used for objective progress, move-limit pressure, board lock warning.
 
 ### Group 6 — Text and Icon
 
 Colors for all typographic content. Must meet WCAG 2.1 AA contrast against all surfaces they appear on. Includes primary, secondary, and inverse text.
 
-### Group 7 — Combat and Feedback
+### Group 7 — Scoring and Feedback
 
-Colors used specifically for transient feedback events: damage numbers, line-clear flash, combo flash, enemy hit-reaction, board-lock sweep. These are allowed to be higher-saturation because they are brief and contextually earned.
+Colors used specifically for transient feedback events: floating score numbers, line-clear flash, streak badges, board-clear bloom, and board-lock sweep. These are allowed to be higher-saturation because they are brief and contextually earned.
 
 ---
 
@@ -89,15 +89,15 @@ All color values are specified for the **default (dark-base) environment** (Sect
 | `CLR-BG-FIELD` | Field theme background | `#1E1C16` | 30, 28, 22 | 43, 15%, 10% | Active when Field/Default theme is loaded. |
 | `CLR-BG-CAVE` | Cave/Stone theme background | `#161A1C` | 22, 26, 28 | 199, 12%, 10% | Active when Cave/Stone theme is loaded. |
 | `CLR-BG-ICE` | Frost/Ice theme background | `#161C22` | 22, 28, 34 | 214, 21%, 11% | Active when Frost/Ice theme is loaded. MVP+ dependency. |
-| `CLR-BG-BOSS` | Boss Arena theme background | `#18141A` | 24, 20, 26 | 285, 13%, 9% | Active when Boss Arena theme is loaded. |
+| `CLR-BG-CHALLENGE` | Goal Challenge theme background | `#18141A` | 24, 20, 26 | 285, 13%, 9% | Active in Mode 2 Goal Challenge stages. |
 
 ### 3.2 Surface Colors
 
 | ID | Semantic Purpose | HEX | RGB | HSL | Usage Notes |
 |---|---|---|---|---|---|
 | `CLR-SRF-100` | Surface base — panels, HUD zones | `#2C2820` | 44, 40, 32 | 36, 16%, 15% | Primary surface for Top Zone and Tray Zone panels. |
-| `CLR-SRF-200` | Surface elevated — cards | `#342F26` | 52, 47, 38 | 38, 15%, 18% | Relic cards, tooltip cards. Slightly lighter than SRF-100. |
-| `CLR-SRF-300` | Surface high-elevated — selected cards | `#3D382D` | 61, 56, 45 | 40, 15%, 21% | Selected/highlighted card state (Relic Selection, pre-confirm). |
+| `CLR-SRF-200` | Surface elevated — cards | `#342F26` | 52, 47, 38 | 38, 15%, 18% | Objective cards, tooltip cards. Slightly lighter than SRF-100. |
+| `CLR-SRF-300` | Surface high-elevated — selected cards | `#3D382D` | 61, 56, 45 | 40, 15%, 21% | Highlighted modal cards (Game Over / Level Clear dialogs). |
 | `CLR-SRF-BORDER` | Surface border — panel/card edges | `#4A4438` | 74, 68, 56 | 38, 14%, 25% | 1px borders on panels and cards. Lighter than surface, never dark. |
 | `CLR-SRF-SCRIM` | Modal scrim | `#00000099` | 0, 0, 0, 60% | — | Semi-transparent overlay behind modals. 60% black opacity. |
 
@@ -132,9 +132,9 @@ Seven color identities are defined. Pieces are assigned a color identity at spaw
 |---|---|---|---|---|---|
 | `CLR-SEM-SUCCESS` | Success / Positive state | `#4AA86A` | 74, 168, 106 | 143, 38%, 47% | Must pair with a non-color cue (checkmark icon). Checked against protanopia/deuteranopia in Section 11. |
 | `CLR-SEM-SUCCESS-DIM` | Success / Dimmed (progress incomplete) | `#2E6642` | 46, 102, 66 | 143, 38%, 29% | Used for incomplete objective progress bar fill at early stages. |
-| `CLR-SEM-WARNING` | Warning / Pressure state | `#C88A28` | 200, 138, 40 | 38, 66%, 47% | Move Limit low, HP bar mid-low. Must pair with a non-color cue (icon or numeric). |
+| `CLR-SEM-WARNING` | Warning / Pressure state | `#C88A28` | 200, 138, 40 | 38, 66%, 47% | Move Limit low (<= 5 moves left). Must pair with a non-color cue (icon or numeric). |
 | `CLR-SEM-WARNING-DIM` | Warning / Dimmed | `#7A5418` | 122, 84, 24 | 38, 67%, 28% | Track fill for bars in warning register. |
-| `CLR-SEM-DANGER` | Danger / Critical state | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | HP critically low, Move Limit final turns, Board Lock imminent. Always paired with a non-color cue. |
+| `CLR-SEM-DANGER` | Danger / Critical state | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | Move Limit final turns (<= 2 moves), Board Lock imminent. Always paired with a non-color cue. |
 | `CLR-SEM-DANGER-DIM` | Danger / Dimmed | `#7A2218` | 122, 34, 24 | 4, 67%, 28% | Track fill for bars in danger register. |
 | `CLR-SEM-NEUTRAL` | Neutral / Default state | `#6A6258` | 106, 98, 88 | 33, 9%, 38% | Default state for bars and indicators not yet in a semantic state. |
 | `CLR-SEM-NEUTRAL-DIM` | Neutral / Track fill | `#3A3428` | 58, 52, 40 | 38, 18%, 19% | Track background for neutral-state bars (same as BRD-EMPTY-BORDER — intentional: the board's rhythm carries into the HUD). |
@@ -152,22 +152,22 @@ Seven color identities are defined. Pieces are assigned a color identity at spaw
 | `CLR-ICN-SECONDARY` | Secondary icon | `#A89E90` | 168, 158, 144 | 36, 14%, 61% | — | Same as TXT-SECONDARY. Inactive/background icons. |
 | `CLR-ICN-ACCENT` | Accent icon | `#E8BC48` | 232, 188, 72 | 43, 77%, 60% | — | Same as TXT-ACCENT. Active objective icon, positive feedback icon. |
 
-### 3.7 Combat and Feedback Colors
+### 3.7 Scoring and Feedback Colors
 
 | ID | Semantic Purpose | HEX | RGB | HSL | Usage |
 |---|---|---|---|---|---|
-| `CLR-CMB-DAMAGE-1` | Damage number — 1 line | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | Single-line clear damage number. White-warm — clearly readable but not alarming. |
-| `CLR-CMB-DAMAGE-2` | Damage number — 2 lines | `#E8BC48` | 232, 188, 72 | 43, 77%, 60% | 2-line combo damage. Amber register — energy escalating. |
-| `CLR-CMB-DAMAGE-3` | Damage number — 3 lines | `#E87A28` | 232, 122, 40 | 28, 80%, 53% | 3-line combo damage. Orange-ember — hotter. |
-| `CLR-CMB-DAMAGE-4` | Damage number — 4 lines (Full Combo) | `#E83A28` | 232, 58, 40 | 5, 80%, 53% | Full Combo damage. Red-hot — maximum earned intensity. |
-| `CLR-CMB-CLEAR-FLASH` | Line clear flash — cells | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | The flash color on clearing cells. Warm white — brightness event, not color-coded. |
-| `CLR-CMB-COMBO-GLOW` | Combo indicator glow | `#E87A28` | 232, 122, 40 | 28, 80%, 53% | The peripheral glow on L=3+ clear. Same as CMB-DAMAGE-3. |
-| `CLR-CMB-FULLCOMBO-GLOW` | Full Combo edge flash | `#E83A28` | 232, 58, 40 | 5, 80%, 53% | The full-edge flash on L=4. Same as CMB-DAMAGE-4. |
-| `CLR-CMB-ENEMY-HIT` | Enemy hit-reaction flash | `#E83A28` | 232, 58, 40 | 5, 80%, 53% | Brief flash/tint on enemy portrait when taking damage. |
-| `CLR-CMB-ENEMY-DEFEAT` | Enemy defeat flash | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | Full-screen flash on enemy defeat. Warm white — a flash of light, not a bloodstain. |
-| `CLR-CMB-BOARDLOCK` | Board Lock sweep | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | The slow sweep highlight on all unplaceable cells on Board Lock. Same as SEM-DANGER. |
-| `CLR-CMB-TELEGRAPH` | Enemy Telegraph indicator — normal | `#C88A28` | 200, 138, 40 | 38, 66%, 47% | The Telegraph icon/indicator color when an upcoming action is standard. Same as SEM-WARNING. |
-| `CLR-CMB-TELEGRAPH-THREAT` | Enemy Telegraph indicator — severe | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | The Telegraph indicator when an upcoming action is board-threatening. Same as SEM-DANGER. |
+| `CLR-SCR-POPUP-1` | Score popup — 1 line | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | Single-line clear score popup (+100). White-warm — clean, crisp. |
+| `CLR-SCR-POPUP-2` | Score popup — 2 lines | `#E8BC48` | 232, 188, 72 | 43, 77%, 60% | 2-line clear score popup (+300). Amber register — warmth escalating. |
+| `CLR-SCR-POPUP-3` | Score popup — 3 lines | `#E87A28` | 232, 122, 40 | 28, 80%, 53% | 3-line clear score popup (+600). Orange-ember — high energy. |
+| `CLR-SCR-POPUP-4` | Score popup — 4+ lines (Full Clear) | `#E83A28` | 232, 58, 40 | 5, 80%, 53% | 4-line Quad clear (+1000). Vibrant radiant red-gold — maximum clear achievement. |
+| `CLR-CMB-CLEAR-FLASH` | Line clear flash — cells | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | The flash color on clearing cells. Warm white — brightness event. |
+| `CLR-CMB-COMBO-GLOW` | Multi-line clear glow | `#E87A28` | 232, 122, 40 | 28, 80%, 53% | Peripheral board glow on L=3+ clear. Same as SCR-POPUP-3. |
+| `CLR-CMB-FULLCOMBO-GLOW` | Quad Clear edge flash | `#E83A28` | 232, 58, 40 | 5, 80%, 53% | Full screen-edge flash on L=4. Same as SCR-POPUP-4. |
+| `CLR-SCR-STREAK-TICK` | Streak burst / tick | `#E8BC48` | 232, 188, 72 | 43, 77%, 60% | Spark burst on streak multiplier increment (STREAK x1.5!). |
+| `CLR-SCR-BOARD-CLEAR` | Full Board Wipe flash | `#F0EAE0` | 240, 234, 224 | 36, 44%, 91% | Full-screen radiance flash on 64-cell board clear (+500 points). |
+| `CLR-CMB-BOARDLOCK` | Board Lock sweep | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | The slow sweep highlight on unplaceable cells upon Board Lock. Same as SEM-DANGER. |
+| `CLR-GOAL-WARN` | Move Limit warning indicator | `#C88A28` | 200, 138, 40 | 38, 66%, 47% | Move limit indicator when <= 5 moves remaining. Same as SEM-WARNING. |
+| `CLR-GOAL-DANGER` | Move Limit critical indicator | `#C83A2A` | 200, 58, 42 | 4, 65%, 47% | Move limit indicator when <= 2 moves remaining. Same as SEM-DANGER. |
 
 ---
 
@@ -239,8 +239,8 @@ At Absolute MVP, no special-purpose block color is defined beyond the standard s
 
 | Reserved purpose | Future color register | When it becomes active |
 |---|---|---|
-| Frozen cell state | A distinct desaturated blue-white register | Active at MVP (enemy Freeze mechanic). |
-| Blocked cell state | A distinct dark, low-saturation register | Active at MVP (enemy Block mechanic). |
+| Frozen cell state | A distinct desaturated blue-white register | Mode 2 puzzle obstacle (ice block hurdles). |
+| Blocked cell state | A distinct dark, low-saturation register | Mode 2 puzzle obstacle (stone/blocked hurdles). |
 | Indestructible cell state | A very dark, near-black register with a slight metallic sheen suggestion | When `INDESTRUCTIBLE` state is activated (MVP+). |
 | Hazard cell state | A distinct warm-red register (distinct from piece Ember by being desaturated and dim, not vibrant) | When Hazard mechanic is activated (MVP+). |
 
@@ -330,63 +330,42 @@ Every board cell state is defined with its complete color treatment. At Absolute
 
 ---
 
-## 8. Combat Colors
+## 8. Scoring and Feedback Color Rules
 
-### 8.1 Damage Numbers
+### 8.1 Floating Score Popups
 
-Damage numbers are the primary combat feedback visual. They use a 4-tier color escalation that maps directly to the combo multiplier (L value per `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 4):
+Floating score numbers are the primary feedback visual following a placement. They use a 4-tier color escalation that maps directly to simultaneous lines cleared ($L$):
 
-| Combo tier | L value | Color | Token | Rationale |
+| Clear Type | L value | Color | Token | Rationale |
 |---|---|---|---|---|
-| Single clear | L = 1 | Warm white | `CLR-CMB-DAMAGE-1` | Clear but calm — a normal event. |
-| Double clear | L = 2 | Amber gold | `CLR-CMB-DAMAGE-2` | Starting to heat up — warmth escalates. |
-| Triple clear | L = 3 | Orange-ember | `CLR-CMB-DAMAGE-3` | Hot — player is executing well. |
-| Full Combo | L = 4 | Red-hot | `CLR-CMB-DAMAGE-4` | Maximum — the highest achievement in the game's combat. |
+| Single clear | L = 1 | Warm white | `CLR-SCR-POPUP-1` | Crisp and clean — single line cleared. |
+| Double clear | L = 2 | Amber gold | `CLR-SCR-POPUP-2` | Starting to heat up — multi-line bonus. |
+| Triple clear | L = 3 | Orange-ember | `CLR-SCR-POPUP-3` | High energy — triple cross-clear. |
+| Quad clear | L = 4 | Radiant gold-red | `CLR-SCR-POPUP-4` | Maximum — Quad clear achievement. |
 
-This escalation is **color + size** combined (size scaling per `09` Section 6.4, color escalation here). Together they ensure the Full Combo is unmistakably the most impactful event visually, without requiring a new mechanic or sound cue to communicate it.
+This escalation is **color + size** combined (size scaling per `09` Section 6.4, color escalation here).
 
-### 8.2 Enemy HP Bar Color
+### 8.2 Streak Multiplier Color Ladder
 
-The enemy HP bar uses a **three-phase color** that transitions as HP depletes. Transitions are smooth animated fades (owned by Animation doc).
+Consecutive turns that clear lines escalate the streak multiplier:
+- **Streak 0 (1.0x):** Neutral text (`CLR-TXT-PRIMARY`).
+- **Streak 1 (1.5x):** Amber badge (`CLR-SCR-POPUP-2`), gentle pulse.
+- **Streak 2 (2.0x):** Orange-ember badge (`CLR-SCR-POPUP-3`), energetic flame glow.
+- **Streak 3+ (2.5x cap):** Radiant gold badge (`CLR-TXT-ACCENT` + `CLR-SCR-POPUP-4`), shimmering border animation.
 
-| HP remaining | Color | Token |
-|---|---|---|
-| 66-100% | `CLR-SEM-SUCCESS` — green-positive | `CLR-SEM-SUCCESS` |
-| 33-65% | `CLR-SEM-WARNING` — amber-warning | `CLR-SEM-WARNING` |
-| 0-32% | `CLR-SEM-DANGER` — red-danger | `CLR-SEM-DANGER` |
+### 8.3 Full Board Clear (Wipe)
 
-**Non-color cues paired with each phase:**
-- At 66-100%: HP value is white, no icon.
-- At 33-65%: HP value transitions to `CLR-TXT-ACCENT` (amber); a subtle pulsing is added to the bar (animation-owned).
-- At 0-32%: HP value transitions to `CLR-CMB-DAMAGE-4` (red-hot); the Telegraph indicator also escalates to `CLR-CMB-TELEGRAPH-THREAT`.
+When a placement clears the entire 64-cell board:
+- A full-screen flash of `CLR-SCR-BOARD-CLEAR` (warm white) at 70% opacity, fading out over 300ms.
+- Gold particle sparks (`CLR-TXT-ACCENT`) eject radially from the board center.
+- "+500 BOARD CLEAR!" banner cascades across the board.
 
-### 8.3 Enemy Hit-Reaction
+### 8.4 Move Limit Warnings (Mode 2)
 
-When the enemy takes damage (DamageEvent fires per `05` Section 27), the enemy portrait plays a brief hit-reaction:
-
-- A color wash of `CLR-CMB-ENEMY-HIT` at 50% opacity is overlaid on the portrait, fading out over the reaction duration.
-- The portrait offset/shift is an animation property (owned by Animation doc).
-- Both the color wash and the portrait shift must occur simultaneously.
-
-### 8.4 Enemy Defeat
-
-On enemy defeat:
-
-- A full-screen flash of `CLR-CMB-ENEMY-DEFEAT` (warm white) at 70% opacity, fading out over approximately 300ms.
-- The board surface briefly illuminates (a brightness overlay of `CLR-CMB-ENEMY-DEFEAT` at 30%, fading out with the full-screen flash).
-
-**Rationale for warm white (not gold/yellow):** A warm white flash reads as a flash of light — earned, clean, triumphant. A gold flash risks reading as "coins dropping" (match-3 association) or "critical hit" (RPG association) — neither of which is the intended tone.
-
-### 8.5 Healing, Shields — Not Implemented
-
-Per `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 12's binding exclusion of player HP, there is no healing mechanic and no shield mechanic at Absolute MVP. No color is assigned to these states. They are noted here only to confirm their explicit absence from the color system.
-
-### 8.6 Telegraph Colors
-
-| Telegraph state | Color | Token | Non-color cue |
-|---|---|---|---|
-| Normal (standard upcoming action) | Amber | `CLR-CMB-TELEGRAPH` | Standard icon for the action type. |
-| Severe (board-threatening, high-pressure action) | Red-danger | `CLR-CMB-TELEGRAPH-THREAT` | Icon changes to a distinct "alert" variant (icon design owned by art doc). |
+In Goal-Driven stages:
+- **Moves > 5:** Neutral badge (`CLR-SEM-NEUTRAL`).
+- **Moves 3–5:** Warning amber (`CLR-GOAL-WARN`), subtle bounce animation.
+- **Moves 1–2:** Critical danger red (`CLR-GOAL-DANGER`), pulsing alert indicator.
 
 ---
 
@@ -407,20 +386,9 @@ Objectives use the **semantic interactive color register** (Section 3.5) to comm
 
 ---
 
-## 10. Relic Rarity Colors
+## 10. Mode 2 Objective Gem / Block Target Colors
 
-**BINDING DECISION:** Block Battles **does not implement a rarity system** at Absolute MVP. `05_SCORING_COMBAT_COMBO_AND_PROGRESSION.md` Section 14 explicitly fixes 8 launch relics with no rarity/tier field. `08_UI_UX_MASTER_SPECIFICATION.md` Section 10 confirms "Rarity: Not implemented" and states that all relic cards are presented with uniform visual weight.
-
-**Therefore: this section defines no rarity colors.** All 8 relic cards are presented identically in visual weight, panel treatment, and color register. The only visual differentiation between relic cards is the per-card icon/illustration (art direction owned by a future Relic Art doc).
-
-**Reserved for future use:** If a rarity system is added in a post-MVP content expansion, the following token IDs are pre-reserved and must be populated in a revision of this document before any rarity-adjacent visual is shipped:
-
-- `CLR-RLY-COMMON` — reserved
-- `CLR-RLY-UNCOMMON` — reserved
-- `CLR-RLY-RARE` — reserved
-- `CLR-RLY-EPIC` — reserved
-
-Until these tokens are defined, no rarity color may appear in any asset.
+In Mode 2 Goal-Driven stages, players clear specific block color targets (e.g., "Clear 20 Amber blocks, 15 Leaf blocks"). Objective chips use the exact block base and highlight tokens defined in Section 3.4 (`CLR-PC-*-BASE` and `CLR-PC-*-LIGHT`) to ensure 100% visual parity between the target chip and the on-board blocks.
 
 ---
 
@@ -440,7 +408,7 @@ The most critical gameplay distinction at risk: distinguishing **Leaf (green pie
 |---|---|---|
 | Ember vs. Leaf pieces | These two may appear very similar to protanopes/deuteranopes | Mitigation 1: Shape is the primary piece identity signal — not color. Mitigation 2: Amber and Slate pieces, which are less affected by red/green CVD, provide clear contrast anchors in the tray. |
 | CLR-SEM-DANGER vs. CLR-SEM-SUCCESS | These may be indistinguishable under protanopia/deuteranopia | **Non-color cue is mandatory:** Danger states always pair with a warning icon or X/alert glyph. Success states always pair with a checkmark or fill-direction cue. |
-| CLR-CMB-DAMAGE-4 (red) vs. CLR-CMB-DAMAGE-1 (white) | White vs. red — white is clear under all CVD. The damage number escalation from white to red would lose the red/green distinction but retain the brightness distinction. | The size escalation (Section 6.4 of `09`) provides an additional non-color signal: a Full Combo damage number is 2x the size of a single-clear damage number. |
+| CLR-SCR-POPUP-4 (red) vs. CLR-SCR-POPUP-1 (white) | White vs. red — white is clear under all CVD. The score popup escalation from white to red retains the brightness distinction under color blindness. | The size escalation (Section 6.4 of `09`) provides an additional non-color signal: a Quad Clear score popup is 2x the size of a single-clear score popup. |
 
 **Tritanopia (blue-yellow deficient) — affecting ~0.01% of population:**
 
@@ -481,10 +449,10 @@ Every gameplay-critical color in this document is paired with at least one of th
 |---|---|
 | **Shape / icon glyph** | All objective states (checkmark, alert icon), all semantic interactive states (warning icon, success icon), Telegraph states (distinct icon per state). |
 | **Pattern / texture overlay** | Ghost Preview invalid states (cross-hatch for Occupied, clipping for Out-of-Bounds). |
-| **Size / scale** | Damage number magnitude (2x scale for Full Combo vs. single clear). |
+| **Size / scale** | Score popup magnitude (2x scale for Quad clear vs. single clear). |
 | **Position** | No gameplay-critical information is conveyed only by color + position; position always combines with one of the above. |
 | **Animation / motion** | Warning-state bars pulse; Board Lock sweep moves (even in reduced-motion mode, the state change itself is visible, just without the easing — per `09` Section 16). |
-| **Text / numeric** | All HP states show numeric HP values. All objective states show numeric progress (current/target). Move Limit shows remaining count. |
+| **Text / numeric** | All score states show numeric values. All objective states show numeric progress (current/target). Move Limit shows remaining count. |
 
 ---
 
@@ -498,16 +466,16 @@ Block Battles uses a **single dark-base environment** at Absolute MVP. The entir
 
 ### 12.2 Theme Color Shifts
 
-The four MVP themes (Field/Cave/Stone/Frost Ice/Boss Arena per `09` Section 16.2) shift the background group colors and the board surface tint, while leaving all other color groups (blocks, semantic interactive, text, combat/feedback) entirely unchanged.
+The four MVP themes (Field/Cave/Stone/Frost Ice/Goal Challenge per `09` Section 16.2) shift the background group colors and the board surface tint, while leaving all other color groups (blocks, semantic interactive, text, scoring/feedback) entirely unchanged.
 
 | Theme | BG-BASE token active | BRD-SURFACE tint | Accent register |
 |---|---|---|---|
 | Field / Default | `CLR-BG-FIELD` | Warm amber tint (+3% saturation from BRD-SURFACE base) | Warm amber/gold — aligns with Amber piece identity; uses `CLR-PC-AMB-BASE` at 20% opacity for ambient accents |
 | Cave / Stone | `CLR-BG-CAVE` | Cool teal tint (+3% saturation from BRD-SURFACE base, cooler hue) | Muted teal/green — aligns with Leaf/Tide piece identities; uses `CLR-PC-TID-BASE` at 15% opacity for ambient accents |
 | Frost / Ice | `CLR-BG-ICE` | Pale blue-white tint | Pale blue-white — a desaturated variant of `CLR-PC-TID-BASE` at high lightness |
-| Boss Arena | `CLR-BG-BOSS` | Dark violet tint | Boss-specific saturated accent (defined per Boss archetype in the Enemy Content doc; tokens `CLR-BOSS-ACCENT-1` and `CLR-BOSS-ACCENT-2` are reserved here, values to be defined per archetype) |
+| Goal Challenge | `CLR-BG-CHALLENGE` | Dark violet tint | Crisp jewel accent for Mode 2 objective stages. |
 
-**BINDING RULE:** A theme ONLY shifts background and board surface colors. Piece block colors, semantic colors, text colors, and combat/feedback colors are **invariant across themes.** A player's Ember piece is Ember in the Field and Ember in the Boss Arena. Consistency of piece color identity is more valuable than thematic color coherence.
+**BINDING RULE:** A theme ONLY shifts background and board surface colors. Piece block colors, semantic colors, text colors, and scoring/feedback colors are **invariant across themes.** A player's Ember piece is Ember in the Field and Ember in the Goal Challenge. Consistency of piece color identity is more valuable than thematic color coherence.
 
 ### 12.3 Light Environment (MVP+ Decision)
 
@@ -527,9 +495,9 @@ This is explicitly **not defined at Absolute MVP** and is an open decision for a
 | Context | Gradient type | Purpose |
 |---|---|---|
 | Button surfaces | Very subtle top-to-bottom linear gradient (10% brightness variance from base) | Suggests slight material curvature — the only "depth" on a flat button surface. |
-| HP bar fill | Subtle left-to-right linear gradient (5% brightness variance, lighter at left edge) | Reinforces the "draining" reading direction. |
+| Objective bar fill | Subtle left-to-right linear gradient (5% brightness variance, lighter at left edge) | Gives progress bars dimension without flat look. |
 | Background (optional) | Very subtle radial gradient (15% brightness shift, center slightly lighter) | Creates ambient depth without visible texture. Maximum one gradient on the background layer. |
-| Screen flash effects | Radial gradient from center at full opacity to transparent at edges | Prevents the flash from appearing as a hard-edged color block. Applies to CLR-CMB-ENEMY-DEFEAT. |
+| Screen flash effects | Radial gradient from center at full opacity to transparent at edges | Prevents the flash from appearing as a hard-edged color block. Applies to CLR-SCR-BOARD-CLEAR. |
 
 ### 13.2 Where Gradients Are Prohibited
 
@@ -601,12 +569,12 @@ All color state transitions apply to the same element across different interacti
 |---|---|
 | **Normal** | Base surface color at full opacity. |
 | **Hovered / pressed** (touch contact on a button) | Surface lifts to the next elevation tier color (e.g., SRF-200 instead of SRF-100) with an immediate, 1-frame color change. No color fade — the change is instant (input must feel responsive per `06` Section 17). |
-| **Selected** (Relic card pre-confirm) | SRF-300 surface + Active/4 shadow elevation + 1px border brightness increase. |
+| **Selected** (Modal button active) | SRF-300 surface + Active/4 shadow elevation + 1px border brighten | Clear tactile acknowledgment of the pressed control. |
 | **Disabled** | Surface color at 40% opacity. Label text at `CLR-TXT-DISABLED`. |
 | **Dragging** (dragged piece) | See Section 15.1 Ghost Preview states. The piece itself renders at Active/4 elevation colors (LIGHT face +5%, shadow opacity +10%). |
 | **Valid placement** | The piece commits with zero color change — it arrives at the exact color it appeared as in the Ghost Preview Valid state's outline, confirming the prediction. |
-| **Invalid placement** | The Ghost Preview briefly holds its invalid color treatment (CMB-DAMAGE-equivalent red/warning tones) for a single beat, then the piece returns to tray. The "invalid hold" is a one-frame brightness flash followed by the return animation. |
-| **Damaged** (enemy HP bar) | Three-phase fill color transition (Success, Warning, Danger) — animated depletion per Section 8.2. |
+| **Invalid placement** | The Ghost Preview briefly holds its invalid color treatment (SEM-DANGER-equivalent red tones) for a single beat, then the piece returns to tray. The "invalid hold" is a one-frame brightness flash followed by the return animation. |
+| **Move Pressure** (Move counter) | Three-phase color transition (Normal, Warning, Danger) | Connects turn progression to move pressure clearly. |
 | **Frozen** (MVP cell state) | Color transition is a slow, cold desaturation sweep from the cell's current fill to `CLR-CELL-FROZEN`. |
 | **Cleared** | See "Clearing" in Section 15.1. |
 
@@ -618,7 +586,7 @@ These rules prevent semantic color collisions — the primary long-term maintena
 
 ### 16.1 Red Is Danger. Only Danger.
 
-`CLR-SEM-DANGER` and `CLR-CMB-DAMAGE-4` share the red register (hue ~5°). **No other element in the game uses this hue at high saturation.** Specifically:
+`CLR-SEM-DANGER` and `CLR-SCR-POPUP-4` share the red register (hue ~5°). **No other element in the game uses this hue at high saturation.** Specifically:
 
 - Piece identity **Rose** (`CLR-PC-ROS-BASE`, hue ~348°) uses a distinct rose-crimson that is visually distinct from the danger red (hue ~5°) by being shifted further toward the warm pink-purple direction. At a glance, Rose reads as pink-red, not danger-red. If in implementation testing they are found to be confusable, Rose shifts further toward magenta.
 - **No decorative element, background accent, or non-gameplay icon** uses the danger red register.
@@ -636,7 +604,7 @@ These are intentionally close — both are part of the "warm energy" register. T
 
 ### 16.3 Green Is Success. Not Nature, Not Life, Not Go.
 
-`CLR-SEM-SUCCESS` is used **only** for objective completion and positive HP states. It does not appear in:
+`CLR-SEM-SUCCESS` is used **only** for objective completion and new high score records. It does not appear in:
 - Environmental theme accents for the Field theme (which uses amber, not green, even though "field" could suggest green).
 - Piece color identity for Leaf (which uses a distinct mid-green that is darker and more olive than the success green).
 - Any decorative element.
@@ -685,17 +653,17 @@ Run this checklist at every build review. Binary pass/fail per item.
 
 ### 17.4 Semantic Color
 
-- [ ] `CLR-SEM-DANGER` appears in the game only in the defined danger contexts: HP bar critical phase, Move Limit final turns, Board Lock sweep, Telegraph severe state.
-- [ ] `CLR-SEM-SUCCESS` appears only in objective completion and HP bar healthy phase.
-- [ ] `CLR-SEM-WARNING` appears only in HP bar mid phase, Move Limit warning, and Telegraph normal state.
+- [ ] `CLR-SEM-DANGER` appears in the game only in the defined danger contexts: Move Limit final turns (Section 8.4) and Board Lock sweep (Section 3.7).
+- [ ] `CLR-SEM-SUCCESS` appears only in objective completion and new record celebration.
+- [ ] `CLR-SEM-WARNING` appears only in Move Limit warning (Section 8.4) and Streak Tier 1 badge.
 - [ ] No decorative element uses any semantic color register.
 
 ### 17.5 Accessibility
 
 - [ ] Every danger-register element has a paired non-color cue (icon, pattern, or animation).
 - [ ] Every success-register element has a paired non-color cue (icon or text label).
-- [ ] The damage number escalation (white to red) is also accompanied by size escalation (base size to 2x).
-- [ ] A simulated grayscale screenshot of the Battle screen shows the board cells, pieces, HP bar, and Objective as clearly distinguishable from one another by luminance alone.
+- [ ] The score popup escalation (white to red) is also accompanied by size escalation (Section 8.1, `09` Section 6.4).
+- [ ] A simulated grayscale screenshot of the Game screen shows the board cells, pieces, HUD elements, all cleanly distinguishable by value alone.
 
 ### 17.6 Consistency
 
@@ -725,7 +693,7 @@ Run this checklist at every build review. Binary pass/fail per item.
 | `CLR-BG-FIELD` | `#1E1C16` | 43, 15%, 10% | Field theme background |
 | `CLR-BG-CAVE` | `#161A1C` | 199, 12%, 10% | Cave/Stone theme background |
 | `CLR-BG-ICE` | `#161C22` | 214, 21%, 11% | Frost/Ice theme background |
-| `CLR-BG-BOSS` | `#18141A` | 285, 13%, 9% | Boss Arena theme background |
+| `CLR-BG-CHALLENGE` | `#18141A` | 285, 13%, 9% | Goal Challenge theme background |
 
 ### Group 2 — Surface
 
@@ -798,19 +766,19 @@ Run this checklist at every build review. Binary pass/fail per item.
 | `CLR-ICN-SECONDARY` | `#A89E90` | 36, 14%, 61% | Secondary icon |
 | `CLR-ICN-ACCENT` | `#E8BC48` | 43, 77%, 60% | Accent icon |
 
-### Group 7 — Combat and Feedback
+### Group 7 — Scoring and Feedback
 
 | Token ID | HEX | HSL | Semantic purpose |
 |---|---|---|---|
-| `CLR-CMB-DAMAGE-1` | `#F0EAE0` | 36, 44%, 91% | Damage number — 1 line |
-| `CLR-CMB-DAMAGE-2` | `#E8BC48` | 43, 77%, 60% | Damage number — 2 lines |
-| `CLR-CMB-DAMAGE-3` | `#E87A28` | 28, 80%, 53% | Damage number — 3 lines |
-| `CLR-CMB-DAMAGE-4` | `#E83A28` | 5, 80%, 53% | Damage number — 4 lines (Full Combo) |
+| `CLR-SCR-POPUP-1` | `#F0EAE0` | 36, 44%, 91% | Score popup — 1 line |
+| `CLR-SCR-POPUP-2` | `#E8BC48` | 43, 77%, 60% | Score popup — 2 lines |
+| `CLR-SCR-POPUP-3` | `#E87A28` | 28, 80%, 53% | Score popup — 3 lines |
+| `CLR-SCR-POPUP-4` | `#E83A28` | 5, 80%, 53% | Score popup — 4+ lines (Quad Clear) |
 | `CLR-CMB-CLEAR-FLASH` | `#F0EAE0` | 36, 44%, 91% | Line clear flash — cells |
 | `CLR-CMB-COMBO-GLOW` | `#E87A28` | 28, 80%, 53% | Combo indicator glow (L=3) |
 | `CLR-CMB-FULLCOMBO-GLOW` | `#E83A28` | 5, 80%, 53% | Full Combo edge flash (L=4) |
-| `CLR-CMB-ENEMY-HIT` | `#E83A28` | 5, 80%, 53% | Enemy hit-reaction flash |
-| `CLR-CMB-ENEMY-DEFEAT` | `#F0EAE0` | 36, 44%, 91% | Enemy defeat full-screen flash |
+| `CLR-SCR-STREAK-TICK` | `#E8BC48` | 43, 77%, 60% | Streak increment flash |
+| `CLR-SCR-BOARD-CLEAR` | `#F0EAE0` | 36, 44%, 91% | Full board clear radiance flash |
 | `CLR-CMB-BOARDLOCK` | `#C83A2A` | 4, 65%, 47% | Board Lock sweep |
 | `CLR-CMB-TELEGRAPH` | `#C88A28` | 38, 66%, 47% | Telegraph indicator — normal |
 | `CLR-CMB-TELEGRAPH-THREAT` | `#C83A2A` | 4, 65%, 47% | Telegraph indicator — severe |
@@ -838,12 +806,7 @@ Run this checklist at every build review. Binary pass/fail per item.
 | `CLR-RLY-RARE` | TBD | Reserved |
 | `CLR-RLY-EPIC` | TBD | Reserved |
 
-### Reserved — Boss Accent (per archetype)
 
-| Token ID | HEX | Status |
-|---|---|---|
-| `CLR-BOSS-ACCENT-1` | TBD | Reserved — defined per Boss archetype in Enemy Content doc |
-| `CLR-BOSS-ACCENT-2` | TBD | Reserved |
 
 ---
 

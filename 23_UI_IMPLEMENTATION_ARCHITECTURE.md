@@ -4,7 +4,7 @@
 **Governing documents:** `08_UI_UX_MASTER_SPECIFICATION.md`, `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md`, `18_TECHNICAL_ARCHITECTURE.md`
 **Document status:** Layer C — Engineering Authority
 
-**Inheritance confirmation:** This document dictates the Flutter Widget and Flame Component structures required. It enforces a strict boundary between Flutter (App UI) and Flame (Gameplay Rendering).
+**Inheritance confirmation:** This document dictates the Flutter Widget and Flame Component structures required for the game. It enforces a strict boundary between Flutter (App UI, HUD, Modals) and Flame (Board & Piece Rendering, VFX, Drag Input) for both **Mode 1 (Classic Endless)** and **Mode 2 (Goal-Driven Stage Challenge)**.
 
 ---
 
@@ -12,55 +12,61 @@
 
 **"The UI is Dumb. The UI is Reactive."**
 
-1.  **Passive View:** A Flutter widget or Flame component never calculates math or modifies state directly without sending an intent to a Riverpod notifier or Domain Engine.
-2.  **Boundary Rule:** The Board, Pieces, and Drag/Drop interactions happen inside Flame. HUD, Menus, Meta-currency, and Overlays happen in Flutter.
-3.  **Responsive Layout:** Flutter's `LayoutBuilder`, `SafeArea`, `Expanded`, and `MediaQuery` handle screen scaling.
+1. **Passive View:** A Flutter widget or Flame component never calculates scoring math or modifies game state directly; it sends user intents to Riverpod notifiers or domain engines.
+2. **Boundary Rule:** The 8×8 Board, Tray Pieces, Drag/Drop feedback, and line clear particle effects live inside Flame. HUD, Menus, Goal Cards, and Modals live in Flutter.
+3. **Responsive Layout:** Flutter's `LayoutBuilder`, `SafeArea`, `Expanded`, and `MediaQuery` handle phone and tablet screen scaling.
 
 ---
 
 ## 2. Screen & Route Registry
 
-Navigation uses `GoRouter` for application-level screens only.
+Navigation uses `GoRouter` for top-level application screens:
 
 | Route | Widget | Description |
 |---|---|---|
-| `/` | `HomeScreen` | Main menu, meta-progression, Run Start |
-| `/battle` | `BattleScreen` | Hosts `GameWidget` + battle overlays |
-| `/settings` | `SettingsScreen` | App-level settings screen |
+| `/` | `HomeScreen` | Mode selection (Classic Endless vs. Stage Challenge), High Scores, Settings |
+| `/classic` | `ClassicGameScreen` | Hosts `GameWidget` + Classic Endless HUD & Overlays |
+| `/stages` | `StageSelectScreen` | Mode 2 Stage grid with star progression and level select |
+| `/stage_play` | `StageGameScreen` | Hosts `GameWidget` + Goal-Driven Stage HUD & Overlays |
+| `/settings` | `SettingsScreen` | Audio volume, SFX/Music toggles, Haptics preferences |
 
-**Battle-local overlays** are shown via Flutter `Stack` within `BattleScreen` — they are NOT separate GoRouter routes:
+### Game-Local Overlays
+In-game overlays are shown via Flutter `Stack` within `ClassicGameScreen` or `StageGameScreen` — they are NOT separate GoRouter routes:
 
-| Overlay | Widget | Trigger |
-|---|---|---|
-| Pause | `PauseOverlay` | Player taps pause button |
-| Relic Selection | `RelicSelectionOverlay` | After enemy defeated |
-| Victory | `VictoryOverlay` | `BattleVictory` event received |
-| Defeat | `DefeatOverlay` | `BattleFailure` event received |
-| Run Complete | `RunCompleteOverlay` | `RunCompleted` event received |
+| Overlay | Widget | Mode | Trigger |
+|---|---|---|---|
+| Pause | `PauseOverlay` | Both | Player taps pause button |
+| Game Over | `GameOverOverlay` | Classic | Board locked with no valid moves |
+| Stage Clear | `StageClearOverlay` | Stage | All stage objectives completed (1–3 stars awarded) |
+| Stage Failed | `StageFailedOverlay` | Stage | Out of moves before completing objectives |
 
-Overlays are driven by `BattleService` state observed via Riverpod. They are shown/hidden by conditional rendering in the `BattleScreen` `Stack`, not by route pushes.
+Overlays are driven by `ClassicGameService` and `StageGameService` state observed via Riverpod. They are rendered conditionally in the screen's `Stack`, not pushed onto the navigation history.
 
 ---
 
-## 3. The BattleScreen Stack (Flutter + Flame)
+## 3. The Gameplay Screen Stack (Flutter + Flame)
 
-The `BattleScreen` heavily uses Flutter's `Stack` to layer UI over the Flame game.
+The gameplay screens use Flutter's `Stack` to layer responsive UI over the Flame canvas:
 
 ```dart
 Widget build(BuildContext context) {
+  final sessionState = ref.watch(classicSessionProvider);
+
   return Scaffold(
     body: SafeArea(
       child: Stack(
         children: [
-          // 1. Base Layer: Flame Engine
-          GameWidget(game: blockBattlesGame),
+          // 1. Base Layer: Flame Engine (Board, Tray, VFX)
+          GameWidget(game: blockGameInstance),
           
-          // 2. HUD Layer: Flutter Widgets ignoring Flame touches
+          // 2. HUD Layer: Flutter Widgets (Score, Streak Multiplier)
           IgnorePointer(
-            child: BattleHudOverlay(),
+            ignoring: false, // Buttons receive taps; backdrop ignores
+            child: ClassicHudOverlay(),
           ),
           
-          // 3. Modal Layer: Pause, Relics, Settings
+          // 3. Modal Layer: Pause, Game Over
+          if (sessionState.isGameOver) GameOverOverlay(),
           if (isPaused) PauseOverlay(),
         ],
       ),
@@ -68,37 +74,49 @@ Widget build(BuildContext context) {
   );
 }
 ```
-*Note:* To prevent Flutter overlays from intercepting Flame touch events, use `IgnorePointer` on non-interactive HUD elements.
+*Note:* To prevent Flutter overlays from intercepting Flame touch and drag events, use `IgnorePointer` on non-interactive HUD elements.
 
 ---
 
 ## 4. Flame Render & Input (The Game World)
 
-- **BoardView/TrayView:** Implemented as Flame `PositionComponent`s inside `FlameGame`. 
-- **Piece Dragging:** Flame's `DragCallbacks` mixin handles piece interactions.
-- **VFX:** Flame `SpriteAnimationComponent` or Particle effects spawn on `LinesCleared` events.
-- **Animations:** Use Flame effects (`MoveEffect`, `ScaleEffect`) for board elements.
+- **BoardView & TrayView:** Implemented as Flame `PositionComponent`s inside `FlameGame`.
+- **Piece Dragging:** Flame's `DragCallbacks` mixin handles piece pickup, pointer tracking, and snapping.
+- **Ghost Preview:** Highlights valid target cells on the 8×8 board when a piece is dragged overhead.
+- **VFX & Particles:** Flame `ParticleSystemComponent` or sprite burst components spawn on line clear events.
+- **Animations:** Flame effects (`MoveEffect`, `ScaleEffect`, `OpacityEffect`) animate cell clears and board clears.
 
 ---
 
 ## 5. Flutter UI Components (The HUD & Menus)
 
-- **Enemy HUD (`EnemyHudWidget`):** Flutter widget placed via `Positioned` in the stack. Reads HP from Riverpod or event streams.
-- **Objective UI (`ObjectiveCardWidget`):** Shows progression. Uses Flutter `AnimationController` for fill bars.
-- **Relic Cards (`RelicCardWidget`):** Reusable Flutter UI for relic selection.
+- **Classic Score HUD (`ScoreHudWidget`):** Displays current score, high score record, and active streak multiplier badge (e.g., $1.5\times$).
+- **Stage Goal HUD (`StageGoalHudWidget`):** Displays remaining moves counter, target score progress bar, and color block collection quotas.
+- **Star Display Widget (`StarRatingWidget`):** Displays 1 to 3 animated stars based on stage milestone thresholds.
+- **Streak Multiplier Badge (`StreakBadgeWidget`):** Pulsing badge highlighting consecutive line clears.
 
 ---
 
 ## 6. Reactive Data Binding
 
-We use Riverpod `ConsumerWidget` for declarative UI updates.
+We use Riverpod `ConsumerWidget` for declarative UI updates:
 
 ```dart
-class EnemyHudWidget extends ConsumerWidget {
+class ScoreHudWidget extends ConsumerWidget {
+  const ScoreHudWidget({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enemyState = ref.watch(enemyStateProvider);
-    return Text('${enemyState.currentHp} / ${enemyState.maxHp}');
+    final state = ref.watch(classicSessionProvider);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text('SCORE: ${state.currentScore}'),
+        Text('BEST: ${state.highestScore}'),
+        if (state.streakCount > 1)
+          Text('STREAK x${state.currentMultiplier.toStringAsFixed(1)}'),
+      ],
+    );
   }
 }
 ```
@@ -107,32 +125,32 @@ class EnemyHudWidget extends ConsumerWidget {
 
 ## 7. Animation Boundary
 
-- **UI Animation:** Flutter's `AnimatedWidget`, `AnimationController`, or implicit animations (`AnimatedContainer`).
-- **Game World Animation:** Flame's `Effect` classes.
-- **Synchronization:** Presentation animations run independently and do not block domain state. After domain state transitions (e.g., `DamageDealt` event fired), the Flutter widget or Flame component plays its animation concurrently. No `UIAnimationCompleteEvent` or completion callback is required for gameplay to continue.
+- **UI Animation:** Flutter's `AnimatedWidget`, `AnimationController`, or implicit animations (`AnimatedContainer`, `AnimatedScale`).
+- **Game World Animation:** Flame's `Effect` classes and particle engines.
+- **Synchronization:** Presentation animations run independently and do not block domain state. After domain state transitions (e.g., `LinesClearedEvent` fired), the Flame visual components play particle bursts and grid collapse animations concurrently. Gameplay input is restored immediately following clear resolution.
 
 ---
 
 ## 8. Widget Naming Conventions
 
-- Use PascalCase for classes.
-- Suffix screens with `Screen` (e.g., `HomeScreen`).
-- Suffix overlays with `Overlay` (e.g., `PauseOverlay`).
-- Suffix reusable pieces with `Widget` (e.g., `GameButtonWidget`, `EnemyHudWidget`).
+- Use PascalCase for all classes.
+- Suffix full screens with `Screen` (e.g., `HomeScreen`, `ClassicGameScreen`).
+- Suffix in-game modals with `Overlay` (e.g., `PauseOverlay`, `GameOverOverlay`, `StageClearOverlay`).
+- Suffix reusable components with `Widget` (e.g., `ScoreHudWidget`, `StageGoalHudWidget`).
 
 ---
 
 ## 9. Safe Areas and Responsiveness
 
-- Wrap the main stack in a `SafeArea` widget to avoid notches.
-- Use `LayoutBuilder` inside the `GameWidget` wrapper if the Flame game needs explicit bounds, or let Flame's camera system scale the board dynamically while Flutter handles the edges.
+- Always wrap the root gameplay stack in a `SafeArea` widget to avoid device notches, home indicators, and camera cutouts.
+- Use `LayoutBuilder` inside the `GameWidget` wrapper to scale the Flame camera dynamically while Flutter HUD elements pin to screen edges.
 
 ---
 
-## 10. Localization & Fonts
+## 10. Localization & Typography
 
 - Text uses standard Flutter `Text` widgets with custom font families declared in `pubspec.yaml`.
-- Use an i18n package (like `slang` or `flutter_localizations`) to replace static strings.
+- All player-facing copy references keys from `15_SCREEN_CONTENT_AND_PLAYER_FACING_COPY.md` to ensure zero hardcoded strings.
 
 ---
 

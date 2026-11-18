@@ -71,13 +71,13 @@ Before executing a complex user request, output a brief plan breaking the task i
 
 - **Surgical Edits:** Use `replace_file_content` for small changes. Do not overwrite a 500-line file to change one variable.
 - **No Speculative Abstraction:** Do not create `AbstractBaseBlockManagerFactory` because you think it might be useful later. Write exactly what is needed for the MVP.
-- **Preserve Working Code:** If tasked with fixing a UI bug, do not refactor the Combat Domain just because you noticed a minor inefficiency. Stay in scope.
+- **Preserve Working Code:** If tasked with fixing a UI bug, do not refactor the Board Domain just because you noticed a minor inefficiency. Stay in scope.
 
 ---
 
 ## 7. Data-Driven Content Rule
 
-If the user asks: *"Add an Ice Slime enemy that freezes blocks."*
+If the user asks: *"Add an Ice obstacle that requires two clears."**
 **DO NOT:** Write `if (enemyName == "IceSlime") { FreezeBlocks(); }` in the core engine.
 **DO:** 
 1. Create a new `EnemyActionType.freezeBlocks` enum in Dart.
@@ -110,7 +110,7 @@ If you are asked to fix a bug, follow this exact sequence:
 You will be immediately halted and corrected if you exhibit these behaviors:
 - **Inventing Mechanics:** Adding rules not in `01-07`.
 - **God Classes:** Putting new logic into a global manager instead of the correct modular Riverpod provider (`21`).
-- **UI Logic:** Making Flutter widgets calculate damage (`23`).
+- **UI Logic:** Making Flutter widgets calculate scores or line clears directly (`23`).
 - **Using Physics:** Using Flutter `GestureDetector` with raw physical coordinates for board placement instead of a mapped mathematical grid (`19`).
 - **Hiding Errors:** Wrapping broken code in `try { } catch { }` without logging or fixing the root cause.
 - **Using setState:** Using `setState()` or `StatefulWidget` for global game state (use Riverpod).
@@ -122,7 +122,7 @@ You will be immediately halted and corrected if you exhibit these behaviors:
 ## 11. Documentation Update Rule
 
 The markdown files are living documents.
-- If you add a new Relic Trigger Enum, you MUST update `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` to reflect the new schema.
+- If you add a new Stage Objective type, you MUST update `20_DATA_MODEL_CONTENT_DEFINITIONS_AND_RUNTIME_SCHEMA.md` to reflect the new schema.
 - If you add a new UI Modal, you MUST update the registry in `23_UI_IMPLEMENTATION_ARCHITECTURE.md`.
 
 ---
@@ -182,7 +182,7 @@ You MUST stop and ask for human approval before:
 ## 19. Git Rules
 
 When executing git commands (if authorized):
-- **Branching:** Create a branch for the feature (e.g., `feat/relic-system`).
+- **Branching:** Create a branch for the feature (e.g., `feat/stage-system`).
 - **Commit Style:** Use Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`).
 - **Size:** Commit small, atomic changes.
 

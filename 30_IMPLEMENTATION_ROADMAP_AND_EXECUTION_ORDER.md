@@ -12,7 +12,7 @@
 
 This roadmap is organized by **strict technical dependency** and **instant visual/gameplay excellence**.
 
-Instead of deferring visual polish, juice, audio, and game feel to late stages while building unnecessary combat clutter, **visual richness and physical tactile juice are core first-class citizens from Day One.**
+Instead of deferring visual polish, juice, audio, and game feel to late stages while building extraneous bloat, **visual richness and physical tactile juice are core first-class citizens from Day One.**
 
 Every single phase produces a verified, visually stunning, test-passing deliverable.
 
@@ -24,7 +24,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
 
 ## Phase 1 — Pure Engine Foundations (Domain Layer)
 
-**Goal:** Establish a rock-solid, 100% pure Dart mathematical foundation for the 8×8 board, 24 canonical shapes, deterministic seeded RNG, and 3-piece tray generation with solvability protection.
+**Goal:** Establish a rock-solid, 100% pure Dart mathematical foundation for the 8×8 board, 34 canonical shapes, deterministic seeded RNG, and 3-piece tray generation with solvability protection.
 
 **Why First:** The spatial grid, polyomino geometry, and piece generation are the fundamental mathematical rules everything else builds on.
 
@@ -38,7 +38,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
    - Read-only placement validation: `validatePlacement(shape, row, col)`.
    - Atomic placement commit: `commitPlacement(shape, row, col)` (all-or-nothing mutation).
 2. **Canonical Shape System (Domain):**
-   - Author all 24 canonical MVP shapes (`SHP_001`–`SHP_024`) from `02_SHAPE_LIBRARY.md` as immutable Dart constants.
+   - Author all 34 canonical shapes (`SHP_001`–`SHP_034`) from `02_SHAPE_LIBRARY.md` as immutable Dart constants.
    - Geometry validation: bounding box, normalization to `(0, 0)`, orthogonal edge connectivity via BFS.
    - Strict static orientation (no runtime rotation).
 3. **Deterministic RNG (`GameRNG`):**
@@ -197,7 +197,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
 - `lib/domain/board/board_lock_detector.dart`
 - `lib/data/persistence/save_service.dart`
 - `lib/application/classic_game_service.dart`
-- `lib/presentation/battle/classic_game_screen.dart`
+- `lib/presentation/game/classic_game_screen.dart`
 - `lib/presentation/widgets/game_over_dialog.dart`
 - `lib/presentation/widgets/score_hud_widget.dart`
 - `test/domain/scoring/score_engine_test.dart`
@@ -258,7 +258,7 @@ Every single phase produces a verified, visually stunning, test-passing delivera
 
 | Milestone | Phase | What Must Work | Playable State |
 |---|---|---|---|
-| **M1: Pure Engine Verified** | Phase 1 | 8×8 Board, 24 Shapes, RNG, 3-slot Tray, Solvability Protection. | Pure Dart Domain (All tests green). |
+| **M1: Pure Engine Verified** | Phase 1 | 8×8 Board, 34 Shapes, RNG, 3-slot Tray, Solvability Protection. | Pure Dart Domain (All tests green). |
 | **M2: Tactile Surface Playable** | Phase 2 | Beveled materials, responsive canvas, drag lift, ghost preview, snap placement. | Playable placement toy on device. |
 | **M3: Explosive Clear Loop** | Phase 3 | Simultaneous line clear, white-hot flash, particle bursts, screen shake, audio chimes. | Satisfying arcade line clearing loop. |
 | **M4: Classic Endless Game** | Phase 4 | Full scoring, combo streaks, board lock game over, local high score, replay dialog. | Complete endless high-score game! |

@@ -149,7 +149,7 @@ The block material is **Painted Acrylic** — specifically, the visual character
 |---|---|
 | **Glossy plastic / candy** | Specular highlights require either pre-baked per-color sprites or a shader. Gloss reads as match-3 (anti-reference). Fingerprint smudge aesthetic conflicts with the clean design direction. |
 | **Soft rubber / matte foam** | Too soft-looking — loses the "weighted" and "precise" visual keywords from `09` Section 1.5. |
-| **Ceramic / porcelain** | The fragility/delicacy associations are wrong for a combat-adjacent puzzle game. |
+| **Ceramic / porcelain** | The fragility/delicacy associations are wrong for a tactile arcade puzzle game. |
 | **Flat vector (no material)** | Loses tactility entirely. Fails the "physical" and "satisfying" design target. |
 | **Wood / stone** | Skeuomorphic-kitsch (`09` Section 1.6). Also inconsistent with smooth corner radius language. |
 
@@ -454,7 +454,7 @@ This section defines the visual language for the MVP special states, and pre-def
 
 ### 12.2 Frozen Block (MVP)
 
-**Intent:** A standard filled block that has had its cell frozen by an enemy action. It cannot be cleared until it is unfrozen.
+**Intent:** A standard filled block that has had its cell frozen as a board obstacle in Mode 2. It cannot be cleared until it is unfrozen by line clears.
 
 | Property | Target direction |
 |---|---|
@@ -467,7 +467,7 @@ This section defines the visual language for the MVP special states, and pre-def
 
 ### 12.3 Blocked Cell (MVP)
 
-**Intent:** A cell that has been blocked by an enemy action. No piece can be placed on it.
+**Intent:** A cell that has been blocked as a stone obstacle in Mode 2. No piece can be placed on it.
 
 | Property | Target direction |
 |---|---|

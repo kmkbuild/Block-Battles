@@ -4,275 +4,311 @@
 **Governing documents:** `18_TECHNICAL_ARCHITECTURE.md`, `19_FLUTTER_FLAME_PROJECT_STRUCTURE_AND_APP_GAME_ARCHITECTURE.md`, all Layer A design specs.
 **Document status:** Layer C — Engineering Authority
 
-**Inheritance confirmation:** This document defines the exact Dart data structures that fulfill the architecture outlined in Doc 18. It enforces the separation between static design data (immutable Dart objects) and mutable runtime data.
+**Inheritance confirmation:** This document defines the exact Dart data structures that fulfill the architecture outlined in Doc 18. It enforces the separation between static design data (immutable Dart objects) and mutable runtime data for the two core game modes: **Mode 1 (Classic Endless)** and **Mode 2 (Goal-Driven Stage Challenge)**.
 
 ---
 
 ## 1. Data Architecture Philosophy
 
 **"Code is the Engine; Data is the Fuel."**
-The core gameplay systems must be entirely agnostic to the content they are processing. The `CombatEngine` does not know what an "Iron Mallet" is; it only knows how to process a `RelicDefinition` object that provides a flat damage modifier on a specific trigger. This ensures AI coding agents can add thousands of new items purely by creating new definition constants, without ever rewriting core logic.
+The core gameplay systems must be entirely agnostic to specific stages or shapes. The `BoardEngine` does not hardcode level layouts or special cases; it operates on pure matrix math and grid rules. The `ScoreService` evaluates scoring models deterministically from placement, line clears, and streak multipliers. This ensures AI coding agents and human designers can scale the game by adding hundreds of new stage definitions and shape configurations purely through declarative data definitions.
 
 ---
 
 ## 2. Runtime Data vs. Authoring Data
 
-There is a strict boundary between what the designer authors and what the game manipulates:
+There is a strict boundary between what the designer authors and what the game engine manipulates:
 
-- **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` Dart classes. Example: `EnemyDefinition` (contains `maxHp = 100`).
-- **Runtime Data (State Classes):** Mutable state instantiated at runtime. Example: `EnemyRuntimeState` (contains `currentHp = 75`, initialized from `EnemyDefinition.maxHp`).
+- **Authoring Data (Dart Definitions):** Static, read-only at runtime. Authored as `const` or `final` Dart classes.
+  - Examples: `ShapeDefinition` (geometry of 34 canonical shapes), `StageDefinition` (Mode 2 level objectives, move limits, obstacle layouts), `ScoringConfig` (base line clear scores, streak thresholds).
+- **Runtime Data (State Classes):** Mutable state instantiated at runtime and persisted during sessions.
+  - Examples: `BoardState` (64-element grid occupancy and tile status), `TrayState` (3 draggable piece slots), `ClassicSessionState` (current score, streak count, high score), `StageSessionState` (remaining moves, goal progress counters, star rating).
 
 ---
 
 ## 3. Content Definition Rules
 
-1. **Read-Only at Runtime:** All definition classes must have `final` fields and a `const` constructor. They cannot be mutated.
-2. **Flat Serialization:** Avoid deeply nested polymorphic serialization for save data. Use Enums + Parameter classes for composition.
-3. **Self-Validation:** Provide factory constructors or `assert` statements to catch designer errors immediately (e.g., ensuring a Shape matrix has exactly 25 elements).
+1. **Read-Only at Runtime:** All definition classes must have `final` fields and a `const` constructor. They cannot be mutated during gameplay.
+2. **Flat Serialization:** Avoid deeply nested polymorphic serialization for save data. Use simple data types, enums, and explicit DTOs for Hive CE storage.
+3. **Self-Validation:** Provide factory constructors or `assert` statements to catch authoring errors immediately at startup or in test suites (e.g., verifying a Shape matrix has exactly 25 elements, or verifying a stage move limit is $\ge 1$).
 
 ---
 
 ## 4. Shape Schema (`shape_definition.dart`)
 
-Defines the geometry of a draggable piece.
+Defines the geometry, bounding box, and metadata of a draggable block piece (34 canonical shapes across 9 families).
 
 ```dart
+enum ShapeFamily { dot, line, square, lShape, tShape, zShape, corner, plus, uShape }
+
 class ShapeDefinition {
-  final String shapeId; // e.g., "shape_T_3x3"
+  final String shapeId; // e.g., "shape_square_2x2", "shape_line_1x4"
   final String displayName;
-  final String family;
-  final String category;
-  final String orientation;
-  final List<String> tags;
+  final ShapeFamily family;
+  final int defaultColorIndex; // 0..7 matching Color Palette
+  final int rarityWeight;      // RNG selection weight
   
-  /// Flat array of 25 bools. True = block, False = empty.
-  /// Indexing: row * 5 + col. Bottom-Left is 0,0.
+  /// Flat array of 25 booleans representing 5x5 bounding grid.
+  /// Indexing: row * 5 + col. True = filled block, False = empty cell.
   final List<bool> blockMatrix; 
-  
+
   const ShapeDefinition({
     required this.shapeId,
     required this.displayName,
     required this.family,
-    required this.category,
-    required this.orientation,
-    required this.tags,
+    required this.defaultColorIndex,
+    required this.rarityWeight,
     required this.blockMatrix,
-  }) : assert(blockMatrix.length == 25, 'blockMatrix must be exactly 25 elements');
+  }) : assert(blockMatrix.length == 25, 'blockMatrix must be exactly 25 elements (5x5)');
 
   // Computed properties
   int get blockCount => blockMatrix.where((b) => b).length;
-  int get width { /* calculate from matrix */ }
-  int get height { /* calculate from matrix */ }
 
-  List<List<bool>> toShapeMatrix() {
-    // Converts flat 25 array to a 2D matrix bounding box
+  int get boundingWidth {
+    int minCol = 5, maxCol = -1;
+    for (int r = 0; r < 5; r++) {
+      for (int c = 0; c < 5; c++) {
+        if (blockMatrix[r * 5 + c]) {
+          if (c < minCol) minCol = c;
+          if (c > maxCol) maxCol = c;
+        }
+      }
+    }
+    return maxCol >= minCol ? (maxCol - minCol + 1) : 0;
+  }
+
+  int get boundingHeight {
+    int minRow = 5, maxRow = -1;
+    for (int r = 0; r < 5; r++) {
+      for (int c = 0; c < 5; c++) {
+        if (blockMatrix[r * 5 + c]) {
+          if (r < minRow) minRow = r;
+          if (r > maxRow) maxRow = r;
+        }
+      }
+    }
+    return maxRow >= minRow ? (maxRow - minRow + 1) : 0;
   }
 }
 ```
 
 ---
 
-## 5. Enemy Schema (`enemy_definition.dart`)
+## 5. Tile and Obstacle Schema (`tile_definition.dart`)
 
-Defines an enemy encounter and its behavior pattern.
+Defines the types and states of cells on the 8×8 board.
 
 ```dart
-class EnemyDefinition {
-  final String enemyId;
-  final String nameKey; // Localization key
-  
-  // Stats
-  final int hp;
-  
-  // Behavior Sequence
-  // Executes in order, looping when reaching the end.
-  final List<EnemyAction> behaviorList; 
-  final List<PhaseThreshold>? phaseThresholds;
-  
-  // Presentation
-  final String portrait; // Asset path
-  
-  const EnemyDefinition({
-    required this.enemyId,
-    required this.nameKey,
-    required this.hp,
-    required this.behaviorList,
-    required this.portrait,
-    this.phaseThresholds,
-  });
+enum TileType {
+  empty,
+  filledBlock,
+  stoneObstacle,  // Immovable; cleared by clearing adjacent or intersecting lines
+  iceObstacle,    // Requires 2 clears to completely remove
 }
 
-class EnemyAction {
-  final EnemyActionType type; // e.g., Attack, Defend, FreezeBoard
-  final int powerValue;       // e.g., Damage amount, or number of cells to freeze
-  final int telegraphTurns;   // Number of turns before execution
-  
-  const EnemyAction({
+class BoardCell {
+  final TileType type;
+  final int colorIndex; // 0 for empty/neutral, 1..7 for block themes
+  final int health;     // Used for multi-hit obstacles (e.g., Ice = 2, 1, 0)
+
+  const BoardCell({
+    this.type = TileType.empty,
+    this.colorIndex = 0,
+    this.health = 1,
+  });
+
+  bool get isOccupied => type != TileType.empty;
+  bool get canPlaceOver => type == TileType.empty;
+
+  BoardCell copyWith({
+    TileType? type,
+    int? colorIndex,
+    int? health,
+  }) {
+    return BoardCell(
+      type: type ?? this.type,
+      colorIndex: colorIndex ?? this.colorIndex,
+      health: health ?? this.health,
+    );
+  }
+}
+```
+
+---
+
+## 6. Goal & Objective Schema (`stage_goal_definition.dart`)
+
+Defines win conditions for Mode 2 (Goal-Driven Stage Challenges).
+
+```dart
+enum GoalType {
+  reachTargetScore,
+  clearTotalLines,
+  clearColorBlocks,
+  clearAllObstacles,
+}
+
+class StageGoal {
+  final GoalType type;
+  final int targetValue;    // e.g., 5000 points, 12 lines, 20 Amber blocks
+  final int? targetColorIndex; // Required when type == clearColorBlocks
+
+  const StageGoal({
     required this.type,
-    required this.powerValue,
-    required this.telegraphTurns,
+    required this.targetValue,
+    this.targetColorIndex,
   });
 }
 ```
 
 ---
 
-## 6. Relic Schema (`relic_definition.dart`)
+## 7. Stage Schema (`stage_definition.dart`)
 
-Defines a passive modifier. Uses the Trigger/Effect architecture required by Doc 05.
+Defines pre-configured puzzles in Mode 2.
 
 ```dart
-class RelicDefinition {
-  final String relicId;
-  final String nameKey;
-  final String descriptionKey;
+class StageDefinition {
+  final int stageNumber;
+  final String stageId;
+  final String displayName;
+  final int moveLimit; // Maximum placement turns allowed (e.g., 25 moves)
+  final List<StageGoal> goals;
   
-  // Mechanics
-  final RelicTrigger trigger; 
-  final RelicEffectType effectType; 
-  final double effectValue;
+  // Star scoring thresholds based on remaining moves or bonus score
+  final int star1Threshold;
+  final int star2Threshold;
+  final int star3Threshold;
   
-  // Conditions (Optional)
-  final RelicCondition condition; 
-  final double? conditionValue;
-  
-  // Metadata
-  final RelicRarity rarity;
-  
-  const RelicDefinition({
-    required this.relicId,
-    required this.nameKey,
-    required this.descriptionKey,
-    required this.trigger,
-    required this.effectType,
-    required this.effectValue,
-    required this.rarity,
-    this.condition = RelicCondition.none,
-    this.conditionValue,
-  });
-}
+  // Optional pre-filled cells on the 8x8 grid (index: row * 8 + col)
+  final Map<int, BoardCell> initialObstacles;
 
-enum RelicTrigger { alwaysActive, onLineClear, onBattleStart, onDamageDealt }
-enum RelicEffectType { addFlatDamage, addMultiplier, restoreMoves }
+  const StageDefinition({
+    required this.stageNumber,
+    required this.stageId,
+    required this.displayName,
+    required this.moveLimit,
+    required this.goals,
+    required this.star1Threshold,
+    required this.star2Threshold,
+    required this.star3Threshold,
+    this.initialObstacles = const {},
+  }) : assert(moveLimit > 0, 'moveLimit must be positive');
+}
 ```
 
 ---
 
-## 7. Objective Schema (`objective_definition.dart`)
+## 8. Mode Enumeration (`game_mode.dart`)
 
-Defines win conditions for a Battle.
+Enforces the strict two-mode taxonomy across the entire codebase.
 
 ```dart
-class ObjectiveDefinition {
-  final String objectiveId;
-  final ObjectiveType type; // Enum: defeatEnemy, clearLines, surviveMoves
-  final int targetCount;    // e.g., 5 (lines), 0 (enemy HP)
-  final int? timeLimit;     // Optional time constraint
-  
-  const ObjectiveDefinition({
-    required this.objectiveId,
-    required this.type,
-    required this.targetCount,
-    this.timeLimit,
-  });
+enum GameMode {
+  classicEndless,
+  goalStage,
 }
 ```
 
 ---
 
-## 8. Battle Schema (`encounter_definition.dart`)
+## 9. Persistent Runtime State Classes (`runtime_state.dart`)
 
-Defines a specific floor or node in a Run.
-
-```dart
-class EncounterDefinition {
-  final String encounterId;
-  final EnemyDefinition enemy;
-  final ObjectiveDefinition primaryObjective;
-  final ObjectiveDefinition? bonusObjective;
-  
-  // Constraints
-  final int startingMoveLimit; // 0 if infinite
-  
-  const EncounterDefinition({
-    required this.encounterId,
-    required this.enemy,
-    required this.primaryObjective,
-    this.bonusObjective,
-    this.startingMoveLimit = 0,
-  });
-}
-
-class RunDefinition {
-  final List<EncounterDefinition> floors;
-  final String seed;
-  
-  const RunDefinition({
-    required this.floors,
-    required this.seed,
-  });
-}
-```
-
----
-
-## 9. Persistent Runtime State Classes (`run_state.dart`)
-
-Pure Dart runtime state classes. Mutated during play, serialized via Hive CE.
+Pure Dart state classes manipulated by engines during active gameplay and serialized via Hive CE.
 
 ```dart
 class BoardState {
-  // 64 integers (Occupancy + Modifier). Auth: `03` Sec 3.
-  List<int> grid;
+  /// 64 board cells (8x8 grid, row-major: row * 8 + col).
+  List<BoardCell> cells;
+
+  BoardState({required this.cells}) : assert(cells.length == 64);
+
+  factory BoardState.empty() {
+    return BoardState(cells: List.generate(64, (_) => const BoardCell()));
+  }
 }
 
-class EnemyRuntimeState {
-  int currentHp;
-  int actionCounter;
-  String telegraphedActionId;
+class TraySlotState {
+  final int slotIndex; // 0, 1, 2
+  final ShapeDefinition? shape;
+  final bool isPlaced;
+
+  const TraySlotState({
+    required this.slotIndex,
+    this.shape,
+    this.isPlaced = false,
+  });
 }
 
-class RelicRuntimeState {
-  String relicId;
-  int activationCount;
+class TrayState {
+  List<TraySlotState> slots;
+
+  TrayState({required this.slots}) : assert(slots.length == 3);
+
+  bool get isAllPlaced => slots.every((s) => s.isPlaced || s.shape == null);
 }
 
-class ObjectiveRuntimeState {
-  int currentProgress;
+class ClassicSessionState {
+  int currentScore;
+  int highestScore;
+  int streakCount;
+  double currentMultiplier; // 1.0x .. 2.5x
+  int totalLinesCleared;
+  int placementsCount;
+  bool isGameOver;
+
+  ClassicSessionState({
+    this.currentScore = 0,
+    this.highestScore = 0,
+    this.streakCount = 0,
+    this.currentMultiplier = 1.0,
+    this.totalLinesCleared = 0,
+    this.placementsCount = 0,
+    this.isGameOver = false,
+  });
+}
+
+class StageProgressState {
+  int remainingMoves;
+  Map<int, int> goalCurrentValues; // Goal index -> current achieved count
   bool isCompleted;
-}
+  bool isFailed;
+  int starsEarned; // 0..3
 
-class RunState {
-  String runSeed;
-  int rngStateCalls;
-  int currentFloor;
-  int currentStardust;
-  List<String> activeRelicIds;
-  
-  BoardState boardState;
-  EnemyRuntimeState enemyState;
-  List<ObjectiveRuntimeState> objectiveStates;
-  List<RelicRuntimeState> relicStates;
+  StageProgressState({
+    required this.remainingMoves,
+    required this.goalCurrentValues,
+    this.isCompleted = false,
+    this.isFailed = false,
+    this.starsEarned = 0,
+  });
 }
 ```
 
 ---
 
-## 10. Content Registry
+## 10. Content Registry (`catalogs`)
 
-Definitions are loaded via Dart constants grouped in catalog files.
-- `shape_catalog.dart`
-- `enemy_catalog.dart`
-- `relic_catalog.dart`
+Definitions are authored as immutable Dart constants grouped in catalog registries:
+- `shape_catalog.dart` (Contains all 34 canonical shape definitions)
+- `stage_catalog.dart` (Contains all Mode 2 stage definitions)
 
-These catalogs provide static lookup maps:
 ```dart
-class RelicCatalog {
-  static const Map<String, RelicDefinition> allRelics = {
-    'relic_iron_mallet': RelicDefinition(...),
+class ShapeCatalog {
+  static const Map<String, ShapeDefinition> allShapes = {
+    // 34 canonical shapes...
   };
-  
-  static RelicDefinition get(String id) => allRelics[id]!;
+
+  static ShapeDefinition get(String id) => allShapes[id]!;
+}
+
+class StageCatalog {
+  static const List<StageDefinition> allStages = [
+    // Pre-authored progression stages...
+  ];
+
+  static StageDefinition getByNumber(int number) =>
+      allStages.firstWhere((s) => s.stageNumber == number);
 }
 ```
 
@@ -280,50 +316,50 @@ class RelicCatalog {
 
 ## 11. Data Loading
 
-For extremely large catalogs that would bloat the Dart binary, JSON files in `assets/data/` can be used and deserialized at boot time. However, for the MVP, pure Dart constants are strongly preferred as they are instantly available, strongly typed, and enable immediate AI code generation.
+Pure Dart constants are the authoritative source of truth:
+1. **Instant Availability:** Zero file I/O latency at app startup.
+2. **Type-Safe Validation:** Dart compiler guarantees shape matrices and stage parameters are statically sound.
+3. **Determinism:** Seeded RNG selections pick directly from statically indexed catalogs.
 
 ---
 
 ## 12. Validation Rules
 
-Use `assert` in constructors and unit tests to validate data.
-
-```dart
-// Inside shape_catalog_test.dart
-test('All shape matrices have exactly 25 elements', () {
-  for (var shape in ShapeCatalog.allShapes.values) {
-    expect(shape.blockMatrix.length, 25);
-  }
-});
-```
+Constructors and test suites validate data integrity before runtime execution:
+- Shape matrices must have exactly 25 elements ($5 \times 5$).
+- Board grid states must have exactly 64 cells ($8 \times 8$).
+- Tray states must contain exactly 3 slots.
+- Stage move limits must be $\ge 1$.
+- Star thresholds must strictly increase: $\text{star1} \le \text{star2} \le \text{star3}$.
 
 ---
 
 ## 13. IDs and Versioning
 
-- **String IDs:** All content relies on unique string IDs (`shape_square_2x2`), NOT memory references, when interacting with the Save System (Hive CE).
-- **Immutability:** Once a Relic ID is shipped, it cannot be renamed. Renaming an ID will corrupt player save files referencing that ID.
+- **Unique String IDs:** Content uses snake_case string IDs (e.g., `shape_l_3x2`, `stage_001_intro`).
+- **Save State Migration:** Hive boxes store high scores keyed by mode and stage number. Adding new stages or shapes does not invalidate or corrupt existing player progress.
 
 ---
 
 ## 14. Null/Missing Data Behavior
 
-- **Graceful Fallback:** If `RunState` references a `relicId` that no longer exists (e.g., removed in a patch), the loading system logs a warning, skips the missing relic, and continues loading. The save file must NOT corrupt.
+- **Graceful Fallbacks:** If saved stage progress references an archived stage ID, the state manager logs a warning, skips the obsolete stage record, and loads the current active stage catalog cleanly without crashing.
 
 ---
 
 ## 15. Designer Authoring Workflow
 
-To empower solo-dev and AI content creation:
-1. **AI Output:** An AI agent can generate a Dart file of new relics following the `RelicDefinition` constructor syntax.
-2. **No Code Modification:** The AI does not need to edit `combat_engine.dart` to add the "Executioner" relic, because the Trigger/Effect enums already support its logic.
+To empower solo development and automated test generation:
+1. **Authoring Stages:** Designers add stages by instantiating `StageDefinition` in `stage_catalog.dart` specifying target scores, line goals, or color block quotas.
+2. **Zero Core Logic Edits:** Adding new puzzle levels never requires altering `BoardEngine` or `ScoreService`.
 
 ---
 
 ## 16. Anti-Pattern Rules
 
-1. **The "Live State" Definition:** Never put `int currentHp = 100;` in `EnemyDefinition`. It must only contain the static `maxHp`.
-2. **Hardcoded IDs in Core:** Never write `if (relic.id == 'relic_iron_mallet') { damage += 10; }` inside the `CombatEngine`. The engine must resolve the math generically based on the `effectType` enum.
+1. **No Live State in Definitions:** Never declare mutable counters in `StageDefinition` or `ShapeDefinition`. Definitions are compile-time constants.
+2. **No Hardcoded Stage Branching in Engine:** Never write `if (stageNumber == 5) { ... }` inside `BoardEngine`. The engine only evaluates generic board rules, cell matches, and line clears.
+3. **Strict Scope Discipline:** Never declare non-puzzle subsystems, obsolete legacy schemas, or unapproved mechanics in any data schema. The game is purely a block puzzle.
 
 ---
 
@@ -331,7 +367,7 @@ To empower solo-dev and AI content creation:
 
 > **Data is the absolute truth; Systems are just interpreters.**
 >
-> In Block Battles, we lock down our core Dart systems early and scale the game purely by injecting wider varieties of data classes. By maintaining strict discipline over our Definitions, we ensure that adding content is safe, deterministic, and highly compatible with AI-assisted mass generation.
+> In Block Battles, we lock down our core Dart puzzle systems early and scale the game purely by injecting clean, declarative data classes. By maintaining strict discipline over our Definitions, we ensure that adding content is safe, deterministic, and highly maintainable.
 
 ---
 

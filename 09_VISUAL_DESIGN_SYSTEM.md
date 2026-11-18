@@ -24,10 +24,10 @@ Block Battles is a **tactile puzzle game with attitude**. It feels handcrafted �
 | Context | Mood |
 |---|---|
 | Home screen / menus | Calm, inviting, slightly ambient — a quiet space before the action. |
-| Active battle (low pressure) | Focused, clean, rhythmic — the puzzle state. |
-| Active battle (high pressure — Move Limit low, Board filling) | Heightened, urgent but never chaotic — pressure comes from board state, not from the UI screaming. |
+| Active gameplay (low pressure) | Focused, clean, rhythmic — the puzzle state. |
+| Active gameplay (high pressure — Move Limit low, Board filling) | Heightened, urgent but never chaotic — pressure comes from board state, not from the UI screaming. |
 | Line clear / combo | Momentary joy, earned — sharp, fast, satisfying. |
-| Enemy defeat / victory | Distinct celebration, short-lived — a beat, not a parade. |
+| Stage Complete / High Score Record | Distinct celebration, short-lived — a beat, not a parade. |
 | Defeat / Board Lock | Neutral, informative — calm resignation, never punishing. |
 
 ### 1.3 Emotional Tone
@@ -36,7 +36,7 @@ The player should feel:
 
 1. **In control** — the UI never crowds them.
 2. **Competent** — feedback rewards correct decisions visibly.
-3. **Curious** — relic cards and enemy reveals have enough visual character to spark interest.
+3. **Focused & Satisfying** — goal milestones and crisp line clear explosions deliver immediate tactile pleasure.
 4. **Respected** — the game presents information clearly; it does not hide things or bury them in decoration.
 
 ### 1.4 Design Character
@@ -87,7 +87,7 @@ References are **directional, not prescriptive**. A reference tells us what emot
 
 | Tier | Definition | Usage |
 |---|---|---|
-| **Genre Convention** | Visual norms players of this genre expect (boards are grids, pieces have distinct colors, HP bars deplete). | Adopt freely — deviating requires a strong reason. |
+| **Genre Convention** | Visual norms players of this genre expect (boards are grids, pieces have distinct colors, lines clear simultaneously). | Adopt freely — deviating requires a strong reason. |
 | **Inspiration** | A quality, system, or feeling from another work that we want to evoke. | Extract the principle; rebuild from scratch. Never trace or clone. |
 | **Anti-reference** | A work that defines what we are deliberately NOT doing. | Keep in the brief as a rejection signal, not a guide. |
 
@@ -96,7 +96,7 @@ References are **directional, not prescriptive**. A reference tells us what emot
 | Source (type, not named product) | Principle to extract |
 |---|---|
 | Premium mobile puzzle games (board-first, 2019-2024 era) | Board readability as absolute hierarchy. Pieces with satisfying visual weight. Animations timed to sound. |
-| Modern independent card games | Relic/card presentation with character per card, legible at small sizes, no rarity-color noise. |
+| Premium tactile puzzle games | Clean HUD presentation, crisp geometric icons, legible at small sizes, zero visual clutter. |
 | Physical board game components | Tactile depth suggestion — pieces feel like objects, not flat sprites. |
 | Brutalist UI design (applied softly) | Purposeful whitespace, bold typographic hierarchy, nothing decorative unless earned. |
 | Japanese puzzle games (contemporary) | Restraint. Exact spacing. Every pixel chosen. Visual polish applied uniformly. |
@@ -107,8 +107,7 @@ The following are Block Battles-specific visual inventions:
 
 1. **Board-as-stage** — the board is the game's physical stage, given active spatial presence.
 2. **Piece depth language** — blocks have a consistent physical depth metaphor (depth-implied through light and shadow, not 3D rendered).
-3. **Combat through clarity** — enemy damage feedback integrates into the board zone's visual rhythm rather than overlaying it with spectacle.
-4. **Relic card personality** — each relic card is a primary decorative investment; the player's collected objects should feel individually crafted.
+3. **Score & Goal Clarity** — floating score numbers and objective counters integrate seamlessly into the board zone's visual rhythm.\n4. **Tactile Block Personality** — each block material and shape feels individually crafted, jewel-like, and physically grounded.
 
 ---
 
@@ -118,7 +117,7 @@ The following are Block Battles-specific visual inventions:
 
 The game's visual DNA is built from **rounded rectangles and soft squares** — never hard 90-degree corners at the macro level, never perfectly circular.
 
-- **Primary shape:** Rounded rectangle. Applies to: board cells, UI panels, buttons, relic cards, HP bars, piece blocks.
+- **Primary shape:** Rounded rectangle. Applies to: board cells, UI panels, buttons, goal chips, score badges, piece blocks.
 - **Secondary shape:** Soft hexagonal accent (used sparingly, only for iconography and badges — never for primary containers).
 - **Forbidden macro shapes:** Sharp triangles as primary containers. Perfect circles as primary containers. Irregular polygons as UI surfaces.
 
@@ -130,9 +129,9 @@ Shape language should feel like **physical objects that could exist in the real 
 |---|---|
 | Board | Dominant — occupies the largest visual footprint on screen at all times. |
 | Piece blocks (placed) | Medium — clearly readable as individual units. |
-| Enemy HP bar | Prominent — second-largest interactive element in the Top Zone. |
+| Score / Target Bar | Prominent — primary anchor element in the Top Zone. |
 | Objective chip | Medium — always legible, never decorative-only. |
-| Relic icons | Small — recognizable at icon size without zooming. |
+| Streak Badge | Small-Medium — dynamically scales with consecutive clearing turns. |
 | Score text | Small — present but never demanding. |
 | Decorative elements | Micro — exists in negative space only, never competing with scale. |
 
@@ -143,8 +142,7 @@ Shape language should feel like **physical objects that could exist in the real 
 **Medium-low density by default.**
 
 - **Board cells:** Low internal detail. Cell identity is communicated through color and depth, not surface texture.
-- **Enemy presentation:** Medium detail — enough personality to read as a character at the Top Zone's constrained size.
-- **Relic cards:** Medium-high detail — the highest-detail surface in the game.
+- **Goal Chips (Mode 2):** High clarity — crisp icon showing block color/type and remaining count.\n- **Score & Streak Badges:** High legibility — tabular numerals and bold multiplier badges.
 - **HUD chrome:** Low detail — structural purpose only.
 
 ### 3.4 Softness vs Sharpness
@@ -155,8 +153,7 @@ Shape language should feel like **physical objects that could exist in the real 
 | Piece block edges (in tray) | Slightly softer than placed blocks | Unplaced pieces feel lighter; placed pieces feel settled. |
 | Button edges | Medium-soft | Tactile impression. |
 | Ghost preview | Very soft | Semi-transparency + softened edge communicates "not yet real." |
-| Damage number pop | Sharp, bold | Contrast against soft surroundings; demands brief attention. |
-| Enemy portrait | Medium — character edges clean, background soft | Character reads against any board state behind it. |
+| Floating Score Pop | Sharp, bold | Contrast against board surroundings; floating upward with crisp fade. |\n| Goal Progress Icon | Clean, crisp | Shows target color or obstacle icon with remaining quota. |
 
 ### 3.5 Depth
 
@@ -176,7 +173,7 @@ Single light source. Consistent across all assets.
 - **Direction:** Top-left (roughly 10-11 o'clock position).
 - **Quality:** Soft-diffuse. Not a sharp point light.
 - **What it affects:** Block highlights (top and left faces brighter), block shadows (bottom and right faces subtly darker), UI card surfaces (subtle top-to-bottom gradient).
-- **What it does NOT affect:** Backgrounds (ambient only). Enemy portraits (may use own directional lighting internally, but must be consistent).
+- **What it does NOT affect:** Backgrounds (ambient only).
 - **Forbidden lighting:** Lens flare, bloom on static elements, animated lighting on non-feedback elements, multiple conflicting light directions within one screen.
 
 ### 3.7 Dimensionality
@@ -187,7 +184,7 @@ Everything lives at **one of four dimensional layers**:
 |---|---|---|
 | **Ground** | Background, board surface | Flat, low contrast, ambient. |
 | **Objects** | Placed pieces, board cells | Depth-implied with top-light highlight and subtle shadow. |
-| **Active** | Dragged piece, Ghost Preview, Enemy | Slightly elevated — cast shadow on the board below. |
+| **Active** | Dragged piece, Ghost Preview | Slightly elevated — cast shadow on the board below. |
 | **Interface** | HUD chrome, panels, buttons, text | Highest — fully above the board in z-order; may use stronger shadows. |
 
 ---
@@ -200,11 +197,9 @@ Defined in alignment with `08_UI_UX_MASTER_SPECIFICATION.md` Section 3's Priorit
 
 | Level | Content | Visual Properties |
 |---|---|---|
-| **1 - Board** | The 8x8 grid and all placed cells | Largest element. Highest surface area. Saturation higher than background. The visual anchor of every battle screen. |
+| **1 - Board** | The 8x8 grid and all placed cells | Largest element. Highest surface area. Saturation higher than background. The visual anchor of every gameplay screen. |
 | **2 - Pieces** | Current tray pieces + dragged piece | High contrast vs. board background. Depth-implied. Color-distinct per piece identity. |
-| **3 - Enemy / Objective** | Enemy HP bar, Primary Objective progress, Enemy Telegraph | Second-highest visual weight zone. Bold type for numbers. High-contrast HP bar fill. |
-| **4 - Critical Feedback** | Line clear flash, Damage number, Combo indicator | Transient, high-intensity — only for the frames they are meant to be read. Must fade or disappear. |
-| **5 - Secondary UI** | Relic indicators, Bonus Objective, Score, Run indicator | Lower contrast, smaller type, collapsed by default where possible. |
+| **3 - Mode Goals / HUD** | Target Score Bar, Move Counter, Color Objective Chips (Mode 2), High Score (Mode 1) | Second-highest visual weight zone. Bold type for numbers. High-contrast progress indicators. |\n| **4 - Critical Feedback** | Line clear flash, Floating Score Popups, Streak Multiplier badges | Transient, high-intensity — only for the frames they are meant to be read. Must fade or disappear. |\n| **5 - Secondary UI** | Settings, Pause button, Round statistics | Lower contrast, smaller type, unobtrusive placement. |
 | **6 - Decoration** | Background elements, ambient patterns, environmental flavor | Barely perceptible at rest. Decoration fails if a first-time player notices it before the board. |
 
 ### 4.2 Why This Order
@@ -286,7 +281,7 @@ The board is the game. A player who cannot instantly read the board cannot play.
 | Track background | Low-contrast, desaturated tinted surface value — not white. |
 | Fill | High-contrast, semantic color fill. |
 | Fill transition | Smooth animated depletion (owned by Animation doc). |
-| Segmentation | Boss phase bars use visible tick marks. Standard bars have no tick marks. |
+| Segmentation | Multi-star target score bars use visible milestone markers. Standard progress bars have continuous fill. |
 | Numeric label | Displayed adjacent or inside (if bar is wide enough). Bold weight. |
 
 ### 5.8 Icons
@@ -310,13 +305,13 @@ See Section 10 (Iconography) for full standards. Every icon lives inside a conta
 
 | Level | Role | Weight | Usage |
 |---|---|---|---|
-| H1 | Screen title | ExtraBold / Black | Home screen title, Victory/Defeat headers. |
-| H2 | Section header | Bold | Relic card title, Objective name. |
-| H3 | Subsection | SemiBold | Enemy name, onboarding label. |
-| Body | Standard text | Regular / Medium | Relic description, Objective description. |
+| H1 | Screen title | ExtraBold / Black | Home screen title, Game Over / Level Clear headers. |
+| H2 | Section header | Bold | Modal title, Objective name. |
+| H3 | Subsection | SemiBold | Subheading, statistics label. |
+| Body | Standard text | Regular / Medium | Goal description, settings text. |
 | Caption | Small label | Regular | Chip text, badge labels, secondary info. |
-| Numeric-Large | Big numbers | Bold / ExtraBold | Enemy HP value, Score. |
-| Numeric-Display | Combat feedback | Black / ExtraBold | Damage numbers overlaid mid-board. |
+| Numeric-Large | Big numbers | Bold / ExtraBold | Current Score, High Score, Moves Left. |
+| Numeric-Display | Point feedback | Black / ExtraBold | Floating score points (+100, +600) overlaid mid-board. |
 
 ### 6.3 Readability
 
@@ -327,12 +322,8 @@ See Section 10 (Iconography) for full standards. Every icon lives inside a conta
 
 ### 6.4 Numbers — Special Treatment
 
-- **Tabular numerals mandatory** for any number that changes live (HP, score, objective progress, turn count).
-- **Combat Damage numbers scale with damage magnitude:**
-  - 1 line cleared: base size
-  - 2 lines cleared: 1.2x base
-  - 3 lines cleared: 1.5x base
-  - 4 lines cleared (Full Combo): 2.0x base
+- **Tabular numerals mandatory** for any number that changes live (score, high score, moves remaining, objective counts).
+- **Floating Score numbers scale with line clear magnitude and streak:**\n  - L=1 line clear: Base text size\n  - L=2 lines cleared: 1.2x base size\n  - L=3 lines cleared: 1.5x base size\n  - L=4+ lines cleared (Full Clear): 2.0x base size + gold glow effect
 - **Score:** Small, Numeric-Large weight, top-zone corner.
 - **Objective progress:** Bold, inline. Format: current / target or remaining, depending on objective type.
 
@@ -344,7 +335,7 @@ See Section 10 (Iconography) for full standards. Every icon lives inside a conta
 | Medium | Secondary labels, collapsible chips. |
 | SemiBold | Third-level headers, button labels on secondary buttons. |
 | Bold | Primary button labels, numeric displays, objective names. |
-| ExtraBold / Black | Display numerics (damage), screen-level headers, combo indicators. |
+| ExtraBold / Black | Display numerics (floating score points), screen-level headers, streak indicators. |
 
 **BINDING RULE:** Weight must only vary with hierarchy — never for decoration.
 
@@ -377,9 +368,9 @@ All spacing values derive from a base unit of **4dp**.
 | **S** | 6dp | Board cells (the individual square cells of the 8x8 grid). |
 | **M** | 10dp | Piece blocks (tray and placed on board). Badges. Small indicators. |
 | **L** | 14dp | Buttons (all types). Chips. Progress bars. |
-| **XL** | 20dp | Cards (Relic cards, onboarding tooltip cards). |
+| **XL** | 20dp | Dialog cards (Game Over modal, Level Clear dialog). |
 | **XXL** | 28dp | Panels (Top Zone, Tray Zone). Modals (Pause overlay, Victory screen). |
-| **Full / Capsule** | 50% of height | HP bar, Objective bar, pill-shaped Indicators, Move Limit counter. |
+| **Full / Capsule** | 50% of height | Target Score bar, Streak pill, Move Limit counter. |
 
 **BINDING RULES:** Piece blocks use M (10dp) — slightly softer than board cells (S/6dp) to distinguish piece objects from the grid surface. All elements of the same type use the same radius.
 
@@ -396,7 +387,7 @@ All spacing values derive from a base unit of **4dp**.
 | **Mid (2)** | Board-cell value. | Soft drop shadow (blur: 6dp, opacity: 20%, offset: 0 2dp). | Subtle 1dp top-left edge highlight at +15% brightness. | Placed piece blocks, filled board cells. |
 | **High (3)** | UI panel surfaces. | Standard card shadow (blur: 12dp, opacity: 25%, offset: 0 4dp). | 1dp top-edge highlight at +20% brightness. | HUD panels, cards at rest. |
 | **Active (4)** | Dragged piece. | Elevated shadow (blur: 20dp, opacity: 30%, offset: 0 6dp). | Stronger top-left highlight at +25% brightness. | Dragged piece (06 Section 4). |
-| **Modal (5)** | Full-screen overlay panels. | Scrim below (semi-transparent dark layer). | Top edge only. | Pause overlay, Relic Selection, Victory screen. |
+| **Modal (5)** | Full-screen overlay panels. | Scrim below (semi-transparent dark layer). | Top edge only. | Pause overlay, Level Clear dialog, Game Over modal. |
 
 ### 9.2 Rules
 
@@ -426,7 +417,7 @@ All icons use a **filled icon style with consistent optical weight**.
 
 | Context | Style |
 |---|---|
-| HUD icons (Relic strip, Pause, Back) | Filled. |
+| HUD icons (Settings, Pause, Trophy) | Filled. |
 | Onboarding tooltips | Filled for action icons; outline acceptable for decorative arrows/pointers. |
 | Objective type indicators | Filled, consistent glyph per objective category. |
 | Status indicators (Telegraph warning, Move Limit alert) | Filled. |
@@ -436,11 +427,11 @@ All icons use a **filled icon style with consistent optical weight**.
 | Token | Size | Context |
 |---|---|---|
 | **XS** | 12x12dp | Badge icons, tiny inline status dots. |
-| **S** | 16x16dp | Chip icons, compact HUD elements (Relic strip at rest). |
+| **S** | 16x16dp | Chip icons, compact HUD elements (Trophy, streak fire). |
 | **M** | 20x20dp | Standard HUD icons (Pause button, Back button). |
-| **L** | 24x24dp | Card icons at rest (Relic card icon). |
+| **L** | 24x24dp | Dialog icons at rest (Star icon, trophy icon). |
 | **XL** | 32x32dp | Objective type icon in the Top Zone. |
-| **XXL** | 48x48dp | Relic card icon on the Relic Selection screen. |
+| **XXL** | 48x48dp | Large celebratory badge on Game Over / Level Clear screen. |
 
 ### 10.4 Alignment
 
@@ -462,14 +453,12 @@ All icons within any single container are optically centered, not mathematically
 | Element | Purpose |
 |---|---|
 | **Panel** | Structural container organizing HUD zones (Top Zone, Tray Zone). Zone-level in size. |
-| **Card** | Content-carrying surface presenting a single coherent unit of information (one Relic, one Objective, one onboarding tip). Individually interactive. |
+| **Card** | Content-carrying surface presenting a single coherent unit of information (one Goal, one Objective, one onboarding tip). Individually interactive. |
 
 ### 11.2 Visual Hierarchy Within Panels
 
 Top Zone panel internal hierarchy (top to bottom):
-1. Enemy identity (P5 — smallest, flavor-only).
-2. Enemy HP bar (P2 — largest, bold).
-3. Telegraph indicator (P2 — prominently adjacent to HP).
+1. Current Score (P1 — primary center anchor, bold).\n2. Target / Goal Progress (P2 — crisp color chips and move counter).\n3. Streak Multiplier Badge (P2 — vibrant multiplier capsule).
 4. Primary Objective (P2 — large chip or inline bar).
 5. Bonus Objective (P3 — collapsed chip, below Primary).
 6. Secondary indicators (P4 — small, right-aligned or tucked).
@@ -480,7 +469,7 @@ Top Zone panel internal hierarchy (top to bottom):
 |---|---|
 | Panel (Top Zone) | Semi-transparent surface — 85-92% opacity over the background. Frost/blur if performance allows; fallback to opaque tinted surface. |
 | Panel (Tray Zone) | Same treatment as Top Zone. |
-| Card (Relic Selection) | Fully opaque, elevated surface. |
+| Modal Card (Level Clear / Game Over) | Fully opaque, elevated surface. |
 | Card (Tooltip) | Fully opaque, elevated surface. Slightly warmer tint. |
 
 ### 11.4 Border Treatment
@@ -493,32 +482,31 @@ Top Zone panel internal hierarchy (top to bottom):
 
 - Panels: High (3) tier.
 - Cards at rest: High (3) tier.
-- Cards selected (Relic pre-confirm): Active (4) tier — the selected card elevates slightly to confirm selection.
+- Interactive action buttons: Active (4) tier on press.
 
 ### 11.6 Information Density
 
 - **Panels:** Medium density. All information shown is necessary.
-- **Cards:** Medium-high density in expanded view. Icon + title + 2-4 line description. Max 5 lines before truncation/scroll.
+- **Modals:** Medium density. Summary statistics + primary action buttons (Play Again, Home).
 
 ---
 
-## 12. Enemy Visual Hierarchy
+## 12. Mode HUD & Top Zone Hierarchy
 
-### 12.1 States
-
-| State | Visual Treatment |
+### 12.1 Mode 1: Classic Endless HUD
+| Component | Visual Treatment |
 |---|---|
-| **Normal** | Full-opacity portrait, idle pose. HP bar full or mid-fill. Telegraph indicator shows next action. |
-| **Damaged** | Brief hit-reaction: portrait shifts slightly or flashes. HP bar decrements with animated fill. Returns to Normal after the reaction completes. |
-| **Dangerous** (Move Limit low, or board-threatening Telegraph) | Telegraph indicator uses a warning-register visual treatment (color + icon change). HP bar itself does not change. |
-| **Defeated** | A distinct defeat animation. Portrait changes to defeat pose or fades. HP bar shows zero fill. Visually unambiguous from a mere damage reaction. Transitions to Victory beat. |
+| **Score Anchor** | Primary center/top anchor. Tabular numerals in Numeric-Large weight. Smooth ticker interpolation on point additions. |
+| **High Score Trophy** | Compact pill adjacent to score. Displays all-time local record. Glows with gold shimmer when current score exceeds record. |
+| **Streak Multiplier Badge** | Dynamic capsule pill beneath score. Scales in size and pitch tier: `1.0x` (neutral) → `1.5x` (amber) → `2.0x` (orange) → `2.5x` (radiant gold). |
+| **Pause Button** | Clean circular icon at top-right corner. Unobtrusive 24×24dp touch target. |
 
-### 12.2 What Enemy Visuals Must NOT Do
-
-- Must NOT animate reactively to the player's drag position (enforced by `06` Section 9).
-- Must NOT display a Player HP equivalent.
-- Must NOT be so visually complex that it competes with the board at normal viewing distance.
-- Must NOT use a visual state not defined in this section at Absolute MVP.
+### 12.2 Mode 2: Goal-Driven Stage HUD
+| Component | Visual Treatment |
+|---|---|
+| **Objective Chips** | Displays target requirements (e.g., "Clear 15 Blue blocks", "Clear 8 Rows"). Clean color icon + remaining quota count. Chips pulse green upon completion. |
+| **Move Limit Counter** | Capsule badge displaying remaining moves. Transitions: Normal (>5 moves) → Warning (3-5 moves, amber) → Danger (1-2 moves, red pulse). |
+| **Target Score Bar** | Horizontal segmented progress bar filling toward 1-, 2-, or 3-star score thresholds. |
 
 ---
 
@@ -548,28 +536,28 @@ Top Zone panel internal hierarchy (top to bottom):
 
 **Triggers:** Any placement resulting in L=1 (one line cleared).
 
-**Visual treatment:** Cleared cells flash briefly before collapsing. Cells above/below collapse with smooth fill animation. Damage number pops at the Feedback Zone edge (near the cleared line, not centered on the board). Enemy HP bar decrements. No full-screen effect.
+**Visual treatment:** Cleared cells flash briefly before collapsing. Smooth collapse animation. Floating score popup (+100, STREAK x1.5!) rises from the cleared line. No full-screen effect.
 
-**Duration:** <= 400ms total for clear + collapse + damage number appearance. Damage number may persist up to 600ms before fading.
+**Duration:** <= 400ms total for clear + collapse + floating score appearance. Score popup floats upward and fades over 600ms.
 
-### Tier 4 — Combo / Multi-Clear (Rewarding)
+### Tier 4 — Multi-Line Clear & High Streak (Rewarding)
 
-**Triggers:** Any placement resulting in L=2, L=3, or L=4 (Full Combo).
+**Triggers:** Multi-line clear ($L \ge 2$) or Streak $\ge 2.0\times$.
 
-**Visual treatment:** All Tier 3 elements apply, escalated. Multiple lines flash simultaneously. Damage number is larger (1.2x, 1.5x, or 2.0x base size per Section 6.4). A brief peripheral screen effect (screen edges only — never center-of-board) for L=3 or L=4. For L=4: brief full-edge flash + distinctly heavier haptic pattern.
+**Visual treatment:** All Tier 3 elements apply, escalated. Multiple lines flash simultaneously. Floating score number is larger (1.2x to 2.0x base size). A brief peripheral screen-edge glow for $L \ge 3$. For $L=4$ (Quad Clear): full-edge radiant flash + distinct heavy haptic pulse.
 
-**Duration:** <= 800ms total. L=4 may extend to 1000ms. Player input is never blocked.
+---
 
-### Tier 5 — Major Combat / Boss Event (Spectacular)
+### Tier 5 — Major Milestone / Full Board Clear (Spectacular)
 
-**Triggers:** Enemy defeat, Boss phase transition, Run-ending Board Lock.
+**Triggers:** Full Board Wipe (all 64 cells emptied), Stage Goal Complete (Mode 2), All-Time High Score record broken, or Board Lock Game Over.
 
 **Visual treatment:**
-- Enemy defeat: Full distinct defeat animation. Brief full-screen flash in a positive register color. Transition to Victory screen.
-- Boss phase transition: Brief pacing pause — HP bar segmented marker advances, screen offset equivalent plays, Telegraph resets visibly.
-- Board Lock: Slow, calm highlight sweeps all unplaceable cells. Tone is resignation, not explosion. Transition to Defeat screen.
+- Full Board Clear (Wipe): Board perimeter bursts with radial particle sparks (`CLR-SEM-SUCCESS`), "+500 BOARD CLEAR!" banner cascades across the grid with golden bloom, and major arpeggio chime plays.
+- Stage Goal Complete (Mode 2): Remaining moves convert into bonus point bursts, board transitions to celebratory star reveal modal.
+- Board Lock (Game Over): Slow, calm highlight sweeps all unplaceable cells. Tone is clear and clean resignation, not chaotic explosion. Transition to Game Over dialog.
 
-**Duration:** Defeat/Victory beat: 600-1200ms. Board Lock sweep: 800-1500ms.
+**Duration:** Board Wipe / Goal Complete celebration: 600-1200ms. Board Lock sweep: 800-1500ms.
 
 **BINDING RULE:** Tier 5 events may only occur at the moments defined above. Using Tier 5 treatment for anything else dilutes impact.
 
@@ -615,8 +603,7 @@ Backgrounds may use:
 |---|---|
 | **Environmental flavor accents** | Small, low-opacity illustrative elements in the far background. Must not overlap any Priority 1-4 element at any screen size. |
 | **Board surface texture** | Extremely subtle grid texture below the cells. Must not reduce cell readability. Must not look like a placed block. |
-| **Enemy portrait illustration** | The enemy character art carries the most decoration budget in the game. |
-| **Relic card illustration** | Each relic card's icon/illustration is a primary decorative investment. |
+| **Block Materials & Shaders** | Procedural block textures, specular reflections, and bevel highlights carry primary visual polish. |\n| **Celebration Fanfares** | High-score record badges, star reveals, and board wipe fireworks carry major decorative visual budget. |
 | **UI micro-detail** | Subtle corner accents, hairline separators, icon micro-fills. Never animated at Absolute MVP. |
 
 ### 15.2 What Decoration Is Forbidden
@@ -633,12 +620,12 @@ Backgrounds may use:
 
 ### 16.1 Theme Structure
 
-Every battle environment is defined by **four visual parameters**:
+Every game environment is defined by **four visual parameters**:
 
 | Parameter | Definition |
 |---|---|
 | **Background color register** | A base hue/value for the background plane. |
-| **Accent color** | A theme-specific highlight color used in environmental accents and the enemy's primary color. |
+| **Accent color** | A theme-specific highlight color used in environmental accents and UI highlights. |
 | **Board surface tint** | A very slight tint on the board surface. Near-imperceptible alone; creates cohesion with the environment. |
 | **Ambient shape family** | The optional micro-pattern associated with this theme. |
 
@@ -649,12 +636,12 @@ Every battle environment is defined by **four visual parameters**:
 | **Field / Default** | Warm neutral (earthy mid-tone) | Warm amber/gold | Tutorial and early-run encounters. |
 | **Cave / Stone** | Cool dark neutral (slate/charcoal) | Muted teal/green | Mid-run standard encounters, Stone Golem archetype. |
 | **Frost / Ice** | Very cool desaturated light | Pale blue-white | Dependent on FROZEN mechanic activation; may be MVP+ content. |
-| **Boss Arena** | High-contrast dark neutral | Saturated accent (specific to Boss archetype) | Used only for Boss encounters. |
+| **Goal Challenge Arena** | High-contrast dark neutral | Crisp jewel accent | Used for Mode 2 objective stages. |
 
 ### 16.3 Theme Rules
 
 - A theme defines **only the four parameters above** — no new UI chrome, board geometry, or HUD layouts.
-- Theme changes between battles are communicated by the Battle Start sequence.
+- Theme changes between environments are communicated by the transition sequence.
 - A future theme can be added by populating the four parameters above — no new code or art systems required.
 
 ---
@@ -717,7 +704,7 @@ All cast shadows fall to the **bottom-right** (X +2dp, Y +3dp at Mid elevation, 
 - **Placed blocks:** Opaque and matte. Low specularity, soft light catch.
 - **Ghost Preview:** Semi-transparent, no highlight. Ghosts have no material.
 - **Blocked cells:** Dull and desaturated. Communicates "inert."
-- Enemy character art is allowed its own material language, but must not conflict with the block language.
+- All UI elements maintain a unified, premium tactile material language matching the blocks.
 
 ---
 
@@ -742,30 +729,29 @@ All cast shadows fall to the **bottom-right** (X +2dp, Y +3dp at Mid elevation, 
 | Show the Ghost Preview at reduced opacity with a non-color validity cue. | Make the Ghost Preview the same opacity as a real piece, or omit the validity state. |
 | Return a piece to its tray slot with a smooth brief animation on invalid placement. | Leave a piece stranded at the invalid position, or return it with no animation. |
 
-### 19.3 Enemy and Objectives
-
-| DO | DONT |
+### 19.3 HUD and Mode Objectives
+| Do | Don't |
 |---|---|
-| Show the enemy HP bar as the largest, most prominent element in the Top Zone. | Let the enemy portrait dominate the Top Zone at the HP bar's expense. |
-| Always show the Telegraph indicator at the same prominence as the HP bar. | Hide, collapse, or de-emphasize the Telegraph. |
-| Show Objective progress as a live fraction updating per `07` Section 12's timing. | Batch-update Objective progress at Turn end. |
+| In Mode 1, make the current Score and Streak badge instantly legible at a glance. | Let secondary stats crowd the board space. |
+| In Mode 2, display clear objective chips with unmistakable color/icon bindings. | Ambiguously present goal requirements or hide the remaining move count. |
+| Show move limit warning treatment prominently when remaining moves drop <= 5. | Let players run out of moves without prior visual tension and warning cues. |
 
 ### 19.4 Feedback
 
 | DO | DONT |
 |---|---|
-| Scale damage numbers with the magnitude of the combo (Section 6.4). | Show the same-sized damage number for a 1-line clear and a 4-line Full Combo. |
+| Scale floating score popups with the magnitude of the line clear and streak. | Show uniform-sized points regardless of combo or multi-line magnitude. |
 | Make line-clear feedback clearly distinct from piece-placement feedback. | Use the same animation or sound for Tier 2 and Tier 3 events. |
 | Keep all feedback within the Feedback Zone or the affected board area. | Flash the entire screen for a single-line clear (reserve full-screen effects for Tier 5 only). |
-| Let Board Feedback and Combat Feedback play concurrently (per `06` Section 12). | Wait for Board Feedback to fully complete before starting Combat Feedback. |
+| Let Board clear animations and floating score popups resolve concurrently. | Force rigid sequential blocking waits between line collapse and score display. |
 
 ### 19.5 Typography
 
 | DO | DONT |
 |---|---|
-| Use tabular numerals for all live-updating numbers. | Use proportional numerals for HP, score, or objective counts. |
+| Use tabular numerals for all live-updating numbers. | Use proportional numerals for score, moves, or objective counts. |
 | Weight hierarchy: heavier = more important. | Use bold for decoration or emphasis unrelated to information priority. |
-| Scale damage number to display weight with combo magnitude. | Use the same weight for a damage number and a body-copy description. |
+| Scale floating score numbers to display weight with clear magnitude. | Use the same weight for floating points and secondary body copy. |
 
 ### 19.6 Spacing and Layout
 
@@ -781,7 +767,7 @@ All cast shadows fall to the **bottom-right** (X +2dp, Y +3dp at Mid elevation, 
 |---|---|
 | Reserve saturated/high-contrast colors for feedback and interactive elements. | Apply saturated colors to decorative or background elements. |
 | Pair every color cue with a non-color cue (icon, pattern, shape). | Use color as the sole carrier of critical information. |
-| Use the current theme's accent color only for environmental accents. | Apply the accent color to primary board cells, HP bars, or objective progress. |
+| Use the current theme's accent color for environmental and UI highlights. | Apply random clashing accent colors to core board cells. |
 
 ---
 
@@ -795,7 +781,7 @@ All assets follow this naming schema:
 [category]_[element]_[variant]_[state]@[scale].[format]
 ```
 
-**Categories:** `board`, `piece`, `ui`, `enemy`, `relic`, `bg`, `fx`, `font`
+**Categories:** `board`, `piece`, `ui`, `goal`, `bg`, `fx`, `font`
 
 **Examples:**
 ```
@@ -816,8 +802,7 @@ bg_field_base@2x.png
 |---|---|---|
 | UI elements (buttons, panels, icons) | @1x, @2x, @3x | Cover standard, retina, and high-density mobile displays. |
 | Board and piece blocks | @2x minimum, @3x for flagship devices | Piece blocks are the most-seen element; never appear blurry. |
-| Enemy portraits | @2x minimum | Constrained to Top Zone; @3x optional. |
-| Relic card art | @2x, @3x | Shown in a modal moment; quality matters for retention. |
+| Goal & Objective icons | @2x minimum | Crisp SVGs or high-res vectors; legible at 24dp. |\n| UI Badges & Trophies | @2x, @3x | Premium high-DPI renders for celebration modals. |
 | Background layers | @1x + @2x | Backgrounds are not detail elements. |
 | Icons | SVG preferred; PNG @2x and @3x fallback | SVG scales without multiple exports. |
 
@@ -845,8 +830,7 @@ bg_field_base@2x.png
 ### 20.6 Consistency Requirements
 
 - All piece blocks of the same fill state must look identical in depth treatment, regardless of piece shape.
-- All enemy portraits must share the same art style (owned by the Character Art doc).
-- All relic card icons must share visual weight — heavier-looking icons create false rarity signaling.
+- All goal icons must share the same visual weight and geometric styling.\n- UI trophy and medal assets must share consistent lighting angle and metallic luster.
 - No asset may be shipped at a different style level than its neighboring assets.
 
 ---
@@ -855,10 +839,10 @@ bg_field_base@2x.png
 
 ### 21.1 Hierarchy
 
-- [ ] The board occupies the largest visual footprint on the Battle screen.
+- [ ] The board occupies the largest visual footprint on the gameplay screen.
 - [ ] No Priority 5 (decorative) element is larger or more visually prominent than any Priority 1-2 element on the same screen.
-- [ ] The enemy HP bar is clearly the most prominent element in the Top Zone.
-- [ ] The Primary Objective is visible without any tap or scroll from the moment a Battle begins.
+- [ ] The Score / Goal progress indicator is clearly the primary anchor element in the Top Zone.
+- [ ] The Primary Objective is visible without any tap or scroll from the moment a Stage begins.
 - [ ] No Player Health element appears anywhere on any screen.
 
 ### 21.2 Readability
@@ -882,8 +866,7 @@ bg_field_base@2x.png
 - [ ] Tier 2 (placement with no clear) is visually lower-intensity than Tier 3 (line clear).
 - [ ] Tier 3 (single line clear) is visually lower-intensity than Tier 4 (multi-line combo).
 - [ ] A Tier 5 visual effect never plays for a non-Tier-5 event.
-- [ ] No Combat-layer visual fires before a Commit event during a drag.
-- [ ] Damage number position does not overlap the active placement area during ACTIVE input.
+- [ ] No score popup or streak visual fires before a Commit event during drag.\n- [ ] Floating score numbers float upward away from the active drag area.
 
 ### 21.5 Consistency
 
@@ -923,11 +906,11 @@ bg_field_base@2x.png
 |---|---|
 | **Color System doc** (future) | Section 1 visual identity keywords and anti-keywords; Section 3.6 lighting philosophy; Section 9 depth/shadow color language; Section 13 feedback tier color registers; Section 16 theme accent color families. The Color System doc owns exact values — this document owns the usage rules those values must serve. |
 | **Block / Piece Art doc** (future) | Section 3.1 shape language (M corner radius for blocks); Section 3.6 lighting philosophy (top-left, soft); Section 9 elevation tiers (Mid/2 for placed, Active/4 for dragged); Section 18 material consistency (matte, no specular); Section 20 production standards. |
-| **Animation doc** (future) | Section 13 feedback tier definitions; Section 11 Battle Start sequence timing; Section 12 Victory beat structure; Section 3.4 softness/sharpness; Section 17 responsive layout. |
+| **Animation doc** (future) | Section 13 feedback tier definitions; Section 11 Session Start sequence timing; Section 12 Stage Clear beat structure; Section 3.4 softness/sharpness; Section 17 responsive layout. |
 | **VFX doc** (future) | Section 13 feedback tiers (Tier 4 peripheral screen effect, Tier 5 full-screen flash); Section 14.2 background animation restrictions; Section 15 decoration prohibitions; Section 20.1 asset naming for fx_ category. |
-| **Audio doc** (future) | Section 13 feedback tiers (audio intensity must match visual intensity per tier); Section 6.4 damage number magnitude scaling; Section 1.2 mood table. |
+| **Audio doc (14)** | Section 13 feedback tiers (audio chimes match visual intensity per tier); score escalation chords; Section 1.2 mood table. |
 | **Content / Copy doc** (future) | Section 6 typography philosophy (plain language, short lines); Section 11.6 information density (card body max line count); Section 9 objective communication (names must fit within chip/label treatments). |
-| **Character Art / Enemy doc** (future) | Section 12 enemy visual hierarchy (four states defined); Section 3.6 lighting philosophy; Section 15 decoration budget. |
+| **Level Design doc (07)** | Mode 2 objective chips, goal requirements, and move limit visual contracts. |
 | **Accessibility / Settings doc** (future) | Section 21.6 accessibility requirements; Section 6.3 readability minimums; Section 17.2 responsive rules for small devices. |
 
 ---
